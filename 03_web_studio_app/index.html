@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KAI Studio v3.0 — Estética Tōkon & Motor Manga RD</title>
+  <title>KAI Studio v3.1 — Motor IA en Vivo, Lienzo Vectorial & Pre-Prensa RD</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="../02_kai_engine/kai_client.js"></script>
   <style>
     :root {
       --paper: #FAF8F5;
@@ -33,15 +34,37 @@
       transform: translate(2px, 2px);
       box-shadow: 1px 1px 0px var(--ink);
     }
-    .screentone {
-      background-image: radial-gradient(#09090B 1px, transparent 1px);
-      background-size: 6px 6px;
+    .manga-img {
+      filter: grayscale(100%) contrast(145%);
+    }
+    /* REGLAS DE EXPORTACIÓN REAL A PDF DE IMPRENTA (12.7 x 19 cm) */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+      }
+      header, aside, .no-print {
+        display: none !important;
+      }
+      #view-studio {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      #printable-manga-page {
+        width: 127mm !important;
+        height: 190mm !important;
+        max-width: none !important;
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        border: 1mm solid #000 !important;
+        page-break-inside: avoid;
+      }
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- TOP BAR: NAVEGACIÓN + CHECKLIST 5 HITOS + CRÉDITOS DE TINTA -->
+  <!-- TOP BAR: NAVEGACIÓN + CHECKLIST 5 HITOS + CRÉDITOS DE TINTA + API KEY -->
   <header class="bg-white border-b-4 border-zinc-950 px-6 py-3 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-3">
@@ -49,15 +72,15 @@
           魁
         </div>
         <div>
-          <span class="font-black text-lg tracking-tight">KAI STUDIO <span class="text-xs bg-yellow-300 border border-zinc-950 px-1.5 py-0.5 ml-1">v3.0 TŌKON</span></span>
-          <p class="text-xs text-zinc-600 font-medium">Motor DiffSensei + StoryDiffusion · Imprenta RD</p>
+          <span class="font-black text-lg tracking-tight">KAI STUDIO <span class="text-xs bg-yellow-300 border border-zinc-950 px-1.5 py-0.5 ml-1">v3.1 LIVE</span></span>
+          <p class="text-xs text-zinc-600 font-medium">Motor IA en Vivo · Persistencia Local · Pre-Prensa RD</p>
         </div>
       </div>
 
       <!-- SELECTOR DE VISTAS -->
       <nav class="flex gap-2">
         <button onclick="switchView('home')" id="tab-home" class="tokon-btn px-3.5 py-1.5 text-xs font-black uppercase bg-yellow-300">
-          1. Inicio & Planes
+          1. Inicio & Estantería
         </button>
         <button onclick="switchView('studio')" id="tab-studio" class="tokon-btn px-3.5 py-1.5 text-xs font-black uppercase bg-white">
           2. Lienzo & KAI Sensei
@@ -67,13 +90,16 @@
         </button>
       </nav>
 
-      <!-- CONTADOR DE GOTAS DE TINTA & TRIAL -->
-      <div class="flex items-center gap-3">
-        <div class="bg-zinc-950 text-white px-3 py-1.5 text-xs font-bold flex items-center gap-2 border-2 border-zinc-950">
+      <!-- CONTADOR DE GOTAS DE TINTA + TRIAL MODAL + GEMINI API CONFIG -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleModal('modal-api')" id="api-status-btn" class="tokon-btn bg-zinc-100 px-2.5 py-1.5 text-xs font-bold">
+          🔑 Configurar Gemini API
+        </button>
+        <button onclick="toggleModal('modal-trial')" class="bg-zinc-950 text-white px-3 py-1.5 text-xs font-bold flex items-center gap-2 border-2 border-zinc-950 hover:bg-zinc-800">
           <span class="text-yellow-300">💧 Tinta:</span>
           <span id="ink-counter">40 / 40</span>
-          <span class="text-[10px] bg-rose-600 px-1.5 py-0.5 rounded">TRIAL 72H</span>
-        </div>
+          <span id="plan-badge" class="text-[10px] bg-rose-600 px-1.5 py-0.5 rounded">TRIAL $2.99</span>
+        </button>
       </div>
     </div>
 
@@ -91,19 +117,18 @@
     </div>
   </header>
 
-  <!-- ==================== VISTA 1: HOME, ONBOARDING 90S & PLANES ==================== -->
+  <!-- ==================== VISTA 1: HOME, ONBOARDING 90S & ESTANTERÍA ==================== -->
   <main id="view-home" class="max-w-7xl mx-auto w-full p-6 space-y-8">
-    <!-- HERO: DOPAMINA EN 90 SEGUNDOS -->
     <section class="tokon-card p-6 md:p-8 grid md:grid-cols-12 gap-6 items-center">
       <div class="md:col-span-7 space-y-4">
         <div class="inline-block bg-rose-600 text-white text-xs font-black px-2.5 py-1 uppercase border border-zinc-950">
-          Flujo Visual-First · Sin saber dibujar
+          Motor IA Activo · De tu Idea a Viñetas B/N en 90 Segundos
         </div>
         <h1 class="text-3xl md:text-4xl font-black uppercase leading-none">
-          De 1 Frase a tu Tomo Impreso en <span class="underline decoration-rose-600">Santo Domingo</span>.
+          Escribe tu Historia y Genera tu <span class="underline decoration-rose-600">Manga Impreso</span>.
         </h1>
         <p class="text-sm text-zinc-700">
-          Elige a qué público va dirigida tu obra, escribe tu idea en una línea y deja que <strong>KAI (tu Editor Ninja)</strong> genere tu Protagonista + la Viñeta #1 en menos de 90 segundos.
+          Elige el enfoque editorial, escribe tu premisa abajo y <strong>KAI v3.1</strong> diseñará la semilla del protagonista + las 4 viñetas ilustradas de tu primera página en vivo.
         </p>
 
         <!-- SELECTOR DE PÚBLICO / ENFOQUE -->
@@ -112,7 +137,7 @@
             <div class="font-black text-xs">⚡ Shonen / Acción</div>
             <div class="text-[10px] text-zinc-700">Batallas y poderes</div>
           </button>
-          <button onclick="selectAudience(this, 'Cultura / Historia RD')" class="aud-btn tokon-btn p-2 text-left bg-white">
+          <button onclick="selectAudience(this, 'Cultura / Taíno RD')" class="aud-btn tokon-btn p-2 text-left bg-white">
             <div class="font-black text-xs">🗿 Taíno / Histórico</div>
             <div class="text-[10px] text-zinc-700">Colegios y cultura</div>
           </button>
@@ -126,11 +151,11 @@
           </button>
         </div>
 
-        <!-- INPUT RÁPIDO -->
+        <!-- INPUT RÁPIDO CON GENERACIÓN EN VIVO -->
         <div class="flex flex-col sm:flex-row gap-2 pt-2">
           <input id="quick-idea" type="text" value="Cacica Anacaona despierta poderes ancestrales de Zemí para defender Jaragua." class="flex-1 border-2 border-zinc-950 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-rose-600" />
-          <button onclick="launchFastOnboarding()" class="tokon-btn bg-rose-600 text-white font-black px-5 py-2.5 text-xs uppercase shrink-0">
-            Generar Personaje + Viñeta 1 →
+          <button id="btn-generate-onboarding" onclick="launchFastOnboarding()" class="tokon-btn bg-rose-600 text-white font-black px-5 py-2.5 text-xs uppercase shrink-0">
+            ⚡ Crear Manga con KAI (-4 Tinta) →
           </button>
         </div>
       </div>
@@ -138,7 +163,7 @@
       <!-- TARJETA TRIAL 3 DÍAS ($2.99) -->
       <div class="md:col-span-5 bg-zinc-950 text-white p-5 border-2 border-zinc-950 space-y-3">
         <div class="flex justify-between items-center">
-          <span class="bg-yellow-300 text-zinc-950 text-[10px] font-black px-2 py-0.5 uppercase">Oferta de Entrada Blindada</span>
+          <span class="bg-yellow-300 text-zinc-950 text-[10px] font-black px-2 py-0.5 uppercase">Unit Economics Blindados</span>
           <span class="text-xs text-zinc-400">Cancela en 1 clic</span>
         </div>
         <h3 class="text-xl font-black">PASE DE ESTUDIO 72 HORAS</h3>
@@ -149,13 +174,22 @@
         <ul class="text-xs space-y-1.5 text-zinc-200">
           <li>✔ <strong>40 Gotas de Tinta</strong> incluidas (1 capítulo de 8–10 págs).</li>
           <li>✔ Consistencia facial con <strong>StoryDiffusion + PuLID</strong>.</li>
-          <li>✔ Exportación PDF de alta resolución sin marca de agua.</li>
-          <li>✔ Descuento directo en impresión física en RD.</li>
+          <li>✔ Exportación PDF 300 DPI sin marca de agua.</li>
+          <li>✔ 15% de descuento en impresión física en RD.</li>
         </ul>
-        <button onclick="switchView('studio')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-2 text-xs uppercase border border-white">
-          Probar Lienzo Interactivo Ahora
+        <button onclick="toggleModal('modal-trial')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-2 text-xs uppercase border border-white">
+          Activar Trial de 3 Días / Recargar Tinta
         </button>
       </div>
+    </section>
+
+    <!-- ESTANTERÍA DE PROYECTOS GUARDADOS EN LOCALSTORAGE -->
+    <section class="space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-base font-black uppercase">📚 Mi Estantería de Proyectos Guardados (LocalStorage)</h2>
+        <span class="text-xs text-zinc-600">Se guardan automáticamente en tu navegador</span>
+      </div>
+      <div id="projects-shelf" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
     </section>
   </main>
 
@@ -163,28 +197,21 @@
   <main id="view-studio" class="max-w-7xl mx-auto w-full p-6 hidden">
     <div class="grid lg:grid-cols-12 gap-6 items-start">
 
-      <!-- COLUMNA IZQUIERDA (4 COLS): AVATAR KAI NINJA KAWAII + CONROLES -->
-      <aside class="lg:col-span-4 tokon-card p-4 space-y-4">
-        <!-- CABECERA DEL AVATAR PERSONALIZABLE -->
+      <!-- COLUMNA IZQUIERDA (4 COLS): AVATAR KAI NINJA KAWAII + CONTROLES -->
+      <aside class="lg:col-span-4 tokon-card p-4 space-y-4 no-print">
         <div class="flex items-center gap-3 pb-3 border-b-2 border-zinc-950">
-          <!-- SVG AVATAR NINJA KAWAII (SOLO CABEZA REDONDA CON MÁSCARA) -->
           <div id="ninja-avatar-box" class="w-16 h-16 rounded-full border-2 border-zinc-950 bg-zinc-900 flex items-center justify-center shrink-0 relative shadow-[3px_3px_0px_#E11D48]">
             <svg viewBox="0 0 100 100" class="w-14 h-14">
-              <!-- Cabeza Capucha Ninja -->
               <circle cx="50" cy="50" r="44" fill="#09090B" />
-              <!-- Cinta / Bandana -->
               <path id="ninja-bandana" d="M10 34 Q50 26 90 34 L90 44 Q50 36 10 44 Z" fill="#E11D48" />
               <circle cx="50" cy="37" r="4" fill="#FACC15" />
-              <!-- Área de los Ojos -->
               <rect x="20" y="42" width="60" height="20" rx="10" fill="#FDE68A" />
-              <!-- Ojos Expresivos (Cambian según modo) -->
               <g id="ninja-eyes">
                 <circle cx="36" cy="52" r="5" fill="#09090B" />
                 <circle cx="34" cy="50" r="1.8" fill="#FFFFFF" />
                 <circle cx="64" cy="52" r="5" fill="#09090B" />
                 <circle cx="62" cy="50" r="1.8" fill="#FFFFFF" />
               </g>
-              <!-- Máscara Ninja Inferior -->
               <path d="M12 58 Q50 50 88 58 C84 82 68 94 50 94 C32 94 16 82 12 58 Z" fill="#18181B" stroke="#3F3F46" stroke-width="2" />
             </svg>
           </div>
@@ -192,7 +219,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-1">
               <input id="assistant-name" value="KAI Sensei" class="font-black text-base border-b border-dashed border-zinc-400 focus:outline-none w-28" />
-              <span class="text-[10px] bg-yellow-300 border border-zinc-950 px-1 font-bold">IA</span>
+              <span class="text-[10px] bg-yellow-300 border border-zinc-950 px-1 font-bold">v3.1</span>
             </div>
             <div class="flex gap-1 mt-1.5">
               <button onclick="setNinjaMood('kawaii')" class="text-[10px] border border-zinc-950 px-1.5 py-0.5 bg-zinc-100 font-bold">😊 Kawaii</button>
@@ -202,7 +229,6 @@
           </div>
         </div>
 
-        <!-- SELECTOR DE TONO: 90/10 CRIOLLO VS NEUTRO -->
         <div class="flex items-center justify-between text-xs bg-zinc-100 p-2 border border-zinc-950">
           <span class="font-bold">Tono del Asistente:</span>
           <select id="tone-selector" onchange="updateAssistantTone()" class="bg-white border border-zinc-950 px-2 py-0.5 font-bold text-xs">
@@ -214,17 +240,17 @@
         <!-- MENSAJE ACTIVO DE KAI + 3 OPCIONES RÁPIDAS -->
         <div id="kai-chat-bubble" class="p-3 bg-yellow-50 border-2 border-zinc-950 text-xs space-y-2">
           <p id="kai-message" class="font-medium leading-relaxed">
-            <strong>KAI:</strong> "¡Ese concepto tiene demasiado aura, manito! Ya bloqueé la semilla visual en el <em>Character Vault</em> y monté la Página 1. Haz clic en cualquier globo de texto del lienzo blanco para editar el diálogo o elige cómo seguimos en el Panel 4:"
+            <strong>KAI:</strong> "¡Ese concepto tiene demasiado aura, manito! Ya bloqueé la semilla visual en el <em>Character Vault</em> y generé las 4 viñetas en blanco y negro. Haz clic en cualquier globo para editar el texto o elige el giro del Panel 4:"
           </p>
           <div class="space-y-1 pt-1">
-            <button onclick="applyOption('A')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
-              🅰️ Opción A (Acción): Desenvainar arma ancestral con rayos en contrapicado.
+            <button id="opt-btn-A" onclick="applyOption('A')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
+              🅰️ Opción A: Desenvainar arma ancestral con rayos en contrapicado.
             </button>
-            <button onclick="applyOption('B')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
-              🅱️ Opción B (Misterio): Primer plano a los ojos reflejando al enemigo.
+            <button id="opt-btn-B" onclick="applyOption('B')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
+              🅱️ Opción B: Primerísimo plano a los ojos reflejando al enemigo.
             </button>
-            <button onclick="applyOption('C')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
-              🅲 Opción C (Lore): Flashback rápido del amuleto taíno antes del choque.
+            <button id="opt-btn-C" onclick="applyOption('C')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
+              🅲 Opción C: Revelación del petroglifo ancestral antes del choque.
             </button>
           </div>
         </div>
@@ -235,57 +261,75 @@
             <span class="text-xs font-black uppercase">🔒 Character Vault (PuLID)</span>
             <span class="text-[10px] bg-emerald-100 text-emerald-900 border border-emerald-800 px-1.5 font-bold">CONSISTENCIA ACTIVA</span>
           </div>
-          <div class="text-[11px] bg-zinc-50 p-2 border border-zinc-300 font-mono">
+          <div id="vault-traits-box" class="text-[11px] bg-zinc-50 p-2 border border-zinc-300 font-mono">
             ID: char_01 · Peso IP-Adapter: 0.82<br/>
-            Traits: Taino warrior princess / cyber cacique, golden Guanin medallion, braided dark hair, high-contrast ink.
+            Traits: Taino warrior princess, golden Guanin medallion, braided dark hair, high-contrast black ink.
           </div>
         </div>
+
+        <!-- VISOR DE PAYLOAD JSON REAL -->
+        <details class="border border-zinc-950 bg-zinc-900 text-emerald-400 p-2 text-[10px] font-mono">
+          <summary class="cursor-pointer font-bold text-white">Ver Payload JSON de Capas (KAI v3.1)</summary>
+          <pre id="json-payload-viewer" class="mt-2 overflow-x-auto whitespace-pre-wrap max-h-40"></pre>
+        </details>
       </aside>
 
       <!-- COLUMNA CENTRAL/DERECHA (8 COLS): LIENZO VECTORIAL DE PÁGINA (TANKOBON 12.7x19cm) -->
       <section class="lg:col-span-8 tokon-card p-6 flex flex-col items-center">
-        <div class="w-full flex flex-wrap justify-between items-center mb-4 gap-2">
+        <div class="w-full flex flex-wrap justify-between items-center mb-4 gap-2 no-print">
           <div>
-            <h2 class="font-black text-sm uppercase">LIENZO DE PÁGINA 01 · FORMATO 12.7 × 19.0 CM (+3MM SANGRADO)</h2>
-            <p class="text-xs text-zinc-500">Haz clic directo sobre cualquier bocadillo para editar el texto vectorial sin dañar el dibujo.</p>
+            <h2 id="studio-project-title" class="font-black text-sm uppercase">ANACAONA: EL DESPERTAR · PÁGINA 01 (12.7 × 19.0 CM)</h2>
+            <p class="text-xs text-zinc-500">Ilustraciones B/N separadas de la capa vectorial de globos. Edita cualquier texto con 1 clic.</p>
           </div>
-          <button onclick="spendInkAndRegenerate()" class="tokon-btn bg-zinc-950 text-yellow-300 px-3 py-1.5 text-xs font-black uppercase">
-            ⚡ Regenerar Viñetas (-4 Tinta)
-          </button>
+          <div class="flex gap-2">
+            <button onclick="spendInkAndRegenerate()" class="tokon-btn bg-zinc-950 text-yellow-300 px-3 py-1.5 text-xs font-black uppercase">
+              🎨 Redibujar Arte IA (-4 Tinta)
+            </button>
+            <button onclick="window.print()" class="tokon-btn bg-rose-600 text-white px-3 py-1.5 text-xs font-black uppercase">
+              🖨️ Exportar PDF Imprenta (300 DPI)
+            </button>
+          </div>
         </div>
 
-        <!-- PÁGINA DE MANGA (4 VIÑETAS CON CAPA VECTORIAL EDITABLE) -->
-        <div class="w-full max-w-[460px] aspect-[127/190] bg-white border-4 border-zinc-950 p-3 grid grid-rows-12 gap-2.5 relative shadow-lg">
-          <!-- VIÑETA 1: ESTABLECEDORA -->
-          <div class="row-span-4 border-[2.5px] border-zinc-950 screentone relative overflow-hidden flex items-center justify-center bg-zinc-100">
-            <span class="text-[11px] font-black uppercase bg-white/90 px-2 py-0.5 border border-zinc-950">Viñeta 1 · Plano General Establecedor</span>
-            <div contenteditable="true" class="absolute top-2 left-2 bg-white border-2 border-zinc-950 px-2.5 py-1 text-[11px] font-bold max-w-[75%] shadow-[2px_2px_0px_#09090B]">
+        <!-- PÁGINA DE MANGA IMPRIMIBLE (4 VIÑETAS CON ARTE IA EN B/N + GLOBOS VECTORIALES) -->
+        <div id="printable-manga-page" class="w-full max-w-[470px] aspect-[127/190] bg-white border-4 border-zinc-950 p-3 grid grid-rows-12 gap-2.5 relative shadow-lg">
+          <!-- VIÑETA 1 -->
+          <div class="row-span-4 border-[2.5px] border-zinc-950 relative overflow-hidden bg-zinc-100">
+            <img id="panel-img-1" alt="Panel 1" class="w-full h-full object-cover manga-img" />
+            <span id="panel-tag-1" class="no-print absolute bottom-1 right-1 text-[9px] font-black uppercase bg-white/90 px-1.5 py-0.5 border border-zinc-950">Ki · Wide Shot</span>
+            <div id="panel-dlg-1" contenteditable="true" class="absolute top-2 left-2 bg-white border-2 border-zinc-950 px-2.5 py-1 text-[11px] font-bold max-w-[78%] shadow-[2px_2px_0px_#09090B]">
               Cuando cae la noche sobre la isla, los antiguos Zemíes despiertan...
             </div>
           </div>
 
-          <!-- VIÑETAS 2 Y 3: MEDIO -->
+          <!-- VIÑETAS 2 Y 3 -->
           <div class="row-span-4 grid grid-cols-2 gap-2.5">
-            <div class="border-[2.5px] border-zinc-950 bg-zinc-900 text-white relative p-2 flex items-end">
-              <span class="text-[10px] font-mono text-zinc-300">Viñeta 2 · Amenaza en sombra</span>
-              <div class="absolute top-2 right-2 text-rose-500 font-black text-base rotate-[-8deg]">¡GRRR-ZAP!</div>
+            <div class="border-[2.5px] border-zinc-950 bg-zinc-900 relative overflow-hidden">
+              <img id="panel-img-2" alt="Panel 2" class="w-full h-full object-cover manga-img" />
+              <div id="panel-sfx-2" contenteditable="true" class="absolute top-1.5 right-2 text-rose-600 bg-white/90 px-1 border border-zinc-950 font-black text-xs rotate-[-8deg]">¡SHHHK!</div>
+              <div id="panel-dlg-2" contenteditable="true" class="absolute bottom-1.5 left-1.5 right-1.5 bg-white border-2 border-zinc-950 px-2 py-1 text-[10px] font-bold">
+                ¡Las sombras se mueven rápido!
+              </div>
             </div>
-            <div class="border-[2.5px] border-zinc-950 bg-white screentone relative p-2 flex items-center justify-center">
-              <span class="text-[10px] font-black bg-yellow-300 px-1.5 border border-zinc-950">Viñeta 3 · Close-Up Ojos (char_01)</span>
-              <div contenteditable="true" class="absolute bottom-2 right-2 bg-white border-2 border-zinc-950 rounded-full px-3 py-1 text-[11px] font-bold text-center">
+            <div class="border-[2.5px] border-zinc-950 bg-white relative overflow-hidden">
+              <img id="panel-img-3" alt="Panel 3" class="w-full h-full object-cover manga-img" />
+              <div id="panel-dlg-3" contenteditable="true" class="absolute bottom-2 right-2 left-2 bg-white border-2 border-zinc-950 rounded-2xl px-2.5 py-1 text-[10px] font-bold text-center shadow-[2px_2px_0px_#09090B]">
                 No daré ni un paso atrás.
               </div>
             </div>
           </div>
 
-          <!-- VIÑETA 4: CLÍMAX DE PÁGINA -->
-          <div id="panel-4-box" class="row-span-4 border-[3px] border-zinc-950 bg-white relative p-3 flex flex-col justify-between">
-            <div class="text-[11px] font-black uppercase text-rose-600" id="panel-4-desc">
-              Viñeta 4 (Clímax) · Contrapicado Dinámico con Líneas Cinéticas
+          <!-- VIÑETA 4: CLÍMAX -->
+          <div class="row-span-4 border-[3px] border-zinc-950 bg-white relative overflow-hidden flex flex-col justify-between p-2.5">
+            <img id="panel-img-4" alt="Panel 4" class="absolute inset-0 w-full h-full object-cover manga-img" />
+            <div class="relative z-10 flex justify-between items-start">
+              <span id="panel-4-desc" class="no-print text-[10px] font-black uppercase bg-yellow-300 px-1.5 py-0.5 border border-zinc-950">
+                Ketsu · Clímax Contrapicado
+              </span>
             </div>
-            <div class="flex justify-between items-end">
-              <span class="font-black text-2xl tracking-tighter text-zinc-950 rotate-[-6deg] bg-yellow-300 px-2 border-2 border-zinc-950">¡DOOOOM!</span>
-              <div contenteditable="true" id="panel-4-dialogue" class="bg-white border-2 border-zinc-950 px-3 py-1.5 text-xs font-black max-w-[65%] shadow-[3px_3px_0px_#09090B]">
+            <div class="relative z-10 flex justify-between items-end">
+              <span id="panel-sfx-4" contenteditable="true" class="font-black text-xl tracking-tighter text-zinc-950 rotate-[-6deg] bg-yellow-300 px-2 border-2 border-zinc-950">¡DOOOOM!</span>
+              <div contenteditable="true" id="panel-dlg-4" class="bg-white border-2 border-zinc-950 px-3 py-1.5 text-xs font-black max-w-[68%] shadow-[3px_3px_0px_#09090B]">
                 ¡Despierta, fuego de Guanín!
               </div>
             </div>
@@ -298,7 +342,6 @@
   <!-- ==================== VISTA 3: CUBIERTA COMPLETA + CALCULADORA LOMO RD ==================== -->
   <main id="view-print" class="max-w-7xl mx-auto w-full p-6 hidden space-y-6">
     <div class="grid lg:grid-cols-12 gap-6">
-      <!-- CONTROLES DE PRE-PRENSA Y CÁLCULO DE LOMO -->
       <section class="lg:col-span-5 tokon-card p-5 space-y-4">
         <h2 class="text-lg font-black uppercase border-b-2 border-zinc-950 pb-2">
           Motor de Cubierta + Pre-Prensa RD
@@ -314,23 +357,20 @@
           </div>
         </div>
 
-        <!-- DIAGNÓSTICO FÍSICO AUTOMÁTICO -->
         <div id="binding-alert" class="p-3 border-2 border-zinc-950 bg-emerald-50 text-xs space-y-1">
           <div class="font-black uppercase text-emerald-900" id="binding-type-title">✔ FORMATO TANKŌBON LOMO CUADRADO HABILITADO</div>
           <p id="binding-type-desc" class="text-zinc-700">
-            Con 64 páginas (32 hojas en papel ahuesado 90g), el lomo mide exactamente <strong>4.18 mm</strong>. Apto para encuadernación Rústica Fresada (Pegado Térmico).
+            Con 64 páginas (32 hojas en papel ahuesado 90g), el lomo mide exactamente <strong>4.18 mm</strong>. Apto para encuadernación Rústica Fresada.
           </p>
         </div>
 
-        <!-- DATOS DE PORTADA Y CONTRAPORTADA -->
         <div class="space-y-2 text-xs">
           <label class="font-bold block">Título en Portada y Lomo:</label>
-          <input id="cover-title-input" type="text" value="ANACAONA: SANGRE DE ZEMÍ" oninput="recalcSpine()" class="w-full border-2 border-zinc-950 px-2.5 py-1.5 font-black" />
+          <input id="cover-title-input" type="text" value="ANACAONA: EL DESPERTAR" oninput="recalcSpine()" class="w-full border-2 border-zinc-950 px-2.5 py-1.5 font-black" />
           <label class="font-bold block">Sinopsis Editorial (Contraportada):</label>
           <textarea id="cover-synopsis-input" rows="2" oninput="recalcSpine()" class="w-full border-2 border-zinc-950 p-2">En un Caribe ancestral reimaginado con energía espiritual, la cacica de Jaragua lidera la resistencia definitiva.</textarea>
         </div>
 
-        <!-- RESUMEN DE COSTO IMPRENTA RD -->
         <div class="bg-zinc-950 text-white p-4 space-y-2">
           <div class="flex justify-between text-xs">
             <span>Formato Físico (12.7 × 19 cm + Laminado Mate):</span>
@@ -340,7 +380,6 @@
         </div>
       </section>
 
-      <!-- PREVISUALIZADOR DE PLIEGO EXTENDIDO (PORTADA + LOMO + CONTRAPORTADA) -->
       <section class="lg:col-span-7 tokon-card p-6 flex flex-col items-center justify-center">
         <div class="w-full flex justify-between items-center mb-3">
           <span class="text-xs font-black uppercase">Pliego Extendido de Cubierta (Lectura Oriental RTL)</span>
@@ -349,13 +388,11 @@
           </span>
         </div>
 
-        <!-- SPREAD VISUAL: PORTADA (IZQ EN RTL) + LOMO CENTRAL + CONTRAPORTADA (DER) -->
         <div class="border-4 border-dashed border-rose-500 p-3 bg-rose-50/40 w-full flex items-stretch justify-center">
-          <!-- PORTADA (IZQUIERDA EN LECTURA JAPONESA) -->
           <div class="w-5/12 aspect-[127/190] bg-zinc-900 text-white border-2 border-zinc-950 p-4 flex flex-col justify-between relative">
             <span class="text-[9px] bg-rose-600 px-1.5 py-0.5 font-bold self-start">PORTADA FRONTAL (127mm)</span>
             <div class="my-auto text-center space-y-1">
-              <div id="preview-cover-title" class="font-black text-lg leading-tight text-yellow-300 uppercase">ANACAONA: SANGRE DE ZEMÍ</div>
+              <div id="preview-cover-title" class="font-black text-lg leading-tight text-yellow-300 uppercase">ANACAONA: EL DESPERTAR</div>
               <div class="text-[10px] text-zinc-300">TOMO 01 · EDICIÓN FUNDADOR</div>
             </div>
             <div class="flex justify-between items-center text-[10px] border-t border-zinc-700 pt-2">
@@ -364,14 +401,12 @@
             </div>
           </div>
 
-          <!-- LOMO DINÁMICO -->
           <div id="preview-spine-box" class="bg-rose-600 text-white border-y-2 border-zinc-950 flex items-center justify-center px-1.5 transition-all">
             <span id="preview-spine-text" class="text-[10px] font-black tracking-widest uppercase" style="writing-mode: vertical-rl;">
               ANACAONA · 4.18mm
             </span>
           </div>
 
-          <!-- CONTRAPORTADA -->
           <div class="w-5/12 aspect-[127/190] bg-white border-2 border-zinc-950 p-4 flex flex-col justify-between">
             <span class="text-[9px] bg-zinc-950 text-white px-1.5 py-0.5 font-bold self-start">CONTRAPORTADA (127mm)</span>
             <p id="preview-synopsis" class="text-[11px] font-medium text-zinc-700 leading-snug my-auto">
@@ -385,15 +420,83 @@
             </div>
           </div>
         </div>
-        <p class="text-[11px] text-rose-700 font-bold mt-2">
-          * El borde punteado rojo representa los 3 mm de sangrado (Bleed) obligatorios para la guillotina.
-        </p>
       </section>
     </div>
   </main>
 
+  <!-- MODAL 1: CONFIGURACIÓN DE GEMINI API KEY -->
+  <div id="modal-api" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="tokon-card max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b-2 border-zinc-950 pb-2">
+        <h3 class="font-black text-sm uppercase">🔑 Conexión Directa a Gemini API (KAI v3.1)</h3>
+        <button onclick="toggleModal('modal-api')" class="font-black text-sm">✕</button>
+      </div>
+      <p class="text-xs text-zinc-600">
+        Pega tu clave de <strong>Google AI Studio (Gemini API)</strong> para que KAI genere los guiones y prompts de cada viñeta usando <code>gemini-2.5-flash</code> en vivo. Si la dejas vacía, KAI funcionará en modo síntesis instantánea local.
+      </p>
+      <input id="gemini-key-input" type="password" placeholder="AIzaSy..." class="w-full border-2 border-zinc-950 px-3 py-2 text-xs font-mono" />
+      <div class="flex justify-end gap-2">
+        <button onclick="saveGeminiKey()" class="tokon-btn bg-rose-600 text-white px-4 py-1.5 text-xs font-black uppercase">Guardar Clave</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CHECKOUT TRIAL 3 DÍAS ($2.99) & RECARGA DE TINTA -->
+  <div id="modal-trial" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="tokon-card max-w-md w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b-2 border-zinc-950 pb-2">
+        <h3 class="font-black text-sm uppercase">💳 Pasarela de Estudio & Botes de Tinta</h3>
+        <button onclick="toggleModal('modal-trial')" class="font-black text-sm">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div class="p-3 border-2 border-zinc-950 bg-yellow-50 flex justify-between items-center">
+          <div>
+            <div class="font-black">Pase Trial 72 Horas (+40 Gotas de Tinta)</div>
+            <div class="text-zinc-600">US$ 2.99 hoy · luego US$ 19.99/mes si no cancelas</div>
+          </div>
+          <button onclick="addInk(40, 'TRIAL 72H')" class="tokon-btn bg-rose-600 text-white px-3 py-1.5 font-black">US$ 2.99</button>
+        </div>
+        <div class="p-3 border-2 border-zinc-950 bg-white flex justify-between items-center">
+          <div>
+            <div class="font-black">Recarga "Bote de Tinta Extra" (+100 Gotas)</div>
+            <div class="text-zinc-600">Pago único sin suscripción</div>
+          </div>
+          <button onclick="addInk(100, 'PRO + TINTA')" class="tokon-btn bg-zinc-950 text-yellow-300 px-3 py-1.5 font-black">US$ 6.99</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    let inkCredits = 40;
+    let inkCredits = parseInt(localStorage.getItem('kai_ink_credits') || '40', 10);
+    let currentAudience = 'Shonen / Acción';
+    let currentSeed = 1042;
+    let currentProjectData = null;
+
+    function toggleModal(id) {
+      document.getElementById(id).classList.toggle('hidden');
+    }
+
+    function saveGeminiKey() {
+      const val = document.getElementById('gemini-key-input').value;
+      window.KAIEngine.setApiKey(val);
+      updateApiButtonState();
+      toggleModal('modal-api');
+    }
+
+    function updateApiButtonState() {
+      const hasKey = !!window.KAIEngine.getApiKey();
+      const btn = document.getElementById('api-status-btn');
+      btn.textContent = hasKey ? '🟢 Gemini API Activa' : '🔑 Configurar Gemini API';
+    }
+
+    function addInk(amount, badgeText) {
+      inkCredits += amount;
+      localStorage.setItem('kai_ink_credits', String(inkCredits));
+      document.getElementById('ink-counter').textContent = inkCredits + ' / ' + inkCredits;
+      document.getElementById('plan-badge').textContent = badgeText;
+      toggleModal('modal-trial');
+    }
 
     function switchView(view) {
       ['home', 'studio', 'print'].forEach(v => {
@@ -407,6 +510,7 @@
     }
 
     function selectAudience(btn, label) {
+      currentAudience = label;
       document.querySelectorAll('.aud-btn').forEach(b => {
         b.classList.remove('bg-yellow-300');
         b.classList.add('bg-white');
@@ -415,13 +519,117 @@
       btn.classList.add('bg-yellow-300');
     }
 
-    function launchFastOnboarding() {
+    async function launchFastOnboarding() {
+      if (inkCredits < 4) {
+        toggleModal('modal-trial');
+        return;
+      }
+      const btn = document.getElementById('btn-generate-onboarding');
+      const idea = document.getElementById('quick-idea').value;
+      const tone = document.getElementById('tone-selector').value;
+
+      btn.disabled = true;
+      btn.textContent = '⏳ KAI Diseñando Guion y Viñetas...';
+
+      inkCredits -= 4;
+      localStorage.setItem('kai_ink_credits', String(inkCredits));
+      document.getElementById('ink-counter').textContent = inkCredits + ' / 40';
+
+      const project = await window.KAIEngine.generateStoryAndPage(idea, currentAudience, tone);
+      currentProjectData = project;
+      saveProjectToShelf(project, currentAudience);
+      renderProjectInStudio(project);
+
+      btn.disabled = false;
+      btn.textContent = '⚡ Crear Manga con KAI (-4 Tinta) →';
+
       const checks = document.querySelectorAll('.goal-check');
       checks[0].checked = true;
       checks[1].checked = true;
       checks[2].checked = true;
+      checks[3].checked = true;
       updateProgress();
       switchView('studio');
+    }
+
+    function renderProjectInStudio(project) {
+      document.getElementById('studio-project-title').textContent = project.project_title + ' · PÁGINA 01 (12.7 × 19.0 CM)';
+      document.getElementById('cover-title-input').value = project.project_title;
+      document.getElementById('cover-synopsis-input').value = project.synopsis_es;
+      recalcSpine();
+
+      const name = document.getElementById('assistant-name').value;
+      document.getElementById('kai-message').innerHTML = `<strong>${name}:</strong> "${project.kai_greeting}"`;
+
+      document.getElementById('opt-btn-A').textContent = '🅰️ Opción A: ' + project.options_next.A;
+      document.getElementById('opt-btn-B').textContent = '🅱️ Opción B: ' + project.options_next.B;
+      document.getElementById('opt-btn-C').textContent = '🅲 Opción C: ' + project.options_next.C;
+
+      document.getElementById('vault-traits-box').innerHTML =
+        `ID: ${project.character_vault.char_id} (${project.character_vault.name}) · Peso PuLID: 0.82<br/>Traits: ${project.character_vault.locked_visual_traits}`;
+
+      document.getElementById('json-payload-viewer').textContent = JSON.stringify(project, null, 2);
+
+      project.panels.forEach((p, idx) => {
+        const num = idx + 1;
+        const dlgEl = document.getElementById('panel-dlg-' + num);
+        if (dlgEl) dlgEl.textContent = p.dialogue_es;
+        const imgEl = document.getElementById('panel-img-' + num);
+        if (imgEl) {
+          imgEl.src = window.KAIEngine.buildMangaPanelImageUrl(
+            p.Clean_Art_Prompt_No_Text,
+            currentSeed + num,
+            num === 1 || num === 4 ? 768 : 512,
+            num === 1 || num === 4 ? 384 : 512
+          );
+        }
+      });
+    }
+
+    function saveProjectToShelf(project, audience) {
+      const list = JSON.parse(localStorage.getItem('kai_saved_projects') || '[]');
+      const entry = {
+        id: 'proj_' + Date.now(),
+        date: new Date().toLocaleDateString('es-DO'),
+        audience,
+        data: project
+      };
+      list.unshift(entry);
+      localStorage.setItem('kai_saved_projects', JSON.stringify(list.slice(0, 6)));
+      renderShelf();
+    }
+
+    function renderShelf() {
+      const shelf = document.getElementById('projects-shelf');
+      const list = JSON.parse(localStorage.getItem('kai_saved_projects') || '[]');
+      if (list.length === 0) {
+        shelf.innerHTML = `<div class="col-span-3 p-4 border-2 border-dashed border-zinc-400 text-xs text-zinc-600">Aún no has guardado proyectos adicionales. Pulsa "Crear Manga con KAI" arriba para guardar tu primer tomo en la estantería.</div>`;
+        return;
+      }
+      shelf.innerHTML = list.map((item, idx) => `
+        <div class="tokon-card p-4 flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex justify-between items-center text-[10px] font-bold text-zinc-500">
+              <span>${item.audience}</span>
+              <span>${item.date}</span>
+            </div>
+            <h4 class="font-black text-sm uppercase mt-1">${item.data.project_title}</h4>
+            <p class="text-xs text-zinc-600 line-clamp-2 mt-1">${item.data.synopsis_es}</p>
+          </div>
+          <button onclick="openSavedProject(${idx})" class="tokon-btn bg-yellow-300 px-3 py-1.5 text-xs font-black uppercase w-full">
+            Abrir en el Lienzo →
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function openSavedProject(idx) {
+      const list = JSON.parse(localStorage.getItem('kai_saved_projects') || '[]');
+      if (list[idx]) {
+        currentProjectData = list[idx].data;
+        renderProjectInStudio(currentProjectData);
+        switchView('studio');
+      }
     }
 
     function updateProgress() {
@@ -439,38 +647,37 @@
     }
 
     function updateAssistantTone() {
-      const tone = document.getElementById('tone-selector').value;
-      const name = document.getElementById('assistant-name').value;
-      const msg = document.getElementById('kai-message');
-      if (tone === 'criollo') {
-        msg.innerHTML = '<strong>' + name + ':</strong> "¡Ese concepto tiene demasiado aura, manito! Ya bloqueé la semilla en el <em>Character Vault</em>. Elige una de las 3 rutas abajo o edita los globos directo en el lienzo:"';
-      } else {
-        msg.innerHTML = '<strong>' + name + ':</strong> "Semilla visual registrada en el <em>Character Vault</em> con peso IP-Adapter 0.82. Selecciona una ruta narrativa para el clímax de la página o edita los textos vectoriales:"';
+      if (currentProjectData) {
+        renderProjectInStudio(currentProjectData);
       }
     }
 
     function applyOption(opt) {
-      const desc = document.getElementById('panel-4-desc');
-      const dlg = document.getElementById('panel-4-dialogue');
-      if (opt === 'A') {
-        desc.textContent = 'Viñeta 4 (Opción A) · Contrapicado de Acción con Rayos Ancestrales';
-        dlg.textContent = '¡Despierta, fuego sagrado de Guanín!';
-      } else if (opt === 'B') {
-        desc.textContent = 'Viñeta 4 (Opción B) · Extreme Close-Up Psicológico en Tinta Oscura';
-        dlg.textContent = 'Ya vi todos tus movimientos antes de que ataques...';
-      } else {
-        desc.textContent = 'Viñeta 4 (Opción C) · Revelación del Petroglifo Ancestral de Jaragua';
-        dlg.textContent = 'La promesa de nuestros ancestros no caerá hoy.';
-      }
-      const checks = document.querySelectorAll('.goal-check');
-      checks[3].checked = true;
-      updateProgress();
+      if (!currentProjectData) return;
+      const chosenText = currentProjectData.options_next[opt];
+      document.getElementById('panel-4-desc').textContent = 'Ketsu (Ruta ' + opt + ')';
+      document.getElementById('panel-dlg-4').textContent = chosenText;
+      currentSeed += 7;
+      const p4 = currentProjectData.panels[3];
+      document.getElementById('panel-img-4').src = window.KAIEngine.buildMangaPanelImageUrl(
+        p4.Clean_Art_Prompt_No_Text + ', ' + chosenText,
+        currentSeed + 4,
+        768,
+        384
+      );
     }
 
     function spendInkAndRegenerate() {
-      if (inkCredits >= 4) {
-        inkCredits -= 4;
-        document.getElementById('ink-counter').textContent = inkCredits + ' / 40';
+      if (inkCredits < 4) {
+        toggleModal('modal-trial');
+        return;
+      }
+      inkCredits -= 4;
+      localStorage.setItem('kai_ink_credits', String(inkCredits));
+      document.getElementById('ink-counter').textContent = inkCredits + ' / 40';
+      currentSeed += 13;
+      if (currentProjectData) {
+        renderProjectInStudio(currentProjectData);
       }
     }
 
@@ -512,10 +719,21 @@
         priceEl.textContent = 'RD$ 3,600';
         dimEl.textContent = 'Ancho Total: ' + totalWidthMm + ' mm × Alto: 196.00 mm';
       }
-      const checks = document.querySelectorAll('.goal-check');
-      checks[4].checked = true;
-      updateProgress();
     }
+
+    // Inicializar con el proyecto base al cargar
+    window.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('ink-counter').textContent = inkCredits + ' / 40';
+      updateApiButtonState();
+      renderShelf();
+      const initialProject = await window.KAIEngine.generateStoryAndPage(
+        document.getElementById('quick-idea').value,
+        currentAudience,
+        'criollo'
+      );
+      currentProjectData = initialProject;
+      renderProjectInStudio(initialProject);
+    });
   </script>
 </body>
 </html>
