@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manga Print Studio — Minimalist Flow Edition</title>
+  <title>KAI Flow Studio v4.0 — Multi-Engine Manga AI & Print Fulfillment</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <script src="../02_kai_engine/kai_client.js"></script>
+  <script src="../02_kai_engine/manga_image_router.js"></script>
   <script src="../02_kai_engine/print_fulfillment_rd.js"></script>
   <style>
-    /* Exact CSS from Google Flow Reference App.tsx (lines 38-49) */
     html, body {
       background: #0d0d0d;
       color: #ffffff;
@@ -22,7 +22,7 @@
     }
     .manga-grid {
       display: grid;
-      grid-template-columns: 260px 1fr 310px;
+      grid-template-columns: 270px 1fr 320px;
       height: 100vh;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -34,7 +34,7 @@
     @keyframes slide-in-right { from { transform: translateX(16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     .animate-slide-in { animation: slide-in-right 0.22s ease-out; }
     .material-symbols-outlined { font-size: 18px; line-height: 1; vertical-align: middle; }
-    .manga-bw-filter { filter: grayscale(100%) contrast(140%); }
+    .manga-bw-filter { filter: grayscale(100%) contrast(145%); }
 
     @media print {
       html, body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; }
@@ -54,21 +54,28 @@
 
   <div class="manga-grid">
 
-    <!-- ==================== COLUMNA 1: LEFT SIDEBAR (260px) ==================== -->
-    <aside class="border-r border-[rgba(255,255,255,0.08)] flex flex-col p-[18px] gap-6 overflow-y-auto no-scrollbar no-print">
-      <!-- Brand / Header Minimalista -->
-      <div class="flex items-center justify-between px-1">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-[#00e699] text-black font-extrabold text-xs flex items-center justify-center">
-            魁
+    <!-- ==================== COLUMNA 1: LEFT SIDEBAR (270px) ==================== -->
+    <aside class="border-r border-[rgba(255,255,255,0.08)] flex flex-col p-[18px] gap-5 overflow-y-auto no-scrollbar no-print">
+      <!-- Brand + Active AI Engine Pill -->
+      <div class="flex flex-col gap-2.5 px-1">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-[#00e699] text-black font-extrabold text-xs flex items-center justify-center">
+              魁
+            </div>
+            <div>
+              <div class="text-[13px] font-bold tracking-tight text-white">KAI Flow Studio</div>
+              <div class="text-[10px] text-white/40 font-mono" id="credits-pill">40 créditos tinta</div>
+            </div>
           </div>
-          <div>
-            <div class="text-[13px] font-bold tracking-tight text-white">KAI Flow Studio</div>
-            <div class="text-[10px] text-white/40 font-mono" id="credits-pill">40 créditos tinta</div>
-          </div>
+          <button onclick="openApiModal()" title="Cambiar Motor IA (Nano Banana / Flux / HF)" class="px-2.5 py-1 rounded-lg border border-[#262626] hover:border-[#00e699] flex items-center gap-1 text-[10px] font-mono text-[#00e699] transition">
+            <span class="material-symbols-outlined text-[14px]">tune</span>
+            <span>Motor IA</span>
+          </button>
         </div>
-        <button onclick="openApiModal()" title="Configurar Gemini API" class="w-7 h-7 rounded-lg border border-[#262626] hover:border-white/30 flex items-center justify-center text-white/60 hover:text-white transition">
-          <span class="material-symbols-outlined text-[15px]">key</span>
+
+        <button onclick="openApiModal()" id="active-engine-badge" class="w-full text-left px-2.5 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-[10px] font-mono text-white/70 truncate hover:border-white/30 transition">
+          🚀 Motor: Flux Open-Source (Seed Lock)
         </button>
       </div>
 
@@ -83,7 +90,7 @@
           <button onclick="setView('characters')" id="nav-characters" class="nav-btn flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all text-white/65 hover:text-white hover:bg-white/5">
             <span class="material-symbols-outlined">face</span>
             <span>Character Library</span>
-            <span id="badge-char-count" class="ml-auto text-[10px] font-mono opacity-60">1</span>
+            <span id="badge-char-count" class="ml-auto text-[10px] font-mono opacity-60">2</span>
           </button>
           <button onclick="setView('cover')" id="nav-cover" class="nav-btn flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all text-white/65 hover:text-white hover:bg-white/5">
             <span class="material-symbols-outlined">menu_book</span>
@@ -97,33 +104,31 @@
         </nav>
       </div>
 
-      <!-- SECCIÓN MANUSCRIPT (Aparece cuando view === 'pages', igual que líneas 93-120 de App.tsx) -->
+      <!-- SECCIÓN MANUSCRIPT (Aparece cuando view === 'pages') -->
       <div id="sidebar-manuscript" class="hidden flex-col gap-2 animate-slide-in">
         <div class="flex items-center justify-between px-2">
           <span class="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Manuscript</span>
           <span id="manuscript-progress" class="text-[10px] font-mono text-[#00e699]">1/1 inked</span>
         </div>
-        <div id="manuscript-page-list" class="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto dark-scrollbar pr-1"></div>
+        <div id="manuscript-page-list" class="flex flex-col gap-1.5 max-h-[240px] overflow-y-auto dark-scrollbar pr-1"></div>
         <button onclick="addNewPage()" class="mt-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-[#262626] hover:border-white/30 bg-[#141414] text-[12px] font-medium text-white/80 hover:text-white transition">
           <span class="material-symbols-outlined text-[16px]">add_circle</span>
           <span>+ Add Page</span>
         </button>
       </div>
 
-      <!-- FOOTER DE SUBMISSION (Líneas 123-130 de App.tsx + Cierre con Imprenta Física) -->
+      <!-- FOOTER DE SUBMISSION + CIERRE CON IMPRENTA -->
       <div class="mt-auto flex flex-col gap-2 pt-4 border-t border-[rgba(255,255,255,0.08)]">
         <div class="flex items-center justify-between px-1">
           <span class="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Submission & Print</span>
           <span id="status-indicator" class="text-[10px] font-mono text-[#00e699] truncate max-w-[110px]"></span>
         </div>
 
-        <!-- Botón de Cierre Físico (Conectar con Imprenta según Material y Costo) -->
         <button onclick="setView('fulfillment')" id="nav-fulfillment" class="w-full py-2.5 px-3.5 rounded-xl bg-[#00e699] hover:bg-[#00d18b] text-black font-bold text-[12px] flex items-center justify-center gap-2 transition shadow-[0_0_20px_rgba(0,230,153,0.2)]">
           <span class="material-symbols-outlined text-[17px]">local_printshop</span>
           <span>Cotizar e Imprimir Libro</span>
         </button>
 
-        <!-- Botón original Build KDP Bundle (.ZIP) -->
         <button onclick="handleDownloadAll()" class="w-full py-2 px-3.5 rounded-xl bg-white hover:bg-white/90 text-black font-semibold text-[12px] flex items-center justify-center gap-2 transition">
           <span class="material-symbols-outlined text-[17px]">inventory_2</span>
           <span>Build KDP Bundle (.ZIP)</span>
@@ -134,7 +139,7 @@
     <!-- ==================== COLUMNA 2: CENTER WORKSPACE (1fr) ==================== -->
     <main class="overflow-y-auto dark-scrollbar p-10 flex flex-col items-center">
 
-      <!-- VISTA 1: PRINT SETUP (Exactamente como 00:00 - 00:44 del video) -->
+      <!-- VISTA 1: PRINT SETUP -->
       <section id="center-project" class="w-full max-w-xl my-auto space-y-6 animate-slide-in">
         <div class="space-y-1">
           <h1 class="text-2xl font-bold tracking-tight">KDP & Local Print Setup</h1>
@@ -142,19 +147,16 @@
         </div>
 
         <div class="space-y-4">
-          <!-- Series Title -->
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40 block">Series Title</label>
             <input id="input-title" type="text" value="Anacaona: Sangre de Zemí" oninput="updateProjectState()" class="w-full bg-[#141414] border border-[#262626] focus:border-white/40 rounded-xl px-4 py-3 text-[15px] font-semibold text-white focus:outline-none transition" />
           </div>
 
-          <!-- Lead Artist / Author -->
           <div class="space-y-1.5">
             <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40 block">Lead Artist / Author</label>
             <input id="input-author" type="text" value="Autor Principal" oninput="updateProjectState()" class="w-full bg-[#141414] border border-[#262626] focus:border-white/40 rounded-xl px-4 py-3 text-[14px] font-medium text-white focus:outline-none transition" />
           </div>
 
-          <!-- Total Page Count & Paper Type (2 Columns) -->
           <div class="grid grid-cols-2 gap-3.5">
             <div class="space-y-1.5">
               <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40 block">Total Page Count</label>
@@ -174,7 +176,6 @@
             </div>
           </div>
 
-          <!-- Cover Finish & Trim Format (Mejora para Cotización Real de Imprenta) -->
           <div class="grid grid-cols-2 gap-3.5">
             <div class="space-y-1.5">
               <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40 block">Acabado de Portada</label>
@@ -197,7 +198,6 @@
             </div>
           </div>
 
-          <!-- Spine Width Calculation Card (Exactamente como líneas 45-64 de ProjectManager.tsx en el video) -->
           <div class="bg-[#141414] border border-[#262626] rounded-2xl p-5 space-y-4">
             <div class="flex items-center gap-3.5">
               <div class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
@@ -205,7 +205,7 @@
               </div>
               <div>
                 <div class="text-[13px] font-bold text-white/90">Spine Width & Binding Calculation</div>
-                <div class="text-[11px] text-white/40" id="binding-Note-text">Automatic KDP & Tankōbon formula applied based on paper density.</div>
+                <div class="text-[11px] text-white/40">Automatic KDP & Tankōbon formula applied based on paper density.</div>
               </div>
             </div>
 
@@ -220,12 +220,12 @@
         </div>
       </section>
 
-      <!-- VISTA 2: CHARACTER LIBRARY (Exactamente como 00:45 - 00:48 y 00:31 del video) -->
+      <!-- VISTA 2: CHARACTER LIBRARY -->
       <section id="center-characters" class="w-full max-w-4xl hidden space-y-6 animate-slide-in">
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-2xl font-bold tracking-tight">Character Roster</h1>
-            <p class="text-[13px] text-white/45">Lock in character visuals to maintain consistency across every panel.</p>
+            <p class="text-[13px] text-white/45">Lock in character visuals (`appearance`, `clothing` & reference sheet) to maintain consistency across every panel.</p>
           </div>
           <button onclick="openNewCharacterModal()" class="px-5 py-2.5 rounded-full bg-white hover:bg-white/90 text-black font-semibold text-[13px] flex items-center gap-2 transition">
             <span class="material-symbols-outlined text-[18px]">add</span>
@@ -236,26 +236,22 @@
         <div id="character-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
       </section>
 
-      <!-- VISTA 3: PAPERBACK COVER (Exactamente como 00:32 y 00:49 - 00:52 del video) -->
+      <!-- VISTA 3: PAPERBACK COVER -->
       <section id="center-cover" class="w-full max-w-4xl my-auto hidden space-y-5 animate-slide-in">
         <div class="text-center space-y-1">
           <h1 class="text-2xl font-bold tracking-tight">Paperback Wrap Designer</h1>
           <p id="cover-subtitle" class="text-[12px] text-white/45 font-mono">Matched Front & Back · 5x7.5" / 6x9" Format · Auto-spine: 0.250"</p>
         </div>
 
-        <!-- 16:9 Full Wrap Container con Guías de Contraportada / Lomo / Portada -->
         <div class="relative w-full aspect-[16/10] bg-[#141414] border border-[#262626] rounded-2xl overflow-hidden flex items-center justify-center shadow-2xl">
           <img id="cover-wrap-img" alt="Full Wrap Cover" class="w-full h-full object-cover hidden" />
 
-          <!-- Placeholder cuando no se ha generado o encima como guía -->
           <div id="cover-empty-state" class="flex flex-col items-center gap-2 text-white/25">
             <span class="material-symbols-outlined text-[36px]">auto_stories</span>
             <span class="text-[11px] font-bold uppercase tracking-[0.2em]">Generate Unified Wrap in Sidebar</span>
           </div>
 
-          <!-- Guide Overlays for Preview (Líneas 103-118 de CoverDesigner.tsx en el video) -->
           <div id="cover-guides-overlay" class="absolute inset-0 flex pointer-events-none">
-            <!-- Back Cover (Left) -->
             <div class="flex-1 bg-black/25 border-r border-dashed border-white/25 p-5 flex flex-col justify-between">
               <span class="text-[10px] font-mono uppercase tracking-widest text-white/60 bg-black/50 px-2 py-0.5 rounded self-start">Back Cover</span>
               <p id="cover-back-synopsis" class="text-[12px] text-white/85 bg-black/65 p-3 rounded-xl backdrop-blur-sm max-w-xs leading-relaxed">
@@ -267,14 +263,12 @@
               </div>
             </div>
 
-            <!-- Spine (Center) -->
             <div id="cover-spine-overlay" class="w-10 bg-black/50 border-r border-dashed border-white/25 flex items-center justify-center">
               <span id="cover-spine-label" class="text-[10px] font-bold uppercase tracking-widest text-[#00e699] font-mono" style="writing-mode: vertical-rl;">
                 ANACAONA · 0.250"
               </span>
             </div>
 
-            <!-- Front Cover (Right) -->
             <div class="flex-1 bg-black/15 p-6 flex flex-col justify-between items-center text-center">
               <span class="text-[10px] font-mono uppercase tracking-widest text-white/60 bg-black/50 px-2 py-0.5 rounded self-end">Front Cover</span>
               <div class="my-auto bg-black/65 px-5 py-3 rounded-2xl backdrop-blur-sm border border-white/15">
@@ -287,7 +281,7 @@
         </div>
       </section>
 
-      <!-- VISTA 4: INTERIOR PAGES (Exactamente como 00:53 - 00:58 del video) -->
+      <!-- VISTA 4: INTERIOR PAGES -->
       <section id="center-pages" class="w-full max-w-2xl hidden flex-col items-center space-y-5 animate-slide-in">
         <div class="w-full flex items-center justify-between no-print">
           <div>
@@ -306,29 +300,24 @@
           </div>
         </div>
 
-        <!-- HOJA BLANCA DE PÁGINA DE MANGA (Con estado INK AWAITING o Grilla de Viñetas B/N) -->
+        <!-- HOJA DE PÁGINA DE MANGA -->
         <div id="interior-canvas-sheet" class="w-full max-w-[460px] aspect-[127/190] bg-white text-black rounded-sm shadow-2xl relative overflow-hidden flex flex-col">
-          <!-- Guías de Sangrado 3mm y Margen Seguro (Ocultas por defecto, se activan con SHOW GUIDES) -->
           <div id="page-guides-box" class="hidden absolute inset-2 border border-dashed border-rose-500 pointer-events-none z-30 flex items-end justify-end p-1">
             <span class="bg-rose-600 text-white text-[9px] font-mono px-1.5 py-0.5">BLEED 3MM / SAFE AREA</span>
           </div>
 
-          <!-- Estado Vacío: INK AWAITING (Idéntico a 00:54 del video) -->
           <div id="page-awaiting-state" class="hidden flex-1 flex flex-col items-center justify-center text-black/20 select-none">
             <span class="material-symbols-outlined text-[28px] mb-1">draw</span>
             <span class="text-[12px] font-bold tracking-[0.22em] uppercase">INK AWAITING</span>
           </div>
 
-          <!-- Estado Renderizado: 4 Viñetas Manga B/N con Globos Editables -->
           <div id="page-rendered-grid" class="flex-1 grid grid-rows-12 gap-2 p-3 bg-white">
-            <!-- Panel 1 -->
             <div class="row-span-4 border-[2px] border-black relative overflow-hidden bg-zinc-100">
               <img id="p-img-1" class="w-full h-full object-cover manga-bw-filter" alt="Panel 1" />
               <div id="p-dlg-1" contenteditable="true" class="absolute top-2 left-2 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-bold max-w-[78%] shadow-[2px_2px_0px_#000]">
                 En el año 1503, sobre las tierras de Jaragua...
               </div>
             </div>
-            <!-- Panel 2 & 3 -->
             <div class="row-span-4 grid grid-cols-2 gap-2">
               <div class="border-[2px] border-black relative overflow-hidden bg-zinc-900">
                 <img id="p-img-2" class="w-full h-full object-cover manga-bw-filter" alt="Panel 2" />
@@ -343,7 +332,6 @@
                 </div>
               </div>
             </div>
-            <!-- Panel 4 -->
             <div class="row-span-4 border-[2.5px] border-black relative overflow-hidden bg-zinc-100 flex items-end justify-between p-2">
               <img id="p-img-4" class="absolute inset-0 w-full h-full object-cover manga-bw-filter" alt="Panel 4" />
               <span class="relative z-10 bg-black text-white font-extrabold text-sm px-2 py-0.5 -rotate-6">¡DOOOM!</span>
@@ -354,12 +342,13 @@
           </div>
         </div>
 
-        <!-- Barra Inferior PAGE PROMPT (Exactamente como 00:56 - 00:58 del video) -->
-        <div class="w-full max-w-[460px] bg-[#141414] border border-[#262626] rounded-2xl p-4 space-y-3 no-print">
-          <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Page Prompt</div>
-          <p id="page-prompt-display" class="text-[12px] text-white/75 leading-relaxed">
-            Cacica Anacaona invokes glowing ancestral Zemi energy under heavy rain in Jaragua, dramatic 4-panel shonen manga page.
-          </p>
+        <!-- Barra Inferior PAGE PROMPT + MASTER PROMPT TÉCNICO -->
+        <div class="w-full max-w-[460px] bg-[#141414] border border-[#262626] rounded-2xl p-4 space-y-2.5 no-print">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">Compiled Manga Prompt (Style + Cast Lock)</span>
+            <span id="page-provider-used" class="text-[10px] font-mono text-[#00e699]">🚀 Flux Open-Source</span>
+          </div>
+          <p id="page-prompt-display" class="text-[11px] font-mono text-white/70 leading-relaxed line-clamp-3"></p>
           <div class="grid grid-cols-2 gap-2.5 pt-1">
             <button onclick="deleteCurrentPage()" class="py-2 rounded-xl border border-[#262626] hover:border-rose-500/50 text-[12px] font-semibold text-white/75 hover:text-rose-400 transition">
               Delete Page
@@ -371,7 +360,7 @@
         </div>
       </section>
 
-      <!-- VISTA 5 (EL CIERRE QUE PEDISTE): CONEXIÓN CON IMPRENTA SEGÚN MATERIAL Y COSTO -->
+      <!-- VISTA 5: CONEXIÓN CON IMPRENTA SEGÚN MATERIAL Y COSTO -->
       <section id="center-fulfillment" class="w-full max-w-3xl my-auto hidden space-y-6 animate-slide-in">
         <div class="flex items-center justify-between border-b border-[#262626] pb-4">
           <div>
@@ -385,7 +374,6 @@
           </div>
         </div>
 
-        <!-- Auditoría de los 4 Pasos -->
         <div class="grid grid-cols-4 gap-3">
           <div class="bg-[#141414] border border-[#262626] rounded-xl p-3">
             <div class="text-[10px] text-white/40 uppercase font-bold">1. Print Setup</div>
@@ -405,13 +393,11 @@
           </div>
         </div>
 
-        <!-- Desglose Técnico de Materiales y Costos -->
         <div class="bg-[#141414] border border-[#262626] rounded-2xl p-6 space-y-4">
           <h3 class="text-sm font-bold text-white/90 uppercase tracking-wider">Ficha de Materiales y Costo de Producción</h3>
           <div id="fulfillment-breakdown-table" class="space-y-2.5 text-[13px]"></div>
         </div>
 
-        <!-- Datos de Entrega del Autor / Cliente -->
         <div class="grid grid-cols-2 gap-3.5">
           <input id="order-client-name" type="text" placeholder="Tu Nombre o Editorial" value="Autor Principal" class="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 text-[13px] text-white focus:outline-none" />
           <input id="order-client-phone" type="text" placeholder="WhatsApp / Teléfono (RD)" value="+1 (809) 555-0199" class="bg-[#141414] border border-[#262626] rounded-xl px-4 py-3 text-[13px] text-white focus:outline-none" />
@@ -427,10 +413,10 @@
 
     </main>
 
-    <!-- ==================== COLUMNA 3: RIGHT CONTEXTUAL SIDEBAR (310px) ==================== -->
+    <!-- ==================== COLUMNA 3: RIGHT CONTEXTUAL SIDEBAR (320px) ==================== -->
     <aside class="border-l border-[rgba(255,255,255,0.08)] p-[18px] flex flex-col gap-5 overflow-y-auto dark-scrollbar no-print">
 
-      <!-- PANEL DERECHO PARA VISTA 1 (PRINT SETUP): COTIZADOR EN VIVO SEGÚN MATERIAL -->
+      <!-- PANEL DERECHO PARA VISTA 1 (PRINT SETUP) -->
       <div id="right-project" class="flex flex-col gap-4 my-auto">
         <div class="bg-[#141414] border border-[#262626] rounded-2xl p-4 space-y-3">
           <div class="flex items-center justify-between">
@@ -445,38 +431,43 @@
           <div id="live-material-summary" class="text-[11px] text-white/55 space-y-1 pt-2 border-t border-white/10"></div>
         </div>
 
-        <!-- Asistente KAI Compacto -->
         <div class="bg-[#141414] border border-[#262626] rounded-2xl p-4 space-y-2.5">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[#00e699]"></span>
             <span class="text-[11px] font-bold uppercase tracking-wider text-white/80">KAI Co-Pilot (Diagnóstico)</span>
           </div>
-          <p id="kai-setup-advice" class="text-[12px] text-white/60 leading-relaxed">
-            Con 100 páginas en papel Premium Cream Ahuesado 90g tienes un lomo firme de 6.25 mm ideal para Rústica Fresada.
-          </p>
+          <p id="kai-setup-advice" class="text-[12px] text-white/60 leading-relaxed"></p>
         </div>
       </div>
 
-      <!-- PANEL DERECHO PARA VISTA 2 (CHARACTERS): EDITOR DE IDENTIDAD -->
+      <!-- PANEL DERECHO PARA VISTA 2 (CHARACTERS): CON APPEARANCE, CLOTHING Y SUBIDA BASE64 -->
       <div id="right-characters" class="hidden flex-col gap-4">
         <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-white/50">Character Identity Inspector</div>
         <div class="space-y-3 bg-[#141414] border border-[#262626] rounded-2xl p-4">
           <div class="space-y-1">
             <label class="text-[10px] font-bold uppercase text-white/40">Name</label>
-            <input id="char-edit-name" type="text" placeholder="e.g. Anacaona / Yael" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[13px] text-white focus:outline-none" />
+            <input id="char-edit-name" type="text" placeholder="e.g. Anacaona / Kenji" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[13px] text-white focus:outline-none" />
           </div>
           <div class="space-y-1">
-            <label class="text-[10px] font-bold uppercase text-white/40">Visual Seed Traits (PuLID / IP-Adapter)</label>
-            <textarea id="char-edit-prompt" rows="4" placeholder="Describe hair, eyes, clothing, cyber/ancestral accessories..." class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-[12px] text-white focus:outline-none"></textarea>
+            <label class="text-[10px] font-bold uppercase text-white/40">Appearance (Rasgos Físicos Fijos)</label>
+            <textarea id="char-edit-appearance" rows="3" placeholder="Face shape, hair style, eyes, scars..." class="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-[12px] text-white focus:outline-none"></textarea>
           </div>
-          <button onclick="saveOrGenerateCharacter()" class="w-full py-2.5 rounded-full bg-white text-black font-bold text-[12px] flex items-center justify-center gap-1.5 hover:bg-white/90 transition">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase text-white/40">Signature Clothing (Vestimenta)</label>
+            <input id="char-edit-clothing" type="text" placeholder="Golden Guanin medallion, dark cloak..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white focus:outline-none" />
+          </div>
+          <div class="space-y-1 pt-1">
+            <label class="text-[10px] font-bold uppercase text-white/40">Subir Imagen de Referencia (Opcional p/ Nano Banana)</label>
+            <input id="char-upload-ref" type="file" accept="image/*" onchange="handleCharacterImageUpload(event)" class="text-[11px] text-white/60 w-full" />
+          </div>
+          <button onclick="saveOrGenerateCharacter()" id="btn-lock-char" class="w-full py-2.5 rounded-full bg-white text-black font-bold text-[12px] flex items-center justify-center gap-1.5 hover:bg-white/90 transition">
             <span class="material-symbols-outlined text-[16px]">lock</span>
-            <span>Generate & Lock Character</span>
+            <span>Generate & Lock Reference</span>
           </button>
         </div>
       </div>
 
-      <!-- PANEL DERECHO PARA VISTA 3 (PAPERBACK COVER): IGUAL A 00:49 - 00:52 DEL VIDEO -->
+      <!-- PANEL DERECHO PARA VISTA 3 (PAPERBACK COVER) -->
       <div id="right-cover" class="hidden flex-col gap-5">
         <div class="space-y-3">
           <div class="text-[11px] font-bold uppercase tracking-[0.1em] text-white/80">Unified Cover Generation</div>
@@ -499,21 +490,32 @@
         </div>
       </div>
 
-      <!-- PANEL DERECHO PARA VISTA 4 (INTERIOR PAGES): IGUAL A 00:53 - 00:58 DEL VIDEO -->
+      <!-- PANEL DERECHO PARA VISTA 4 (INTERIOR PAGES): 6 ESTILOS DE MANGA + 4 PLANTILLAS + CAST LOCK -->
       <div id="right-pages" class="hidden flex-col gap-4">
         <div class="text-[11px] font-bold uppercase tracking-[0.1em] text-white/80">Interior Settings</div>
 
         <div class="space-y-1.5">
-          <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40">Art Style</label>
-          <select id="interior-art-style" class="w-full bg-[#141414] border border-[#262626] rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white focus:outline-none">
-            <option value="Classic Shonen, high contrast black ink, dynamic speedlines">Classic Shonen</option>
-            <option value="Dark Seinen, heavy crosshatching, Kentaro Miura & Fujimoto ink style">Dark Seinen</option>
-            <option value="Delicate Shojo manga, expressive eyes, soft screentones">Shojo Romance</option>
-            <option value="Cyberpunk Urbano Criollo, neon-lit black and white ink">Cyberpunk Criollo</option>
+          <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40">Art Style (Diccionario de Entintado)</label>
+          <select id="interior-art-style" onchange="syncPageSettings()" class="w-full bg-[#141414] border border-[#262626] rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white focus:outline-none">
+            <option value="Classic Shonen">Classic Shonen (Jump / Murata)</option>
+            <option value="Dark Seinen">Dark Seinen (Miura / Fujimoto)</option>
+            <option value="Modern Shojo">Modern Shojo (Línea Fina & Tramas)</option>
+            <option value="Retro Gekiga">Retro Gekiga (90s Otomo / Inoue)</option>
+            <option value="Cyberpunk Manga">Cyberpunk Manga (Blame! / Akira)</option>
+            <option value="Taíno Ancestral Ink">Taíno Ancestral Ink (Edición Caribe)</option>
           </select>
         </div>
 
-        <!-- Active Cast Selector (Inyecta los personajes bloqueados del Character Library) -->
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40">Composición de Página (Layout)</label>
+          <select id="interior-layout" onchange="syncPageSettings()" class="w-full bg-[#141414] border border-[#262626] rounded-xl px-3.5 py-2.5 text-[12px] font-medium text-white focus:outline-none">
+            <option value="kishotenketsu_4">4 Viñetas (Kishōtenketsu Clásico)</option>
+            <option value="shonen_action_5">5 Viñetas (Diagonal Shonen Action)</option>
+            <option value="cinematic_3">3 Viñetas (Widescreen Cinematográfico)</option>
+            <option value="splash_page_1">1 Splash Page (Página de Impacto)</option>
+          </select>
+        </div>
+
         <div class="space-y-1.5">
           <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40">Active Cast (<span id="active-cast-count">1</span>)</label>
           <div id="active-cast-chips" class="flex flex-wrap gap-1.5"></div>
@@ -521,11 +523,11 @@
 
         <div class="space-y-1.5">
           <label class="text-[10px] font-bold uppercase tracking-[0.1em] text-white/40">Describe the Action & Panels</label>
-          <textarea id="interior-page-prompt" rows="4" placeholder="Describe the action and panels..." class="w-full bg-[#141414] border border-[#262626] rounded-xl p-3 text-[12px] text-white focus:outline-none">Cacica Anacaona invokes glowing ancestral Zemi energy under heavy rain in Jaragua, facing shadowy invaders.</textarea>
+          <textarea id="interior-page-prompt" rows="4" oninput="syncPageSettings()" placeholder="Describe the action and panels..." class="w-full bg-[#141414] border border-[#262626] rounded-xl p-3 text-[12px] text-white focus:outline-none"></textarea>
         </div>
 
         <button onclick="generateCurrentPageInk()" id="btn-gen-ink" class="w-full py-3 rounded-full bg-white hover:bg-white/90 text-black font-bold text-[12px] flex items-center justify-center gap-2 transition">
-          <span class="material-symbols-outlined text-[17px]">ink_pen</span>
+          <span class="material-symbols-outlined text-[17px]">auto_awesome</span>
           <span>Generate High-Res Ink</span>
         </button>
       </div>
@@ -540,17 +542,45 @@
 
   </div>
 
-  <!-- MODAL GEMINI API KEY & CRÉDITOS -->
+  <!-- MODAL MULTI-MOTOR IA (NANO BANANA / FLUX / HUGGINGFACE / FAL.AI) -->
   <div id="modal-api" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#141414] border border-white/15 rounded-2xl max-w-md w-full p-6 space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold">Configuración de Motor IA & Trial</h3>
+    <div class="bg-[#141414] border border-white/15 rounded-2xl max-w-lg w-full p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <div>
+          <h3 class="text-base font-bold">Selector de Motor de Imágenes Manga</h3>
+          <p class="text-[11px] text-white/45">Elige entre motores Open-Source (Flux / HuggingFace) o 🍌 Nano Banana Pro (Gemini Image Gen con referencia Base64).</p>
+        </div>
         <button onclick="closeApiModal()" class="text-white/50 hover:text-white">✕</button>
       </div>
-      <div class="space-y-1.5">
-        <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Google Gemini API Key (Opcional)</label>
-        <input id="modal-gemini-key" type="password" placeholder="AIzaSy..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none" />
+
+      <div class="space-y-3 text-xs">
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-[#00e699]">Motor Activo de Generación</label>
+          <select id="modal-img-provider" class="w-full bg-black border border-white/15 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white">
+            <option value="flux_instant">🚀 Flux Open-Source Instant (Sin API Key · Semilla Bloqueada)</option>
+            <option value="nano_banana_gemini">🍌 Nano Banana Pro / Gemini 2.0 Image Gen (Usa Gemini API Key + Fotos de Personajes)</option>
+            <option value="hf_flux_opensource">🤗 HuggingFace Open-Source Serverless (black-forest-labs/FLUX.1-schnell)</option>
+            <option value="fal_flux_pulid">⚡ Fal.ai FLUX.1 + PuLID (Consistencia Facial Open-Source)</option>
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Google Gemini API Key (Para 🍌 Nano Banana Pro y Guiones KAI)</label>
+          <input id="modal-gemini-key" type="password" placeholder="AIzaSy..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">HuggingFace Token (hf_...)</label>
+            <input id="modal-hf-token" type="password" placeholder="hf_..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Fal.ai Key (FLUX/PuLID)</label>
+            <input id="modal-fal-key" type="password" placeholder="fal_key..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none" />
+          </div>
+        </div>
       </div>
+
       <div class="p-3.5 rounded-xl bg-black/50 border border-[#00e699]/30 flex items-center justify-between">
         <div>
           <div class="text-xs font-bold text-[#00e699]">Pase de Estudio 72h (+40 Créditos)</div>
@@ -558,12 +588,12 @@
         </div>
         <button onclick="topUpCredits(40)" class="px-3 py-1.5 rounded-lg bg-[#00e699] text-black font-bold text-xs">+40 Tinta</button>
       </div>
-      <button onclick="saveApiModal()" class="w-full py-2.5 rounded-full bg-white text-black font-bold text-xs">Guardar Configuración</button>
+
+      <button onclick="saveApiModal()" class="w-full py-2.5 rounded-full bg-white text-black font-bold text-xs">Guardar Motor y Claves</button>
     </div>
   </div>
 
   <script>
-    // Estado Maestro del Proyecto (Inspirado en las líneas 19-28 de App.tsx del video + persistencia en localStorage)
     const defaultProject = {
       name: 'Anacaona: Sangre de Zemí',
       author: 'Autor Principal',
@@ -576,16 +606,22 @@
         {
           id: 'char_1',
           name: 'Anacaona',
-          prompt: 'fierce Caribbean Taino warrior cacica, golden Guanin medallion on chest, braided dark hair, sharp eyes, high-contrast black ink',
+          appearance: 'fierce Caribbean Taino warrior cacica, sharp dark eyes, long braided black hair',
+          clothing: 'golden Guanin ceremonial medallion, carved ancestral shoulder guards',
+          role: 'Protagonist',
           locked: true,
-          seed: 301
+          seed: 301,
+          referenceBase64: ''
         },
         {
           id: 'char_2',
           name: 'Yael',
-          prompt: 'young warrior with cybernetic taino arm, dreadlocks tied back, scar on left eyebrow, black cloak',
+          appearance: 'young warrior with scar on left eyebrow, dreadlocks tied back',
+          clothing: 'black tactical cloak with glowing Taino sun emblem, cybernetic arm',
+          role: 'Deuteragonist',
           locked: true,
-          seed: 302
+          seed: 302,
+          referenceBase64: ''
         }
       ],
       cover: {
@@ -598,7 +634,8 @@
         {
           id: 'page_1',
           inked: true,
-          artStyle: 'Classic Shonen, high contrast black ink, dynamic speedlines',
+          artStyle: 'Classic Shonen',
+          layoutId: 'kishotenketsu_4',
           prompt: 'Cacica Anacaona invokes glowing ancestral Zemi energy under heavy rain in Jaragua, facing shadowy invaders.',
           castIds: ['char_1'],
           seed: 101,
@@ -612,19 +649,31 @@
       ]
     };
 
-    let project = JSON.parse(localStorage.getItem('kai_flow_project_v4') || 'null') || defaultProject;
+    let project = JSON.parse(localStorage.getItem('kai_flow_project_v5') || 'null') || defaultProject;
     let currentView = 'project';
     let activePageIndex = 0;
     let editingCharId = null;
+    let uploadedCharBase64 = '';
 
     function persistProject() {
-      localStorage.setItem('kai_flow_project_v4', JSON.stringify(project));
+      localStorage.setItem('kai_flow_project_v5', JSON.stringify(project));
       document.getElementById('credits-pill').textContent = `${project.credits} créditos tinta`;
       document.getElementById('badge-char-count').textContent = project.characters.length;
       document.getElementById('badge-page-count').textContent = project.pages.length;
+      updateEngineBadge();
     }
 
-    // Navegación entre las vistas manteniendo el orden exacto de la barra lateral
+    function updateEngineBadge() {
+      const cfg = window.KAIMangaImageRouter.getConfig();
+      const labels = {
+        flux_instant: '🚀 Motor: Flux Open-Source (Seed Lock)',
+        nano_banana_gemini: '🍌 Motor: Nano Banana Pro (Gemini Image)',
+        hf_flux_opensource: '🤗 Motor: HuggingFace FLUX.1-schnell',
+        fal_flux_pulid: '⚡ Motor: Fal.ai FLUX + PuLID'
+      };
+      document.getElementById('active-engine-badge').textContent = labels[cfg.provider] || labels.flux_instant;
+    }
+
     function setView(view) {
       currentView = view;
       const views = ['project', 'characters', 'cover', 'pages', 'fulfillment'];
@@ -659,7 +708,6 @@
         activeNav.className = 'nav-btn flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all bg-white text-black';
       }
 
-      // Mostrar sección Manuscript en el sidebar izquierdo cuando estamos en Interior Pages (como en el video)
       const msBox = document.getElementById('sidebar-manuscript');
       if (view === 'pages') {
         msBox.classList.remove('hidden');
@@ -676,7 +724,6 @@
       if (view === 'fulfillment') renderFulfillmentView();
     }
 
-    // 1. PRINT SETUP & CÁLCULO DE LOMO + MATERIALES
     function updateProjectState() {
       project.name = document.getElementById('input-title').value || 'Untitled Manga';
       project.author = document.getElementById('input-author').value || 'Author Name';
@@ -693,7 +740,6 @@
         shippingZone: 'sd_dn'
       });
 
-      // Fórmula KDP en pulgadas + milímetros exactos para RD
       const multInches = project.paperType === 'bond_blanco_90g' ? 0.002252 : 0.0025;
       const spineInches = quote.isTankobon ? (project.pageCount * multInches).toFixed(4) : '0.0000';
       project.cover.spineWidthInches = Number(spineInches);
@@ -722,30 +768,30 @@
       persistProject();
     }
 
-    // 2. CHARACTER LIBRARY
+    // 2. CHARACTER LIBRARY CON LOCK DE APARIENCIA, VESTIMENTA Y BASE64
     function renderCharacterGrid() {
       const grid = document.getElementById('character-grid');
       grid.innerHTML = project.characters.map(c => {
-        const imgUrl = window.KAIEngine.buildMangaPanelImageUrl(
-          `character portrait sheet of ${c.name}, ${c.prompt}`,
-          c.seed,
+        const fallbackUrl = window.KAIEngine.buildMangaPanelImageUrl(
+          `character reference sheet turnaround of ${c.name}, ${c.appearance}, wearing ${c.clothing}`,
+          c.seed || 301,
           400,
           400
         );
+        const imgSrc = c.referenceBase64 ? `data:image/png;base64,${c.referenceBase64}` : fallbackUrl;
         return `
           <div onclick="selectCharacterToEdit('${c.id}')" class="cursor-pointer bg-[#141414] border border-[#262626] hover:border-white/30 rounded-2xl overflow-hidden flex flex-col transition group">
             <div class="relative aspect-square bg-zinc-900 overflow-hidden">
-              <img src="${imgUrl}" alt="${c.name}" class="w-full h-full object-cover manga-bw-filter group-hover:scale-105 transition" />
-              ${c.locked ? `
-                <div class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-[#00e699] text-black text-[10px] font-extrabold flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[13px]">lock</span>
-                  <span>LOCKED</span>
-                </div>
-              ` : ''}
+              <img src="${imgSrc}" alt="${c.name}" class="w-full h-full object-cover manga-bw-filter group-hover:scale-105 transition" />
+              <div class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-[#00e699] text-black text-[10px] font-extrabold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">lock</span>
+                <span>LOCKED SEED #${c.seed || 301}</span>
+              </div>
             </div>
             <div class="p-3.5 space-y-1">
               <div class="text-[14px] font-bold text-white">${c.name}</div>
-              <p class="text-[11px] text-white/45 line-clamp-2">${c.prompt}</p>
+              <p class="text-[11px] text-white/55 line-clamp-1">${c.appearance}</p>
+              <p class="text-[10px] text-[#00e699] font-mono line-clamp-1">Outfit: ${c.clothing || 'Default'}</p>
             </div>
           </div>
         `;
@@ -754,8 +800,10 @@
 
     function openNewCharacterModal() {
       editingCharId = null;
+      uploadedCharBase64 = '';
       document.getElementById('char-edit-name').value = '';
-      document.getElementById('char-edit-prompt').value = '';
+      document.getElementById('char-edit-appearance').value = '';
+      document.getElementById('char-edit-clothing').value = '';
       document.getElementById('char-edit-name').focus();
     }
 
@@ -763,27 +811,47 @@
       const ch = project.characters.find(c => c.id === id);
       if (!ch) return;
       editingCharId = ch.id;
-      document.getElementById('char-edit-name').value = ch.name;
-      document.getElementById('char-edit-prompt').value = ch.prompt;
+      uploadedCharBase64 = ch.referenceBase64 || '';
+      document.getElementById('char-edit-name').value = ch.name || '';
+      document.getElementById('char-edit-appearance').value = ch.appearance || ch.prompt || '';
+      document.getElementById('char-edit-clothing').value = ch.clothing || '';
     }
 
-    function saveOrGenerateCharacter() {
+    function handleCharacterImageUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = String(reader.result || '');
+        uploadedCharBase64 = res.split(',')[1] || '';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveOrGenerateCharacter() {
       const name = document.getElementById('char-edit-name').value.trim() || 'Nuevo Personaje';
-      const prompt = document.getElementById('char-edit-prompt').value.trim() || 'manga protagonist, dynamic ink lines, expressive eyes';
+      const appearance = document.getElementById('char-edit-appearance').value.trim() || 'manga protagonist, sharp expressive eyes';
+      const clothing = document.getElementById('char-edit-clothing').value.trim() || 'signature battle outfit';
+
       if (editingCharId) {
         const ch = project.characters.find(c => c.id === editingCharId);
         if (ch) {
           ch.name = name;
-          ch.prompt = prompt;
-          ch.seed += 5;
+          ch.appearance = appearance;
+          ch.clothing = clothing;
+          if (uploadedCharBase64) ch.referenceBase64 = uploadedCharBase64;
+          else ch.seed = (ch.seed || 300) + 7;
         }
       } else {
         project.characters.push({
           id: 'char_' + Date.now(),
           name,
-          prompt,
+          appearance,
+          clothing,
+          role: 'Character',
           locked: true,
-          seed: Math.floor(Math.random() * 900) + 100
+          seed: Math.floor(Math.random() * 900) + 100,
+          referenceBase64: uploadedCharBase64
         });
       }
       persistProject();
@@ -791,7 +859,7 @@
     }
 
     // 3. PAPERBACK COVER
-    function renderCoverView() {
+    async function renderCoverView() {
       document.getElementById('cover-subtitle').textContent =
         `Matched Front & Back · 5x7.5" / 6x9" Format · Auto-spine: ${project.cover.spineWidthInches}" (${project.cover.spineWidthMm} mm)`;
       document.getElementById('cover-front-title').textContent = project.name;
@@ -801,22 +869,31 @@
       const img = document.getElementById('cover-wrap-img');
       const empty = document.getElementById('cover-empty-state');
       if (project.cover.seed) {
-        img.src = window.KAIEngine.buildMangaPanelImageUrl(project.cover.prompt, project.cover.seed, 1024, 640);
+        const res = await window.KAIMangaImageRouter.generateImage({
+          prompt: project.cover.prompt,
+          styleName: 'Classic Shonen',
+          castCharacters: project.characters,
+          seed: project.cover.seed,
+          width: 1024,
+          height: 640,
+          isCover: true
+        });
+        img.src = res.url;
         img.classList.remove('hidden');
         empty.classList.add('hidden');
       }
     }
 
-    function generateCoverWrap() {
+    async function generateCoverWrap() {
       const promptVal = document.getElementById('cover-prompt-input').value.trim();
       if (promptVal) project.cover.prompt = promptVal;
       project.cover.seed = Math.floor(Math.random() * 9000) + 1000;
       project.credits = Math.max(0, project.credits - 2);
       persistProject();
-      renderCoverView();
+      await renderCoverView();
     }
 
-    // 4. INTERIOR PAGES & MANUSCRIPT
+    // 4. INTERIOR PAGES & MULTI-ENGINE GENERATION
     function renderManuscriptList() {
       const listEl = document.getElementById('manuscript-page-list');
       const inkedCount = project.pages.filter(p => p.inked).length;
@@ -842,11 +919,21 @@
       renderActivePage();
     }
 
+    function syncPageSettings() {
+      const page = project.pages[activePageIndex];
+      if (!page) return;
+      page.artStyle = document.getElementById('interior-art-style').value;
+      page.layoutId = document.getElementById('interior-layout').value;
+      page.prompt = document.getElementById('interior-page-prompt').value;
+      persistProject();
+    }
+
     function addNewPage() {
       project.pages.push({
         id: 'page_' + Date.now(),
         inked: false,
-        artStyle: document.getElementById('interior-art-style').value,
+        artStyle: document.getElementById('interior-art-style').value || 'Classic Shonen',
+        layoutId: document.getElementById('interior-layout').value || 'kishotenketsu_4',
         prompt: '',
         castIds: project.characters[0] ? [project.characters[0].id] : [],
         seed: Math.floor(Math.random() * 5000) + 200,
@@ -863,22 +950,30 @@
       renderActivePage();
     }
 
-    function renderActivePage() {
+    async function renderActivePage() {
       const page = project.pages[activePageIndex];
       if (!page) return;
       document.getElementById('interior-page-indicator').textContent = `PAGE ${activePageIndex + 1} / ${project.pages.length}`;
-      document.getElementById('interior-page-prompt').value = page.prompt;
-      document.getElementById('page-prompt-display').textContent =
-        page.prompt || 'No instructions provided. Use the sidebar to generate ink.';
+      document.getElementById('interior-page-prompt').value = page.prompt || '';
+      document.getElementById('interior-art-style').value = page.artStyle || 'Classic Shonen';
+      document.getElementById('interior-layout').value = page.layoutId || 'kishotenketsu_4';
 
-      // Render Active Cast chips
+      const activeChars = project.characters.filter(c => page.castIds.includes(c.id));
+      const masterPromptPreview = window.KAIMangaImageRouter.buildMasterPrompt({
+        scenePrompt: page.prompt || 'Awaiting instructions',
+        styleName: page.artStyle,
+        layoutId: page.layoutId,
+        castCharacters: activeChars
+      });
+      document.getElementById('page-prompt-display').textContent = masterPromptPreview;
+
       const chipsEl = document.getElementById('active-cast-chips');
       document.getElementById('active-cast-count').textContent = page.castIds.length;
       chipsEl.innerHTML = project.characters.map(c => {
         const isSelected = page.castIds.includes(c.id);
         return `
           <button onclick="toggleCastOnPage('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold border transition ${isSelected ? 'bg-[#00e699] text-black border-[#00e699]' : 'bg-[#141414] text-white/60 border-[#262626]'}">
-            ${c.name}
+            🔒 ${c.name}
           </button>
         `;
       }).join('');
@@ -893,30 +988,28 @@
         awaitingEl.classList.add('hidden');
         gridEl.classList.remove('hidden');
 
-        // Concatenar rasgos de los personajes activos en el prompt visual
-        const activeTraits = project.characters
-          .filter(c => page.castIds.includes(c.id))
-          .map(c => c.prompt)
-          .join(', ');
-
-        const basePrompt = `${page.artStyle}, ${page.prompt}, ${activeTraits}`;
         const shots = [
-          'wide establishing shot, atmospheric background',
-          'medium action shot, dramatic shadows',
-          'extreme close-up on intense eyes, speedlines',
-          'low-angle dynamic climax pose, impact frame'
+          'Panel 1 (Ki): wide establishing shot, atmospheric background',
+          'Panel 2 (Sho): medium action shot, dramatic shadows and tension',
+          'Panel 3 (Ten): extreme close-up on intense eyes, speedlines',
+          'Panel 4 (Ketsu): low-angle dynamic climax pose, impact frame'
         ];
 
         for (let i = 1; i <= 4; i++) {
           const imgEl = document.getElementById('p-img-' + i);
           const dlgEl = document.getElementById('p-dlg-' + i);
           if (imgEl) {
-            imgEl.src = window.KAIEngine.buildMangaPanelImageUrl(
-              `${shots[i - 1]}, ${basePrompt}`,
-              page.seed + i * 11,
-              i === 1 || i === 4 ? 768 : 512,
-              i === 1 || i === 4 ? 384 : 512
-            );
+            const panelRes = await window.KAIMangaImageRouter.generateImage({
+              prompt: `${shots[i - 1]}. ${page.prompt}`,
+              styleName: page.artStyle,
+              layoutId: page.layoutId,
+              castCharacters: activeChars,
+              seed: page.seed + i * 19,
+              width: i === 1 || i === 4 ? 768 : 512,
+              height: i === 1 || i === 4 ? 384 : 512
+            });
+            imgEl.src = panelRes.url;
+            document.getElementById('page-provider-used').textContent = panelRes.providerUsed;
           }
           if (dlgEl && page.dialogues && page.dialogues[i - 1]) {
             dlgEl.textContent = page.dialogues[i - 1];
@@ -944,26 +1037,26 @@
       const promptInput = document.getElementById('interior-page-prompt').value.trim() || 'Dramatic shonen manga confrontation';
 
       btn.disabled = true;
-      btn.innerHTML = `<span class="material-symbols-outlined animate-spin">progress_activity</span><span>Generating Ink...</span>`;
+      btn.innerHTML = `<span class="material-symbols-outlined animate-spin">progress_activity</span><span>Drawing High-Res Ink...</span>`;
 
       page.prompt = promptInput;
       page.artStyle = document.getElementById('interior-art-style').value;
+      page.layoutId = document.getElementById('interior-layout').value;
       page.seed = Math.floor(Math.random() * 8000) + 100;
       page.inked = true;
       project.credits = Math.max(0, project.credits - 4);
 
-      // Usar KAI Engine para generar los diálogos contextuales de las 4 viñetas
-      const aiResult = await window.KAIEngine.generateStoryAndPage(promptInput, 'Shonen / Acción', 'criollo');
+      const aiResult = await window.KAIEngine.generateStoryAndPage(promptInput, page.artStyle, 'criollo');
       if (aiResult && aiResult.panels) {
         page.dialogues = aiResult.panels.map(p => p.dialogue_es);
       }
 
       persistProject();
       renderManuscriptList();
-      renderActivePage();
+      await renderActivePage();
 
       btn.disabled = false;
-      btn.innerHTML = `<span class="material-symbols-outlined text-[17px]">ink_pen</span><span>Generate High-Res Ink</span>`;
+      btn.innerHTML = `<span class="material-symbols-outlined text-[17px]">auto_awesome</span><span>Generate High-Res Ink</span>`;
     }
 
     function deleteCurrentPage() {
@@ -976,11 +1069,9 @@
     }
 
     function togglePageGuides() {
-      const g = document.getElementById('page-guides-box');
-      g.classList.toggle('hidden');
+      document.getElementById('page-guides-box').classList.toggle('hidden');
     }
 
-    // 5. CONEXIÓN FINAL CON IMPRENTA (FULFILLMENT SEGÚN MATERIAL Y COSTO)
     function renderFulfillmentView() {
       const quote = window.KAIPrintFulfillment.calculateQuote({
         pages: project.pageCount,
@@ -1033,7 +1124,6 @@
       document.getElementById('printer-ticket-preview').textContent = JSON.stringify(job.ticket, null, 2);
     }
 
-    // Exportación de Paquete KDP / Imprenta (.ZIP) igual que líneas 63-76 de App.tsx
     async function handleDownloadAll() {
       const statusEl = document.getElementById('status-indicator');
       statusEl.textContent = 'Packaging ZIP...';
@@ -1088,14 +1178,25 @@
     }
 
     function openApiModal() {
-      document.getElementById('modal-gemini-key').value = window.KAIEngine.getApiKey();
+      const cfg = window.KAIMangaImageRouter.getConfig();
+      document.getElementById('modal-img-provider').value = cfg.provider;
+      document.getElementById('modal-gemini-key').value = cfg.geminiKey;
+      document.getElementById('modal-hf-token').value = cfg.hfToken;
+      document.getElementById('modal-fal-key').value = cfg.falKey;
       document.getElementById('modal-api').classList.remove('hidden');
     }
     function closeApiModal() {
       document.getElementById('modal-api').classList.add('hidden');
     }
     function saveApiModal() {
+      window.KAIMangaImageRouter.saveConfig({
+        provider: document.getElementById('modal-img-provider').value,
+        geminiKey: document.getElementById('modal-gemini-key').value,
+        hfToken: document.getElementById('modal-hf-token').value,
+        falKey: document.getElementById('modal-fal-key').value
+      });
       window.KAIEngine.setApiKey(document.getElementById('modal-gemini-key').value);
+      updateEngineBadge();
       closeApiModal();
     }
     function topUpCredits(amount) {
@@ -1111,6 +1212,7 @@
       document.getElementById('input-paper-type').value = project.paperType;
       document.getElementById('input-cover-finish').value = project.coverFinish;
       document.getElementById('input-copies').value = project.copies;
+      updateEngineBadge();
       updateProjectState();
       setView('project');
     });

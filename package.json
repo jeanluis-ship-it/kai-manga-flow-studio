@@ -1,0 +1,10 @@
+{
+  "name": "kai-manga-flow-studio",
+  "version": "4.0.0",
+  "private": true,
+  "description": "KAI Flow Studio — Minimalist AI Manga Production & Print-on-Demand Fulfillment",
+  "scripts": {
+    "start": "npx serve .",
+    "deploy": "npx vercel --prod"
+  }
+}
