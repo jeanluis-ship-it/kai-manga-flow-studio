@@ -1,0 +1,32 @@
+export interface Character {
+  id: string;
+  name: string;
+  appearance: string;
+  clothing: string;
+  role: string;
+  referenceMediaId?: string;
+  referenceBase64?: string;
+}
+export interface Page {
+  id: string;
+  base64: string;
+  prompt: string;
+  castIds: string[]; // List of character IDs present in this page
+}
+export interface Cover {
+  frontBase64: string;
+  backBase64: string;
+  fullWrapBase64?: string;
+  prompt: string;
+  spineWidthInches: number;
+}
+export type PaperType = 'white' | 'cream';
+export interface Project {
+  name: string;
+  author: string;
+  pageCount: number;
+  paperType: PaperType;
+  characters: Character[];
+  pages: Page[];
+  cover: Cover;
+}
