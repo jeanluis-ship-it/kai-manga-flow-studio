@@ -1,0 +1,138 @@
+import React, { useState } from 'react';
+import { Flow } from 'flow-sdk';
+import { Project, Character } from '../types';
+import { SectionLabel, PillButton } from './Primitives';
+
+export const CharacterLibrary: React.FC<{
+  project: Project;
+  updateProject: (updates: Partial<Project>) => void;
+  isGenerating: boolean;
+  setIsGenerating: (val: boolean) => void;
+}> = ({ project, updateProject, isGenerating, setIsGenerating }) => {
+  const [editingChar, setEditingChar] = useState<Character | null>(null);
+
+  const createNewCharacter = () => {
+    setEditingChar({
+      id: crypto.randomUUID(),
+      name: '',
+      appearance: '',
+      clothing: '',
+      role: 'Protagonist'
+    });
+  };
+
+  const lockAndGenerateReference = async () => {
+    if (!editingChar) return;
+    setIsGenerating(true);
+    try {
+      const prompt = `Character reference sheet, manga turnaround, front and side view, high contrast black and white ink. Name: ${editingChar.name}. Appearance: ${editingChar.appearance}. Outfit: ${editingChar.clothing}`;
+      const res = await Flow.generate.image({
+        prompt,
+        modelDisplayName: '🍌 Nano Banana Pro',
+        aspectRatio: '1:1'
+      });
+      const updatedChar: Character = {
+        ...editingChar,
+        referenceBase64: res.base64,
+        referenceMediaId: res.mediaId
+      };
+      const exists = project.characters.some((c) => c.id === updatedChar.id);
+      const nextChars = exists
+        ? project.characters.map((c) => (c.id === updatedChar.id ? updatedChar : c))
+        : [...project.characters, updatedChar];
+      updateProject({ characters: nextChars });
+      setEditingChar(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-4xl flex flex-col gap-6 animate-slide-in-right">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[24px] font-bold tracking-tight">Character Roster</h1>
+          <p className="text-[13px] text-white/40">Lock in character visuals to maintain consistency across every panel.</p>
+        </div>
+        <div className="w-44">
+          <PillButton variant="solid" icon={<span className="material-symbols-outlined text-[18px]">add</span>} onClick={createNewCharacter}>
+            New Character
+          </PillButton>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        {project.characters.map((char) => (
+          <div
+            key={char.id}
+            onClick={() => setEditingChar(char)}
+            className="bg-[#141414] border border-white/10 hover:border-white/30 rounded-2xl overflow-hidden cursor-pointer transition-all"
+          >
+            <div className="relative aspect-square bg-black/50 flex items-center justify-center">
+              {char.referenceBase64 ? (
+                <img src={`data:image/png;base64,${char.referenceBase64}`} className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-[36px] text-white/20">person</span>
+              )}
+              {char.referenceMediaId && (
+                <div className="absolute top-2 left-2 bg-[#00e699] text-black text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[10px]">lock</span>
+                  LOCKED
+                </div>
+              )}
+            </div>
+            <div className="p-4">
+              <p className="text-sm font-bold text-white">{char.name || 'Unnamed'}</p>
+              <p className="text-[11px] text-white/40 line-clamp-2 mt-1">{char.appearance}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {editingChar && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
+          <div className="bg-[#141414] border border-white/15 rounded-3xl w-full max-w-lg p-8 space-y-6">
+            <h3 className="text-xl font-bold">Character Identity</h3>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <SectionLabel>Name</SectionLabel>
+                <input
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white"
+                  value={editingChar.name}
+                  onChange={(e) => setEditingChar({ ...editingChar, name: e.target.value })}
+                  placeholder="e.g. Kenji / Anacaona"
+                />
+              </div>
+              <div className="space-y-1">
+                <SectionLabel>Appearance & Physical Traits</SectionLabel>
+                <textarea
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white h-20"
+                  value={editingChar.appearance}
+                  onChange={(e) => setEditingChar({ ...editingChar, appearance: e.target.value })}
+                  placeholder="Hair style, eyes, scars, build..."
+                />
+              </div>
+              <div className="space-y-1">
+                <SectionLabel>Signature Clothing</SectionLabel>
+                <input
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white"
+                  value={editingChar.clothing}
+                  onChange={(e) => setEditingChar({ ...editingChar, clothing: e.target.value })}
+                  placeholder="Tactical jacket, ancestral medallion..."
+                />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <PillButton variant="outline" onClick={() => setEditingChar(null)}>Cancel</PillButton>
+              <PillButton variant="solid" onClick={lockAndGenerateReference} disabled={isGenerating}>
+                {isGenerating ? 'Locking Seed...' : 'Generate & Lock Reference'}
+              </PillButton>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
