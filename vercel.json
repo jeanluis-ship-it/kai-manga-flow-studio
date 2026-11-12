@@ -1,11 +1,1 @@
-{
-  "version": 2,
-  "name": "kai-manga-flow-studio",
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/03_web_studio_app/index.html"
-    }
-  ]
-}
+﻿{"version": 2, "cleanUrls": true}
