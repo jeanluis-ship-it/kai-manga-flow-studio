@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KAI Studio v3.0 — Estética Tōkon & Motor Manga RD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --paper: #FAF8F5;
+      --ink: #09090B;
+      --crimson: #E11D48;
+      --cyber: #FACC15;
+    }
+    body {
+      background-color: var(--paper);
+      background-image: radial-gradient(#d4d4d8 0.8px, transparent 0.8px);
+      background-size: 14px 14px;
+      color: var(--ink);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .tokon-card {
+      background: #FFFFFF;
+      border: 2.5px solid var(--ink);
+      box-shadow: 5px 5px 0px var(--ink);
+    }
+    .tokon-btn {
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0px var(--ink);
+      transition: all 0.12s ease;
+    }
+    .tokon-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0px var(--ink);
+    }
+    .screentone {
+      background-image: radial-gradient(#09090B 1px, transparent 1px);
+      background-size: 6px 6px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP BAR: NAVEGACIÓN + CHECKLIST 5 HITOS + CRÉDITOS DE TINTA -->
+  <header class="bg-white border-b-4 border-zinc-950 px-6 py-3 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-rose-600 border-2 border-zinc-950 flex items-center justify-center font-black text-white text-xl shadow-[2px_2px_0px_#09090B]">
+          魁
+        </div>
+        <div>
+          <span class="font-black text-lg tracking-tight">KAI STUDIO <span class="text-xs bg-yellow-300 border border-zinc-950 px-1.5 py-0.5 ml-1">v3.0 TŌKON</span></span>
+          <p class="text-xs text-zinc-600 font-medium">Motor DiffSensei + StoryDiffusion · Imprenta RD</p>
+        </div>
+      </div>
+
+      <!-- SELECTOR DE VISTAS -->
+      <nav class="flex gap-2">
+        <button onclick="switchView('home')" id="tab-home" class="tokon-btn px-3.5 py-1.5 text-xs font-black uppercase bg-yellow-300">
+          1. Inicio & Planes
+        </button>
+        <button onclick="switchView('studio')" id="tab-studio" class="tokon-btn px-3.5 py-1.5 text-xs font-black uppercase bg-white">
+          2. Lienzo & KAI Sensei
+        </button>
+        <button onclick="switchView('print')" id="tab-print" class="tokon-btn px-3.5 py-1.5 text-xs font-black uppercase bg-white">
+          3. Portada + Lomo e Imprenta RD
+        </button>
+      </nav>
+
+      <!-- CONTADOR DE GOTAS DE TINTA & TRIAL -->
+      <div class="flex items-center gap-3">
+        <div class="bg-zinc-950 text-white px-3 py-1.5 text-xs font-bold flex items-center gap-2 border-2 border-zinc-950">
+          <span class="text-yellow-300">💧 Tinta:</span>
+          <span id="ink-counter">40 / 40</span>
+          <span class="text-[10px] bg-rose-600 px-1.5 py-0.5 rounded">TRIAL 72H</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BARRA DE CHECKLIST EDITORIAL (5 HITOS DESBLOQUEABLES) -->
+    <div class="max-w-7xl mx-auto mt-3 pt-2 border-t border-zinc-200 flex items-center justify-between text-xs overflow-x-auto gap-2">
+      <span class="font-black uppercase text-[11px] text-zinc-500 shrink-0">Metas Editoriales:</span>
+      <div class="flex items-center gap-2 w-full justify-between">
+        <label class="flex items-center gap-1.5 font-bold cursor-pointer"><input type="checkbox" checked onchange="updateProgress()" class="goal-check accent-rose-600 w-4 h-4"> 1. Público y Enfoque</label>
+        <label class="flex items-center gap-1.5 font-bold cursor-pointer"><input type="checkbox" checked onchange="updateProgress()" class="goal-check accent-rose-600 w-4 h-4"> 2. Semilla de Historia</label>
+        <label class="flex items-center gap-1.5 font-bold cursor-pointer"><input type="checkbox" onchange="updateProgress()" class="goal-check accent-rose-600 w-4 h-4"> 3. Character Vault (PuLID)</label>
+        <label class="flex items-center gap-1.5 font-bold cursor-pointer"><input type="checkbox" onchange="updateProgress()" class="goal-check accent-rose-600 w-4 h-4"> 4. Viñetas Vectoriales</label>
+        <label class="flex items-center gap-1.5 font-bold cursor-pointer"><input type="checkbox" onchange="updateProgress()" class="goal-check accent-rose-600 w-4 h-4"> 5. Cubierta y Lomo RD</label>
+      </div>
+      <span id="goal-badge" class="bg-zinc-950 text-yellow-300 font-black px-2 py-0.5 text-[11px] shrink-0">2/5 LISTO</span>
+    </div>
+  </header>
+
+  <!-- ==================== VISTA 1: HOME, ONBOARDING 90S & PLANES ==================== -->
+  <main id="view-home" class="max-w-7xl mx-auto w-full p-6 space-y-8">
+    <!-- HERO: DOPAMINA EN 90 SEGUNDOS -->
+    <section class="tokon-card p-6 md:p-8 grid md:grid-cols-12 gap-6 items-center">
+      <div class="md:col-span-7 space-y-4">
+        <div class="inline-block bg-rose-600 text-white text-xs font-black px-2.5 py-1 uppercase border border-zinc-950">
+          Flujo Visual-First · Sin saber dibujar
+        </div>
+        <h1 class="text-3xl md:text-4xl font-black uppercase leading-none">
+          De 1 Frase a tu Tomo Impreso en <span class="underline decoration-rose-600">Santo Domingo</span>.
+        </h1>
+        <p class="text-sm text-zinc-700">
+          Elige a qué público va dirigida tu obra, escribe tu idea en una línea y deja que <strong>KAI (tu Editor Ninja)</strong> genere tu Protagonista + la Viñeta #1 en menos de 90 segundos.
+        </p>
+
+        <!-- SELECTOR DE PÚBLICO / ENFOQUE -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+          <button onclick="selectAudience(this, 'Shonen / Acción')" class="aud-btn tokon-btn p-2 text-left bg-yellow-300">
+            <div class="font-black text-xs">⚡ Shonen / Acción</div>
+            <div class="text-[10px] text-zinc-700">Batallas y poderes</div>
+          </button>
+          <button onclick="selectAudience(this, 'Cultura / Historia RD')" class="aud-btn tokon-btn p-2 text-left bg-white">
+            <div class="font-black text-xs">🗿 Taíno / Histórico</div>
+            <div class="text-[10px] text-zinc-700">Colegios y cultura</div>
+          </button>
+          <button onclick="selectAudience(this, 'Seinen / Urbano')" class="aud-btn tokon-btn p-2 text-left bg-white">
+            <div class="font-black text-xs">🌃 Seinen / Cyber</div>
+            <div class="text-[10px] text-zinc-700">Trama adulta / oscura</div>
+          </button>
+          <button onclick="selectAudience(this, 'Regalo Épico (No-Otaku)')" class="aud-btn tokon-btn p-2 text-left bg-white">
+            <div class="font-black text-xs">🎁 Regalo Épico</div>
+            <div class="text-[10px] text-zinc-700">Parejas y amigos</div>
+          </button>
+        </div>
+
+        <!-- INPUT RÁPIDO -->
+        <div class="flex flex-col sm:flex-row gap-2 pt-2">
+          <input id="quick-idea" type="text" value="Cacica Anacaona despierta poderes ancestrales de Zemí para defender Jaragua." class="flex-1 border-2 border-zinc-950 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-rose-600" />
+          <button onclick="launchFastOnboarding()" class="tokon-btn bg-rose-600 text-white font-black px-5 py-2.5 text-xs uppercase shrink-0">
+            Generar Personaje + Viñeta 1 →
+          </button>
+        </div>
+      </div>
+
+      <!-- TARJETA TRIAL 3 DÍAS ($2.99) -->
+      <div class="md:col-span-5 bg-zinc-950 text-white p-5 border-2 border-zinc-950 space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="bg-yellow-300 text-zinc-950 text-[10px] font-black px-2 py-0.5 uppercase">Oferta de Entrada Blindada</span>
+          <span class="text-xs text-zinc-400">Cancela en 1 clic</span>
+        </div>
+        <h3 class="text-xl font-black">PASE DE ESTUDIO 72 HORAS</h3>
+        <div class="flex items-baseline gap-2">
+          <span class="text-3xl font-black text-yellow-300">US$ 2.99</span>
+          <span class="text-xs text-zinc-300">(RD$ 175 hoy · luego US$ 19.99/mes)</span>
+        </div>
+        <ul class="text-xs space-y-1.5 text-zinc-200">
+          <li>✔ <strong>40 Gotas de Tinta</strong> incluidas (1 capítulo de 8–10 págs).</li>
+          <li>✔ Consistencia facial con <strong>StoryDiffusion + PuLID</strong>.</li>
+          <li>✔ Exportación PDF de alta resolución sin marca de agua.</li>
+          <li>✔ Descuento directo en impresión física en RD.</li>
+        </ul>
+        <button onclick="switchView('studio')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-2 text-xs uppercase border border-white">
+          Probar Lienzo Interactivo Ahora
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== VISTA 2: LIENZO BLANCO & KAI NINJA KAWAII ==================== -->
+  <main id="view-studio" class="max-w-7xl mx-auto w-full p-6 hidden">
+    <div class="grid lg:grid-cols-12 gap-6 items-start">
+
+      <!-- COLUMNA IZQUIERDA (4 COLS): AVATAR KAI NINJA KAWAII + CONROLES -->
+      <aside class="lg:col-span-4 tokon-card p-4 space-y-4">
+        <!-- CABECERA DEL AVATAR PERSONALIZABLE -->
+        <div class="flex items-center gap-3 pb-3 border-b-2 border-zinc-950">
+          <!-- SVG AVATAR NINJA KAWAII (SOLO CABEZA REDONDA CON MÁSCARA) -->
+          <div id="ninja-avatar-box" class="w-16 h-16 rounded-full border-2 border-zinc-950 bg-zinc-900 flex items-center justify-center shrink-0 relative shadow-[3px_3px_0px_#E11D48]">
+            <svg viewBox="0 0 100 100" class="w-14 h-14">
+              <!-- Cabeza Capucha Ninja -->
+              <circle cx="50" cy="50" r="44" fill="#09090B" />
+              <!-- Cinta / Bandana -->
+              <path id="ninja-bandana" d="M10 34 Q50 26 90 34 L90 44 Q50 36 10 44 Z" fill="#E11D48" />
+              <circle cx="50" cy="37" r="4" fill="#FACC15" />
+              <!-- Área de los Ojos -->
+              <rect x="20" y="42" width="60" height="20" rx="10" fill="#FDE68A" />
+              <!-- Ojos Expresivos (Cambian según modo) -->
+              <g id="ninja-eyes">
+                <circle cx="36" cy="52" r="5" fill="#09090B" />
+                <circle cx="34" cy="50" r="1.8" fill="#FFFFFF" />
+                <circle cx="64" cy="52" r="5" fill="#09090B" />
+                <circle cx="62" cy="50" r="1.8" fill="#FFFFFF" />
+              </g>
+              <!-- Máscara Ninja Inferior -->
+              <path d="M12 58 Q50 50 88 58 C84 82 68 94 50 94 C32 94 16 82 12 58 Z" fill="#18181B" stroke="#3F3F46" stroke-width="2" />
+            </svg>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1">
+              <input id="assistant-name" value="KAI Sensei" class="font-black text-base border-b border-dashed border-zinc-400 focus:outline-none w-28" />
+              <span class="text-[10px] bg-yellow-300 border border-zinc-950 px-1 font-bold">IA</span>
+            </div>
+            <div class="flex gap-1 mt-1.5">
+              <button onclick="setNinjaMood('kawaii')" class="text-[10px] border border-zinc-950 px-1.5 py-0.5 bg-zinc-100 font-bold">😊 Kawaii</button>
+              <button onclick="setNinjaMood('shonen')" class="text-[10px] border border-zinc-950 px-1.5 py-0.5 bg-rose-100 font-bold">🔥 Shonen</button>
+              <button onclick="setNinjaMood('sensei')" class="text-[10px] border border-zinc-950 px-1.5 py-0.5 bg-yellow-100 font-bold">👓 Editor</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SELECTOR DE TONO: 90/10 CRIOLLO VS NEUTRO -->
+        <div class="flex items-center justify-between text-xs bg-zinc-100 p-2 border border-zinc-950">
+          <span class="font-bold">Tono del Asistente:</span>
+          <select id="tone-selector" onchange="updateAssistantTone()" class="bg-white border border-zinc-950 px-2 py-0.5 font-bold text-xs">
+            <option value="criollo">🇩🇴 Sensei Criollo (90/10)</option>
+            <option value="neutro">📐 Editorial Neutro</option>
+          </select>
+        </div>
+
+        <!-- MENSAJE ACTIVO DE KAI + 3 OPCIONES RÁPIDAS -->
+        <div id="kai-chat-bubble" class="p-3 bg-yellow-50 border-2 border-zinc-950 text-xs space-y-2">
+          <p id="kai-message" class="font-medium leading-relaxed">
+            <strong>KAI:</strong> "¡Ese concepto tiene demasiado aura, manito! Ya bloqueé la semilla visual en el <em>Character Vault</em> y monté la Página 1. Haz clic en cualquier globo de texto del lienzo blanco para editar el diálogo o elige cómo seguimos en el Panel 4:"
+          </p>
+          <div class="space-y-1 pt-1">
+            <button onclick="applyOption('A')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
+              🅰️ Opción A (Acción): Desenvainar arma ancestral con rayos en contrapicado.
+            </button>
+            <button onclick="applyOption('B')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
+              🅱️ Opción B (Misterio): Primer plano a los ojos reflejando al enemigo.
+            </button>
+            <button onclick="applyOption('C')" class="w-full text-left p-1.5 bg-white hover:bg-yellow-200 border border-zinc-950 font-bold text-[11px]">
+              🅲 Opción C (Lore): Flashback rápido del amuleto taíno antes del choque.
+            </button>
+          </div>
+        </div>
+
+        <!-- CHARACTER VAULT (SEMILLA PULID / IP-ADAPTER) -->
+        <div class="border-2 border-zinc-950 p-3 bg-white space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black uppercase">🔒 Character Vault (PuLID)</span>
+            <span class="text-[10px] bg-emerald-100 text-emerald-900 border border-emerald-800 px-1.5 font-bold">CONSISTENCIA ACTIVA</span>
+          </div>
+          <div class="text-[11px] bg-zinc-50 p-2 border border-zinc-300 font-mono">
+            ID: char_01 · Peso IP-Adapter: 0.82<br/>
+            Traits: Taino warrior princess / cyber cacique, golden Guanin medallion, braided dark hair, high-contrast ink.
+          </div>
+        </div>
+      </aside>
+
+      <!-- COLUMNA CENTRAL/DERECHA (8 COLS): LIENZO VECTORIAL DE PÁGINA (TANKOBON 12.7x19cm) -->
+      <section class="lg:col-span-8 tokon-card p-6 flex flex-col items-center">
+        <div class="w-full flex flex-wrap justify-between items-center mb-4 gap-2">
+          <div>
+            <h2 class="font-black text-sm uppercase">LIENZO DE PÁGINA 01 · FORMATO 12.7 × 19.0 CM (+3MM SANGRADO)</h2>
+            <p class="text-xs text-zinc-500">Haz clic directo sobre cualquier bocadillo para editar el texto vectorial sin dañar el dibujo.</p>
+          </div>
+          <button onclick="spendInkAndRegenerate()" class="tokon-btn bg-zinc-950 text-yellow-300 px-3 py-1.5 text-xs font-black uppercase">
+            ⚡ Regenerar Viñetas (-4 Tinta)
+          </button>
+        </div>
+
+        <!-- PÁGINA DE MANGA (4 VIÑETAS CON CAPA VECTORIAL EDITABLE) -->
+        <div class="w-full max-w-[460px] aspect-[127/190] bg-white border-4 border-zinc-950 p-3 grid grid-rows-12 gap-2.5 relative shadow-lg">
+          <!-- VIÑETA 1: ESTABLECEDORA -->
+          <div class="row-span-4 border-[2.5px] border-zinc-950 screentone relative overflow-hidden flex items-center justify-center bg-zinc-100">
+            <span class="text-[11px] font-black uppercase bg-white/90 px-2 py-0.5 border border-zinc-950">Viñeta 1 · Plano General Establecedor</span>
+            <div contenteditable="true" class="absolute top-2 left-2 bg-white border-2 border-zinc-950 px-2.5 py-1 text-[11px] font-bold max-w-[75%] shadow-[2px_2px_0px_#09090B]">
+              Cuando cae la noche sobre la isla, los antiguos Zemíes despiertan...
+            </div>
+          </div>
+
+          <!-- VIÑETAS 2 Y 3: MEDIO -->
+          <div class="row-span-4 grid grid-cols-2 gap-2.5">
+            <div class="border-[2.5px] border-zinc-950 bg-zinc-900 text-white relative p-2 flex items-end">
+              <span class="text-[10px] font-mono text-zinc-300">Viñeta 2 · Amenaza en sombra</span>
+              <div class="absolute top-2 right-2 text-rose-500 font-black text-base rotate-[-8deg]">¡GRRR-ZAP!</div>
+            </div>
+            <div class="border-[2.5px] border-zinc-950 bg-white screentone relative p-2 flex items-center justify-center">
+              <span class="text-[10px] font-black bg-yellow-300 px-1.5 border border-zinc-950">Viñeta 3 · Close-Up Ojos (char_01)</span>
+              <div contenteditable="true" class="absolute bottom-2 right-2 bg-white border-2 border-zinc-950 rounded-full px-3 py-1 text-[11px] font-bold text-center">
+                No daré ni un paso atrás.
+              </div>
+            </div>
+          </div>
+
+          <!-- VIÑETA 4: CLÍMAX DE PÁGINA -->
+          <div id="panel-4-box" class="row-span-4 border-[3px] border-zinc-950 bg-white relative p-3 flex flex-col justify-between">
+            <div class="text-[11px] font-black uppercase text-rose-600" id="panel-4-desc">
+              Viñeta 4 (Clímax) · Contrapicado Dinámico con Líneas Cinéticas
+            </div>
+            <div class="flex justify-between items-end">
+              <span class="font-black text-2xl tracking-tighter text-zinc-950 rotate-[-6deg] bg-yellow-300 px-2 border-2 border-zinc-950">¡DOOOOM!</span>
+              <div contenteditable="true" id="panel-4-dialogue" class="bg-white border-2 border-zinc-950 px-3 py-1.5 text-xs font-black max-w-[65%] shadow-[3px_3px_0px_#09090B]">
+                ¡Despierta, fuego de Guanín!
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== VISTA 3: CUBIERTA COMPLETA + CALCULADORA LOMO RD ==================== -->
+  <main id="view-print" class="max-w-7xl mx-auto w-full p-6 hidden space-y-6">
+    <div class="grid lg:grid-cols-12 gap-6">
+      <!-- CONTROLES DE PRE-PRENSA Y CÁLCULO DE LOMO -->
+      <section class="lg:col-span-5 tokon-card p-5 space-y-4">
+        <h2 class="text-lg font-black uppercase border-b-2 border-zinc-950 pb-2">
+          Motor de Cubierta + Pre-Prensa RD
+        </h2>
+
+        <div>
+          <label class="text-xs font-black uppercase block mb-1">Cantidad de Páginas del Proyecto:</label>
+          <input id="page-count-slider" type="range" min="16" max="192" step="4" value="64" oninput="recalcSpine()" class="w-full accent-rose-600" />
+          <div class="flex justify-between text-xs font-bold mt-1">
+            <span>16 págs (Fanzine)</span>
+            <span id="page-count-display" class="bg-zinc-950 text-yellow-300 px-2 py-0.5">64 Páginas</span>
+            <span>192 págs (Tankōbon)</span>
+          </div>
+        </div>
+
+        <!-- DIAGNÓSTICO FÍSICO AUTOMÁTICO -->
+        <div id="binding-alert" class="p-3 border-2 border-zinc-950 bg-emerald-50 text-xs space-y-1">
+          <div class="font-black uppercase text-emerald-900" id="binding-type-title">✔ FORMATO TANKŌBON LOMO CUADRADO HABILITADO</div>
+          <p id="binding-type-desc" class="text-zinc-700">
+            Con 64 páginas (32 hojas en papel ahuesado 90g), el lomo mide exactamente <strong>4.18 mm</strong>. Apto para encuadernación Rústica Fresada (Pegado Térmico).
+          </p>
+        </div>
+
+        <!-- DATOS DE PORTADA Y CONTRAPORTADA -->
+        <div class="space-y-2 text-xs">
+          <label class="font-bold block">Título en Portada y Lomo:</label>
+          <input id="cover-title-input" type="text" value="ANACAONA: SANGRE DE ZEMÍ" oninput="recalcSpine()" class="w-full border-2 border-zinc-950 px-2.5 py-1.5 font-black" />
+          <label class="font-bold block">Sinopsis Editorial (Contraportada):</label>
+          <textarea id="cover-synopsis-input" rows="2" oninput="recalcSpine()" class="w-full border-2 border-zinc-950 p-2">En un Caribe ancestral reimaginado con energía espiritual, la cacica de Jaragua lidera la resistencia definitiva.</textarea>
+        </div>
+
+        <!-- RESUMEN DE COSTO IMPRENTA RD -->
+        <div class="bg-zinc-950 text-white p-4 space-y-2">
+          <div class="flex justify-between text-xs">
+            <span>Formato Físico (12.7 × 19 cm + Laminado Mate):</span>
+            <span id="print-price-dop" class="font-black text-yellow-300 text-base">RD$ 3,600</span>
+          </div>
+          <p class="text-[11px] text-zinc-300">Incluye revisión de márgenes de 3mm, prueba física y envío en Santo Domingo / Santiago.</p>
+        </div>
+      </section>
+
+      <!-- PREVISUALIZADOR DE PLIEGO EXTENDIDO (PORTADA + LOMO + CONTRAPORTADA) -->
+      <section class="lg:col-span-7 tokon-card p-6 flex flex-col items-center justify-center">
+        <div class="w-full flex justify-between items-center mb-3">
+          <span class="text-xs font-black uppercase">Pliego Extendido de Cubierta (Lectura Oriental RTL)</span>
+          <span id="spread-dimensions" class="text-xs font-mono bg-yellow-200 border border-zinc-950 px-2 py-0.5 font-bold">
+            Ancho Total: 264.18 mm × Alto: 196.00 mm
+          </span>
+        </div>
+
+        <!-- SPREAD VISUAL: PORTADA (IZQ EN RTL) + LOMO CENTRAL + CONTRAPORTADA (DER) -->
+        <div class="border-4 border-dashed border-rose-500 p-3 bg-rose-50/40 w-full flex items-stretch justify-center">
+          <!-- PORTADA (IZQUIERDA EN LECTURA JAPONESA) -->
+          <div class="w-5/12 aspect-[127/190] bg-zinc-900 text-white border-2 border-zinc-950 p-4 flex flex-col justify-between relative">
+            <span class="text-[9px] bg-rose-600 px-1.5 py-0.5 font-bold self-start">PORTADA FRONTAL (127mm)</span>
+            <div class="my-auto text-center space-y-1">
+              <div id="preview-cover-title" class="font-black text-lg leading-tight text-yellow-300 uppercase">ANACAONA: SANGRE DE ZEMÍ</div>
+              <div class="text-[10px] text-zinc-300">TOMO 01 · EDICIÓN FUNDADOR</div>
+            </div>
+            <div class="flex justify-between items-center text-[10px] border-t border-zinc-700 pt-2">
+              <span>KAI STUDIO RD</span>
+              <span class="bg-white text-zinc-950 font-black px-1">連</span>
+            </div>
+          </div>
+
+          <!-- LOMO DINÁMICO -->
+          <div id="preview-spine-box" class="bg-rose-600 text-white border-y-2 border-zinc-950 flex items-center justify-center px-1.5 transition-all">
+            <span id="preview-spine-text" class="text-[10px] font-black tracking-widest uppercase" style="writing-mode: vertical-rl;">
+              ANACAONA · 4.18mm
+            </span>
+          </div>
+
+          <!-- CONTRAPORTADA -->
+          <div class="w-5/12 aspect-[127/190] bg-white border-2 border-zinc-950 p-4 flex flex-col justify-between">
+            <span class="text-[9px] bg-zinc-950 text-white px-1.5 py-0.5 font-bold self-start">CONTRAPORTADA (127mm)</span>
+            <p id="preview-synopsis" class="text-[11px] font-medium text-zinc-700 leading-snug my-auto">
+              En un Caribe ancestral reimaginado con energía espiritual, la cacica de Jaragua lidera la resistencia definitiva.
+            </p>
+            <div class="border border-zinc-950 p-1.5 flex items-center justify-between bg-zinc-50">
+              <div class="text-[9px] font-mono leading-tight">
+                ISBN 978-9945-00-01<br/>IMPRESO EN REP. DOM.
+              </div>
+              <div class="font-mono text-xs font-black tracking-widest">||| |||| || |||</div>
+            </div>
+          </div>
+        </div>
+        <p class="text-[11px] text-rose-700 font-bold mt-2">
+          * El borde punteado rojo representa los 3 mm de sangrado (Bleed) obligatorios para la guillotina.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    let inkCredits = 40;
+
+    function switchView(view) {
+      ['home', 'studio', 'print'].forEach(v => {
+        document.getElementById('view-' + v).classList.add('hidden');
+        document.getElementById('tab-' + v).classList.remove('bg-yellow-300');
+        document.getElementById('tab-' + v).classList.add('bg-white');
+      });
+      document.getElementById('view-' + view).classList.remove('hidden');
+      document.getElementById('tab-' + view).classList.remove('bg-white');
+      document.getElementById('tab-' + view).classList.add('bg-yellow-300');
+    }
+
+    function selectAudience(btn, label) {
+      document.querySelectorAll('.aud-btn').forEach(b => {
+        b.classList.remove('bg-yellow-300');
+        b.classList.add('bg-white');
+      });
+      btn.classList.remove('bg-white');
+      btn.classList.add('bg-yellow-300');
+    }
+
+    function launchFastOnboarding() {
+      const checks = document.querySelectorAll('.goal-check');
+      checks[0].checked = true;
+      checks[1].checked = true;
+      checks[2].checked = true;
+      updateProgress();
+      switchView('studio');
+    }
+
+    function updateProgress() {
+      const checks = document.querySelectorAll('.goal-check');
+      let done = 0;
+      checks.forEach(c => { if (c.checked) done++; });
+      document.getElementById('goal-badge').textContent = done + '/5 LISTO';
+    }
+
+    function setNinjaMood(mood) {
+      const bandana = document.getElementById('ninja-bandana');
+      if (mood === 'kawaii') bandana.setAttribute('fill', '#E11D48');
+      if (mood === 'shonen') bandana.setAttribute('fill', '#F97316');
+      if (mood === 'sensei') bandana.setAttribute('fill', '#2563EB');
+    }
+
+    function updateAssistantTone() {
+      const tone = document.getElementById('tone-selector').value;
+      const name = document.getElementById('assistant-name').value;
+      const msg = document.getElementById('kai-message');
+      if (tone === 'criollo') {
+        msg.innerHTML = '<strong>' + name + ':</strong> "¡Ese concepto tiene demasiado aura, manito! Ya bloqueé la semilla en el <em>Character Vault</em>. Elige una de las 3 rutas abajo o edita los globos directo en el lienzo:"';
+      } else {
+        msg.innerHTML = '<strong>' + name + ':</strong> "Semilla visual registrada en el <em>Character Vault</em> con peso IP-Adapter 0.82. Selecciona una ruta narrativa para el clímax de la página o edita los textos vectoriales:"';
+      }
+    }
+
+    function applyOption(opt) {
+      const desc = document.getElementById('panel-4-desc');
+      const dlg = document.getElementById('panel-4-dialogue');
+      if (opt === 'A') {
+        desc.textContent = 'Viñeta 4 (Opción A) · Contrapicado de Acción con Rayos Ancestrales';
+        dlg.textContent = '¡Despierta, fuego sagrado de Guanín!';
+      } else if (opt === 'B') {
+        desc.textContent = 'Viñeta 4 (Opción B) · Extreme Close-Up Psicológico en Tinta Oscura';
+        dlg.textContent = 'Ya vi todos tus movimientos antes de que ataques...';
+      } else {
+        desc.textContent = 'Viñeta 4 (Opción C) · Revelación del Petroglifo Ancestral de Jaragua';
+        dlg.textContent = 'La promesa de nuestros ancestros no caerá hoy.';
+      }
+      const checks = document.querySelectorAll('.goal-check');
+      checks[3].checked = true;
+      updateProgress();
+    }
+
+    function spendInkAndRegenerate() {
+      if (inkCredits >= 4) {
+        inkCredits -= 4;
+        document.getElementById('ink-counter').textContent = inkCredits + ' / 40';
+      }
+    }
+
+    function recalcSpine() {
+      const pages = parseInt(document.getElementById('page-count-slider').value, 10);
+      document.getElementById('page-count-display').textContent = pages + ' Páginas';
+      const title = document.getElementById('cover-title-input').value;
+      const synopsis = document.getElementById('cover-synopsis-input').value;
+
+      document.getElementById('preview-cover-title').textContent = title;
+      document.getElementById('preview-synopsis').textContent = synopsis;
+
+      const alertBox = document.getElementById('binding-alert');
+      const alertTitle = document.getElementById('binding-type-title');
+      const alertDesc = document.getElementById('binding-type-desc');
+      const spineBox = document.getElementById('preview-spine-box');
+      const spineText = document.getElementById('preview-spine-text');
+      const priceEl = document.getElementById('print-price-dop');
+      const dimEl = document.getElementById('spread-dimensions');
+
+      if (pages < 48) {
+        alertBox.className = 'p-3 border-2 border-zinc-950 bg-amber-50 text-xs space-y-1';
+        alertTitle.className = 'font-black uppercase text-amber-900';
+        alertTitle.textContent = '📌 FORMATO FANZINE / ONE-SHOT (GRAPA CABALLETE)';
+        alertDesc.innerHTML = 'Con <strong>' + pages + ' páginas</strong> no es físicamente posible hacer lomo cuadrado pegado. Se encuaderna con <strong>2 grapas al centro</strong> (sin lomo impreso).';
+        spineBox.style.width = '6px';
+        spineText.textContent = '';
+        priceEl.textContent = 'RD$ 1,850';
+        dimEl.textContent = 'Ancho Pliego Abierto: 260.00 mm × Alto: 196.00 mm';
+      } else {
+        const spineMm = ((pages / 2) * 0.115 + 0.5).toFixed(2);
+        const totalWidthMm = (3 + 127 + parseFloat(spineMm) + 127 + 3).toFixed(2);
+        alertBox.className = 'p-3 border-2 border-zinc-950 bg-emerald-50 text-xs space-y-1';
+        alertTitle.className = 'font-black uppercase text-emerald-900';
+        alertTitle.textContent = '✔ FORMATO TANKŌBON LOMO CUADRADO HABILITADO';
+        alertDesc.innerHTML = 'Con <strong>' + pages + ' páginas</strong> en papel ahuesado 90g, el lomo mide exactamente <strong>' + spineMm + ' mm</strong>. Apto para Rústica Fresada.';
+        spineBox.style.width = Math.max(22, Math.round(parseFloat(spineMm) * 3.5)) + 'px';
+        spineText.textContent = title.slice(0, 12) + ' · ' + spineMm + 'mm';
+        priceEl.textContent = 'RD$ 3,600';
+        dimEl.textContent = 'Ancho Total: ' + totalWidthMm + ' mm × Alto: 196.00 mm';
+      }
+      const checks = document.querySelectorAll('.goal-check');
+      checks[4].checked = true;
+      updateProgress();
+    }
+  </script>
+</body>
+</html>

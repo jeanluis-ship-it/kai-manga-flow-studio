@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 133 196" width="133mm" height="196mm">
+  <defs>
+    <style>
+      .bleed { fill: #fff5f5; stroke: #e11d48; stroke-width: 0.4; stroke-dasharray: 2,1; }
+      .trim { fill: #faf8f5; stroke: #09090b; stroke-width: 0.5; }
+      .safe { fill: none; stroke: #2563eb; stroke-width: 0.3; stroke-dasharray: 1.5,1.5; }
+      .panel { fill: #ffffff; stroke: #09090b; stroke-width: 0.8; }
+      .label { font-family: sans-serif; font-size: 2.8px; fill: #09090b; font-weight: bold; }
+    </style>
+  </defs>
+  <!-- Sangrado / Bleed (133 x 196 mm) -->
+  <rect x="0.2" y="0.2" width="132.6" height="195.6" class="bleed"/>
+  <!-- Corte Final / Trim Tankobon (127 x 190 mm) -->
+  <rect x="3" y="3" width="127" height="190" class="trim"/>
+  <!-- Caja Segura / Safe Area (117 x 180 mm) -->
+  <rect x="8" y="8" width="117" height="180" class="safe"/>
+
+  <!-- Grilla Base de 4 Viñetas (Kishotenketsu) -->
+  <rect x="8" y="8" width="117" height="48" class="panel"/>
+  <rect x="8" y="59" width="57" height="58" class="panel"/>
+  <rect x="68" y="59" width="57" height="58" class="panel"/>
+  <rect x="8" y="120" width="117" height="68" class="panel"/>
+
+  <text x="4" y="2.4" class="label" fill="#e11d48">SANGRADO / BLEED: 133 x 196 mm (+3mm por lado)</text>
+  <text x="9" y="7" class="label">CORTE TANKOBON: 127 x 190 mm | CAJA SEGURA DE TEXTO: 117 x 180 mm</text>
+</svg>

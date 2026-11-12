@@ -1,0 +1,65 @@
+{
+  "engine_version": "3.0.0",
+  "project_name": "KAI Studio (Manga-DR)",
+  "open_source_pipeline": {
+    "frontend_canvas_base": "https://github.com/jbilcke-hf/ai-comic-factory",
+    "character_consistency_adapter": "https://github.com/ToTheBeginning/PuLID",
+    "sequential_story_attention": "https://github.com/HVision-NKU/StoryDiffusion",
+    "manga_bw_layout_control": "https://github.com/jianzongwu/DiffSensei",
+    "balloon_typesetting": "https://github.com/dmMaze/BallonsTranslator",
+    "workflow_orchestrator": "https://github.com/comfyanonymous/ComfyUI"
+  },
+  "monetization_tiers": {
+    "demo_free": {
+      "price_usd": 0,
+      "price_dop": 0,
+      "ink_credits": 4,
+      "watermark": true,
+      "high_res_pdf": false
+    },
+    "trial_72h": {
+      "price_usd": 2.99,
+      "price_dop": 175,
+      "duration_hours": 72,
+      "ink_credits": 40,
+      "watermark": false,
+      "high_res_pdf": true,
+      "auto_renew_to": "mangaka_pro_monthly"
+    },
+    "mangaka_pro_monthly": {
+      "price_usd": 19.99,
+      "price_dop": 1190,
+      "ink_credits_per_month": 250,
+      "character_vault_slots": 10,
+      "print_discount_percent": 15
+    },
+    "ink_topup_pack": {
+      "price_usd": 6.99,
+      "price_dop": 415,
+      "ink_credits": 100
+    }
+  },
+  "print_rules_rd": {
+    "trim_width_mm": 127,
+    "trim_height_mm": 190,
+    "bleed_mm": 3,
+    "paper_caliper_mm_per_sheet": 0.115,
+    "glue_allowance_mm": 0.5,
+    "formats": {
+      "fanzine_saddle_stitch": {
+        "min_pages": 16,
+        "max_pages": 36,
+        "page_multiple": 4,
+        "has_spine": false,
+        "base_price_dop": 1850
+      },
+      "tankobon_perfect_bound": {
+        "min_pages": 64,
+        "max_pages": 192,
+        "page_multiple": 4,
+        "has_spine": true,
+        "base_price_dop": 3600
+      }
+    }
+  }
+}
