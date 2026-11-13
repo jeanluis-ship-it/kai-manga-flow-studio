@@ -63,6 +63,31 @@ window.KAIEngine = {
   async generateStoryAndPage(ideaText, audienceType, toneMode) {
     const apiKey = this.getApiKey();
 
+    // 0. Intentar primero el Proxy Serverless de Vercel (/api/generate) con GEMINI_API_KEY de servidor
+    if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+      try {
+        const srvRes = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'script',
+            prompt: ideaText,
+            style: audienceType || 'Classic Shonen',
+            dialect: toneMode || 'criollo',
+            clientKeys: { geminiKey: apiKey }
+          })
+        });
+        if (srvRes.ok) {
+          const srvJson = await srvRes.json();
+          if (srvJson && srvJson.ok && srvJson.data && Array.isArray(srvJson.data.panels)) {
+            return srvJson.data;
+          }
+        }
+      } catch (e) {
+        console.warn('Fallback de /api/generate script a cliente:', e);
+      }
+    }
+
     if (apiKey) {
       try {
         const response = await fetch(
