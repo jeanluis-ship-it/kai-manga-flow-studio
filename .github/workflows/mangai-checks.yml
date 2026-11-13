@@ -1,0 +1,24 @@
+name: MANGAI Integration Checks
+on:
+  pull_request:
+  push:
+    branches:
+      - feat/mangai-landing-openai-studio-v06
+permissions:
+  contents: read
+jobs:
+  static-and-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: |
+          node --check api/openai-image.js
+          node --check api/generate.js
+          node --check 02_kai_engine/manga_image_router.js
+          node --check 02_kai_engine/stitch_studio_controller.js
+          node --test tests/openai-image.test.cjs
