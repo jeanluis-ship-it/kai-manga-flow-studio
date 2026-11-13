@@ -608,7 +608,7 @@ window.KAIMangaImageRouter = {
         }
 
         if (chosenEngine === 'openai_gpt_image') {
-          for (const character of castList.slice(0, 2)) {
+          for (const character of castList.slice(0, 1)) {
             const portrait = character.turnaround_sheet_url || character.portraitUrl || character.referenceImage || '';
             if (typeof portrait === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(portrait)) {
               castReferences.push({ name: character.name || 'personaje', dataUrl: portrait });
@@ -624,6 +624,7 @@ window.KAIMangaImageRouter = {
         if (chosenEngine === 'openai_gpt_image' && !openaiStudioCode) {
           throw new Error('Necesitas el código privado del Studio para OpenAI Images.');
         }
+        if (chosenEngine === 'openai_gpt_image' && castReferences.length > 2) castReferences.length = 2;
         const srvResp = await fetch(chosenEngine === 'openai_gpt_image' ? '/api/openai-image' : '/api/generate', {
           method: 'POST',
           headers: {
