@@ -307,6 +307,10 @@
             <p id="interior-page-indicator" class="text-[11px] font-mono text-white/40 uppercase">PAGE 1 / 1</p>
           </div>
           <div class="flex items-center gap-2">
+            <button onclick="addCustomBubble()" class="px-3.5 py-1.5 rounded-full bg-[#141414] border border-[#00e699]/40 hover:border-[#00e699] text-[11px] font-semibold flex items-center gap-1.5 text-[#00e699]">
+              <span class="material-symbols-outlined text-[15px]">chat_bubble</span>
+              <span>+ Globo Diálogo</span>
+            </button>
             <button onclick="togglePageGuides()" id="btn-show-guides" class="px-3.5 py-1.5 rounded-full bg-[#141414] border border-[#262626] hover:border-white/30 text-[11px] font-semibold flex items-center gap-1.5 text-white/80">
               <span class="material-symbols-outlined text-[15px]">grid_on</span>
               <span>SHOW GUIDES</span>
@@ -318,7 +322,7 @@
           </div>
         </div>
 
-        <!-- HOJA DE PÁGINA DE MANGA -->
+        <!-- HOJA DE PÁGINA DE MANGA UNIFICADA (1 SOLA IMAGEN FULL-PAGE COMO GOOGLE FLOW) -->
         <div id="interior-canvas-sheet" class="w-full max-w-[460px] aspect-[127/190] bg-white text-black rounded-sm shadow-2xl relative overflow-hidden flex flex-col">
           <div id="page-guides-box" class="hidden absolute inset-2 border border-dashed border-rose-500 pointer-events-none z-30 flex items-end justify-end p-1">
             <span class="bg-rose-600 text-white text-[9px] font-mono px-1.5 py-0.5">BLEED 3MM / SAFE AREA</span>
@@ -330,50 +334,9 @@
             <span class="text-[10px] text-black/40 mt-1">Describe your scene in the right panel and click Generate High-Res Ink</span>
           </div>
 
-          <div id="page-rendered-grid" class="hidden flex-1 grid grid-rows-12 gap-2 p-3 bg-white">
-            <div id="panel-box-1" class="group row-span-4 border-[2px] border-black relative overflow-hidden bg-zinc-100">
-              <img id="p-img-1" class="w-full h-full object-cover manga-bw-filter" alt="Panel 1" />
-              <button onclick="regenerateSinglePanel(1)" title="Regenerar solo Viñeta 1 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
-                <span class="material-symbols-outlined text-[12px]">refresh</span>
-                <span>Re-Ink P1</span>
-              </button>
-              <div id="p-dlg-1" data-panel="1" contenteditable="true" oninput="saveBubbleText(1, this.innerText)" class="draggable-bubble absolute top-2 left-2 z-10 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-bold max-w-[78%] shadow-[2px_2px_0px_#000] cursor-move">
-                ...
-              </div>
-            </div>
-            <div class="row-span-4 grid grid-cols-2 gap-2">
-              <div id="panel-box-2" class="group border-[2px] border-black relative overflow-hidden bg-zinc-900">
-                <img id="p-img-2" class="w-full h-full object-cover manga-bw-filter" alt="Panel 2" />
-                <button onclick="regenerateSinglePanel(2)" title="Regenerar solo Viñeta 2 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
-                  <span class="material-symbols-outlined text-[12px]">refresh</span>
-                  <span>Re-Ink P2</span>
-                </button>
-                <div id="p-dlg-2" data-panel="2" contenteditable="true" oninput="saveBubbleText(2, this.innerText)" class="draggable-bubble absolute bottom-1.5 left-1.5 z-10 bg-white border-[1.5px] border-black px-2 py-0.5 text-[9.5px] font-bold max-w-[88%] cursor-move">
-                  ...
-                </div>
-              </div>
-              <div id="panel-box-3" class="group border-[2px] border-black relative overflow-hidden bg-zinc-100">
-                <img id="p-img-3" class="w-full h-full object-cover manga-bw-filter" alt="Panel 3" />
-                <button onclick="regenerateSinglePanel(3)" title="Regenerar solo Viñeta 3 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
-                  <span class="material-symbols-outlined text-[12px]">refresh</span>
-                  <span>Re-Ink P3</span>
-                </button>
-                <div id="p-dlg-3" data-panel="3" contenteditable="true" oninput="saveBubbleText(3, this.innerText)" class="draggable-bubble absolute bottom-2 left-2 z-10 bg-white border-[1.5px] border-black rounded-full px-2.5 py-1 text-[9.5px] font-bold text-center max-w-[88%] cursor-move">
-                  ...
-                </div>
-              </div>
-            </div>
-            <div id="panel-box-4" class="group row-span-4 border-[2.5px] border-black relative overflow-hidden bg-zinc-100 flex items-end justify-between p-2">
-              <img id="p-img-4" class="absolute inset-0 w-full h-full object-cover manga-bw-filter" alt="Panel 4" />
-              <button onclick="regenerateSinglePanel(4)" title="Regenerar solo Viñeta 4 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
-                <span class="material-symbols-outlined text-[12px]">refresh</span>
-                <span>Re-Ink P4</span>
-              </button>
-              <span contenteditable="true" class="relative z-10 bg-black text-white font-extrabold text-sm px-2 py-0.5 -rotate-6 cursor-text">¡DOOOM!</span>
-              <div id="p-dlg-4" data-panel="4" contenteditable="true" oninput="saveBubbleText(4, this.innerText)" class="draggable-bubble relative z-10 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-extrabold max-w-[68%] shadow-[2px_2px_0px_#000] cursor-move">
-                ...
-              </div>
-            </div>
+          <div id="page-rendered-grid" class="hidden flex-1 relative w-full h-full bg-white overflow-hidden">
+            <img id="page-full-img" class="w-full h-full object-cover manga-bw-filter" alt="Full Manga Page" />
+            <div id="page-bubbles-layer" class="absolute inset-0 z-20 pointer-events-none"></div>
           </div>
         </div>
 
@@ -1070,7 +1033,11 @@
       const name = document.getElementById('char-edit-name').value.trim() || 'Nuevo Personaje';
       const appearance = document.getElementById('char-edit-appearance').value.trim() || 'manga protagonist, sharp expressive eyes';
       const clothing = document.getElementById('char-edit-clothing').value.trim() || 'signature battle outfit';
+      const btn = document.getElementById('btn-lock-char');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span><span>Locking & Connecting...</span>`;
 
+      let charId = editingCharId;
       if (editingCharId) {
         const ch = project.characters.find(c => c.id === editingCharId);
         if (ch) {
@@ -1081,8 +1048,9 @@
           else ch.seed = (ch.seed || 300) + 7;
         }
       } else {
+        charId = 'char_' + Date.now();
         project.characters.push({
-          id: 'char_' + Date.now(),
+          id: charId,
           name,
           appearance,
           clothing,
@@ -1092,9 +1060,20 @@
           referenceBase64: uploadedCharBase64
         });
       }
+
+      // CONEXIÓN AUTOMÁTICA: Vincular este personaje automáticamente a todas las páginas del manuscrito
+      project.pages.forEach(p => {
+        if (!Array.isArray(p.castIds)) p.castIds = [];
+        if (charId && !p.castIds.includes(charId)) {
+          p.castIds.push(charId);
+        }
+      });
+
       openNewCharacterModal();
       persistProject();
       renderCharacterGrid();
+      btn.disabled = false;
+      btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">lock</span><span>Generate & Lock Reference</span>`;
     }
 
     // 3. PAPERBACK COVER
@@ -1179,12 +1158,13 @@
       project.pages.push({
         id: 'page_' + Date.now(),
         inked: false,
-        artStyle: document.getElementById('interior-art-style').value || 'Classic Shonen',
-        layoutId: document.getElementById('interior-layout').value || 'kishotenketsu_4',
+        artStyle: document.getElementById('interior-art-style').value || 'Taíno Ancestral Ink',
+        layoutId: document.getElementById('interior-layout').value || 'splash_page_1',
         prompt: '',
-        castIds: [],
+        castIds: project.characters.map(c => c.id),
         seed: 0,
-        dialogues: []
+        imageUrl: '',
+        bubbles: []
       });
       activePageIndex = project.pages.length - 1;
       persistProject();
@@ -1195,10 +1175,17 @@
     async function renderActivePage() {
       const page = project.pages[activePageIndex];
       if (!page) return;
+
+      // Auto-conectar personajes creados si la página aún tenía castIds vacío
+      if ((!page.castIds || page.castIds.length === 0) && project.characters.length > 0) {
+        page.castIds = project.characters.map(c => c.id);
+        persistProject();
+      }
+
       document.getElementById('interior-page-indicator').textContent = `PAGE ${activePageIndex + 1} / ${project.pages.length}`;
       document.getElementById('interior-page-prompt').value = page.prompt || '';
-      document.getElementById('interior-art-style').value = page.artStyle || 'Classic Shonen';
-      document.getElementById('interior-layout').value = page.layoutId || 'kishotenketsu_4';
+      document.getElementById('interior-art-style').value = page.artStyle || 'Taíno Ancestral Ink';
+      document.getElementById('interior-layout').value = page.layoutId || 'splash_page_1';
 
       const activeChars = project.characters.filter(c => page.castIds.includes(c.id));
       const masterPromptPreview = window.KAIMangaImageRouter.buildMasterPrompt({
@@ -1207,10 +1194,10 @@
         layoutId: page.layoutId,
         castCharacters: activeChars
       });
-      document.getElementById('page-prompt-display').textContent = masterPromptPreview;
+      document.getElementById('page-prompt-display').textContent = page.compiledPrompt || masterPromptPreview;
 
       const chipsEl = document.getElementById('active-cast-chips');
-      document.getElementById('active-cast-count').textContent = page.castIds.length;
+      document.getElementById('active-cast-count').textContent = activeChars.length;
       if (project.characters.length === 0) {
         chipsEl.innerHTML = `
           <button onclick="setView('characters')" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#141414] text-white/50 hover:text-white border border-dashed border-[#262626]">
@@ -1222,7 +1209,7 @@
           const isSelected = page.castIds.includes(c.id);
           return `
             <button onclick="toggleCastOnPage('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold border transition ${isSelected ? 'bg-[#00e699] text-black border-[#00e699]' : 'bg-[#141414] text-white/60 border-[#262626]'}">
-              🔒 ${c.name}
+              ${isSelected ? '🟢 🔒 ' + c.name + ' (Conectado)' : '⚪ ' + c.name}
             </button>
           `;
         }).join('');
@@ -1230,6 +1217,7 @@
 
       const awaitingEl = document.getElementById('page-awaiting-state');
       const gridEl = document.getElementById('page-rendered-grid');
+      const fullImgEl = document.getElementById('page-full-img');
 
       if (!page.inked) {
         awaitingEl.classList.remove('hidden');
@@ -1238,88 +1226,68 @@
         awaitingEl.classList.add('hidden');
         gridEl.classList.remove('hidden');
 
-        const shots = [
-          'Panel 1 (Ki): wide establishing shot, atmospheric background',
-          'Panel 2 (Sho): medium action shot, dramatic shadows and tension',
-          'Panel 3 (Ten): extreme close-up on intense eyes, speedlines',
-          'Panel 4 (Ketsu): low-angle dynamic climax pose, impact frame'
-        ];
-
-        for (let i = 1; i <= 4; i++) {
-          const imgEl = document.getElementById('p-img-' + i);
-          const dlgEl = document.getElementById('p-dlg-' + i);
-          const panelSeed = (page.panelSeeds && page.panelSeeds[i - 1]) ? page.panelSeeds[i - 1] : (page.seed + i * 19);
-          if (imgEl) {
-            const panelRes = await window.KAIMangaImageRouter.generateImage({
-              prompt: `${shots[i - 1]}. ${page.prompt}`,
-              styleName: page.artStyle,
-              layoutId: page.layoutId,
-              castCharacters: activeChars,
-              seed: panelSeed,
-              width: i === 1 || i === 4 ? 768 : 512,
-              height: i === 1 || i === 4 ? 384 : 512
-            });
-            imgEl.src = panelRes.url;
-            document.getElementById('page-provider-used').textContent = panelRes.providerUsed;
-          }
-          if (dlgEl) {
-            if (page.dialogues && page.dialogues[i - 1]) {
-              dlgEl.textContent = page.dialogues[i - 1];
-            }
-            if (page.bubblePositions && page.bubblePositions[i - 1]) {
-              dlgEl.style.left = page.bubblePositions[i - 1].left;
-              dlgEl.style.top = page.bubblePositions[i - 1].top;
-              dlgEl.style.bottom = 'auto';
-              dlgEl.style.right = 'auto';
-            }
-          }
+        if (page.imageUrl) {
+          fullImgEl.src = page.imageUrl;
+        } else {
+          const pageRes = await window.KAIMangaImageRouter.generateImage({
+            prompt: page.prompt,
+            styleName: page.artStyle,
+            layoutId: page.layoutId,
+            castCharacters: activeChars,
+            seed: page.seed || 101,
+            width: 768,
+            height: 1152
+          });
+          page.imageUrl = pageRes.url;
+          page.compiledPrompt = pageRes.masterPrompt;
+          fullImgEl.src = pageRes.url;
+          document.getElementById('page-provider-used').textContent = pageRes.providerUsed;
+          persistProject();
         }
+        renderCustomBubbles();
       }
     }
 
-    async function regenerateSinglePanel(panelNumber) {
+    function addCustomBubble() {
       const page = project.pages[activePageIndex];
       if (!page || !page.inked) return;
-      if (project.credits < 1) {
-        openPaywallModal();
-        return;
-      }
-      if (!page.panelSeeds) {
-        page.panelSeeds = [1, 2, 3, 4].map(i => page.seed + i * 19);
-      }
-      page.panelSeeds[panelNumber - 1] = Math.floor(Math.random() * 9000) + 100;
-      project.credits = Math.max(0, project.credits - 1);
+      if (!Array.isArray(page.bubbles)) page.bubbles = [];
+      page.bubbles.push({
+        id: 'bub_' + Date.now(),
+        text: 'Escribe tu diálogo aquí...',
+        left: '24px',
+        top: `${24 + page.bubbles.length * 46}px`
+      });
       persistProject();
-
-      const shots = [
-        'Panel 1 (Ki): wide establishing shot, atmospheric background',
-        'Panel 2 (Sho): medium action shot, dramatic shadows and tension',
-        'Panel 3 (Ten): extreme close-up on intense eyes, speedlines',
-        'Panel 4 (Ketsu): low-angle dynamic climax pose, impact frame'
-      ];
-      const activeChars = project.characters.filter(c => page.castIds.includes(c.id));
-      const imgEl = document.getElementById('p-img-' + panelNumber);
-      if (imgEl) {
-        imgEl.classList.add('animate-pulse-slow');
-        const panelRes = await window.KAIMangaImageRouter.generateImage({
-          prompt: `${shots[panelNumber - 1]}. ${page.prompt}`,
-          styleName: page.artStyle,
-          layoutId: page.layoutId,
-          castCharacters: activeChars,
-          seed: page.panelSeeds[panelNumber - 1],
-          width: panelNumber === 1 || panelNumber === 4 ? 768 : 512,
-          height: panelNumber === 1 || panelNumber === 4 ? 384 : 512
-        });
-        imgEl.src = panelRes.url;
-        imgEl.classList.remove('animate-pulse-slow');
-      }
+      renderCustomBubbles();
     }
 
-    function saveBubbleText(panelNumber, text) {
+    function removeCustomBubble(bubId) {
       const page = project.pages[activePageIndex];
-      if (!page) return;
-      if (!page.dialogues) page.dialogues = ['', '', '', ''];
-      page.dialogues[panelNumber - 1] = text.trim();
+      if (!page || !Array.isArray(page.bubbles)) return;
+      page.bubbles = page.bubbles.filter(b => b.id !== bubId);
+      persistProject();
+      renderCustomBubbles();
+    }
+
+    function renderCustomBubbles() {
+      const layer = document.getElementById('page-bubbles-layer');
+      const page = project.pages[activePageIndex];
+      if (!layer || !page) return;
+      const bubbles = Array.isArray(page.bubbles) ? page.bubbles : [];
+      layer.innerHTML = bubbles.map((b, idx) => `
+        <div data-bubble-idx="${idx}" style="left:${b.left};top:${b.top};" class="draggable-bubble pointer-events-auto group absolute bg-white border-[2px] border-black rounded-2xl px-3 py-1.5 text-[11px] font-bold text-black max-w-[75%] shadow-[3px_3px_0px_#000] cursor-move">
+          <button onclick="removeCustomBubble('${b.id}')" class="no-print opacity-0 group-hover:opacity-100 absolute -top-2 -right-2 w-4 h-4 rounded-full bg-black text-white text-[9px] flex items-center justify-center">✕</button>
+          <div contenteditable="true" oninput="saveCustomBubbleText(${idx}, this.innerText)" class="focus:outline-none">${b.text}</div>
+        </div>
+      `).join('');
+      initDraggableBubbles();
+    }
+
+    function saveCustomBubbleText(idx, text) {
+      const page = project.pages[activePageIndex];
+      if (!page || !page.bubbles || !page.bubbles[idx]) return;
+      page.bubbles[idx].text = text.trim();
       persistProject();
     }
 
@@ -1331,8 +1299,8 @@
       let origTop = 0;
 
       document.querySelectorAll('.draggable-bubble').forEach(bubble => {
-        bubble.addEventListener('mousedown', (e) => {
-          if (e.detail === 2) return; // Double-click edits text smoothly
+        bubble.onmousedown = (e) => {
+          if (e.target.tagName === 'BUTTON' || e.detail === 2) return;
           draggingBubble = bubble;
           const parentRect = bubble.parentElement.getBoundingClientRect();
           const rect = bubble.getBoundingClientRect();
@@ -1340,13 +1308,10 @@
           startY = e.clientY;
           origLeft = rect.left - parentRect.left;
           origTop = rect.top - parentRect.top;
-          bubble.style.position = 'absolute';
-          bubble.style.bottom = 'auto';
-          bubble.style.right = 'auto';
-        });
+        };
       });
 
-      window.addEventListener('mousemove', (e) => {
+      window.onmousemove = (e) => {
         if (!draggingBubble) return;
         const parent = draggingBubble.parentElement;
         const dx = e.clientX - startX;
@@ -1356,22 +1321,19 @@
         const newTop = Math.max(4, Math.min(parent.clientHeight - draggingBubble.offsetHeight - 4, origTop + dy));
         draggingBubble.style.left = `${newLeft}px`;
         draggingBubble.style.top = `${newTop}px`;
-      });
+      };
 
-      window.addEventListener('mouseup', () => {
+      window.onmouseup = () => {
         if (!draggingBubble) return;
-        const panelNum = parseInt(draggingBubble.getAttribute('data-panel') || '1', 10);
+        const idx = parseInt(draggingBubble.getAttribute('data-bubble-idx') || '0', 10);
         const page = project.pages[activePageIndex];
-        if (page) {
-          if (!page.bubblePositions) page.bubblePositions = [null, null, null, null];
-          page.bubblePositions[panelNum - 1] = {
-            left: draggingBubble.style.left,
-            top: draggingBubble.style.top
-          };
+        if (page && page.bubbles && page.bubbles[idx]) {
+          page.bubbles[idx].left = draggingBubble.style.left;
+          page.bubbles[idx].top = draggingBubble.style.top;
           persistProject();
         }
         draggingBubble = null;
-      });
+      };
     }
 
     function toggleCastOnPage(charId) {
@@ -1406,10 +1368,20 @@
       page.inked = true;
       project.credits = Math.max(0, project.credits - 4);
 
-      const aiResult = await window.KAIEngine.generateStoryAndPage(promptInput, page.artStyle, 'criollo');
-      if (aiResult && aiResult.panels) {
-        page.dialogues = aiResult.panels.map(p => p.dialogue_es);
-      }
+      const activeChars = project.characters.filter(c => page.castIds.includes(c.id));
+      const pageRes = await window.KAIMangaImageRouter.generateImage({
+        prompt: page.prompt,
+        styleName: page.artStyle,
+        layoutId: page.layoutId,
+        castCharacters: activeChars,
+        seed: page.seed,
+        width: 768,
+        height: 1152
+      });
+
+      page.imageUrl = pageRes.url;
+      page.compiledPrompt = pageRes.masterPrompt;
+      document.getElementById('page-provider-used').textContent = pageRes.providerUsed;
 
       persistProject();
       renderManuscriptList();
