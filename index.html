@@ -600,28 +600,39 @@
         </div>
 
         <div class="space-y-1">
-          <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Google Gemini API Key (Para 🍌 Nano Banana Pro y Guiones KAI)</label>
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Google Gemini API Key (🍌 Nano Banana Pro + KAI)</label>
+            <a href="https://aistudio.google.com/apikey" target="_blank" class="text-[10px] text-[#00e699] hover:underline font-mono">Obtener gratis ↗</a>
+          </div>
           <input id="modal-gemini-key" type="password" placeholder="AIzaSy..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none" />
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div class="space-y-1">
-            <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">HuggingFace Token (hf_...)</label>
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">HuggingFace Token</label>
+              <a href="https://huggingface.co/settings/tokens" target="_blank" class="text-[10px] text-[#00e699] hover:underline font-mono">Crear ↗</a>
+            </div>
             <input id="modal-hf-token" type="password" placeholder="hf_..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none" />
           </div>
           <div class="space-y-1">
-            <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Fal.ai Key (FLUX/PuLID)</label>
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-white/40">Fal.ai Key (PuLID)</label>
+              <a href="https://fal.ai/dashboard/keys" target="_blank" class="text-[10px] text-[#00e699] hover:underline font-mono">Crear ↗</a>
+            </div>
             <input id="modal-fal-key" type="password" placeholder="fal_key..." class="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none" />
           </div>
         </div>
       </div>
 
-      <div class="p-3.5 rounded-xl bg-black/50 border border-[#00e699]/30 flex items-center justify-between">
+      <div class="p-3.5 rounded-xl bg-black/50 border border-[#00e699]/30 flex items-center justify-between gap-2">
         <div>
-          <div class="text-xs font-bold text-[#00e699]">Pase de Estudio 72h (+40 Créditos)</div>
-          <div class="text-[11px] text-white/50">US$ 2.99 (RD$ 175) · Tope duro sin riesgo GPU</div>
+          <div class="text-xs font-bold text-[#00e699]">Exportar Llaves para Servidor Vercel</div>
+          <div class="text-[10px] text-white/50">Genera el archivo `.env` listo para subir en 1 clic a Vercel Settings sin exponer tus claves.</div>
         </div>
-        <button onclick="topUpCredits(40)" class="px-3 py-1.5 rounded-lg bg-[#00e699] text-black font-bold text-xs">+40 Tinta</button>
+        <button onclick="exportVercelEnvFile()" class="px-3 py-1.5 rounded-lg bg-[#00e699] hover:bg-[#00d18b] text-black font-bold text-[11px] whitespace-nowrap transition">
+          ⬇️ Bajar .env + Abrir Vercel
+        </button>
       </div>
 
       <button onclick="saveApiModal()" class="w-full py-2.5 rounded-full bg-white text-black font-bold text-xs">Guardar Motor y Claves</button>
@@ -1547,6 +1558,23 @@
       window.KAIEngine.setApiKey(document.getElementById('modal-gemini-key').value);
       updateEngineBadge();
       closeApiModal();
+    }
+
+    function exportVercelEnvFile() {
+      saveApiModal();
+      const cfg = window.KAIMangaImageRouter.getConfig();
+      const lines = [
+        `GEMINI_API_KEY=${cfg.geminiKey || ''}`,
+        `HF_API_TOKEN=${cfg.hfToken || ''}`,
+        `FAL_KEY=${cfg.falKey || ''}`,
+        `KAI_PASS_SECRET=kai_flow_studio_rd_${Date.now()}`
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'kai_vercel.env';
+      a.click();
+      window.open('https://vercel.com/fgw2/kai-manga-flow-studio/settings/environment-variables', '_blank');
     }
     function topUpCredits(amount) {
       project.credits += amount;
