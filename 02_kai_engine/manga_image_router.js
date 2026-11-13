@@ -108,6 +108,51 @@ window.KAIMangaImageRouter = {
       isCover
     });
 
+    // 0. PROXY SERVERLESS SEGURO EN VERCEL (/api/generate)
+    if (cfg.provider !== 'flux_instant' && typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+      try {
+        const castReferences = castCharacters
+          .filter(c => c.referenceBase64 && c.referenceBase64.length > 100)
+          .map(c => ({
+            name: c.name,
+            base64: c.referenceBase64.replace(/^data:image\/\w+;base64,/, '')
+          }));
+
+        const srvResp = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'image',
+            provider: cfg.provider,
+            prompt: masterPrompt,
+            castReferences,
+            seed,
+            width,
+            height,
+            clientKeys: {
+              geminiKey: cfg.geminiKey,
+              hfToken: cfg.hfToken,
+              falKey: cfg.falKey
+            }
+          })
+        });
+
+        if (srvResp.ok) {
+          const srvData = await srvResp.json();
+          if (srvData && srvData.ok && srvData.url && !srvData.fallback) {
+            return {
+              url: srvData.url,
+              base64: srvData.url.startsWith('data:') ? srvData.url.split(',')[1] : '',
+              masterPrompt,
+              providerUsed: srvData.providerUsed || 'Serverless AI Engine'
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('Endpoint /api/generate no disponible localmente, usando router directo:', e);
+      }
+    }
+
     // 1. MOTOR NANO BANANA PRO / GEMINI MULTIMODAL IMAGE GEN (Con inyección de referencias base64 del Character Library)
     if (cfg.provider === 'nano_banana_gemini' && cfg.geminiKey) {
       try {

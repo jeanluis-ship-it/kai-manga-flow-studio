@@ -65,13 +65,19 @@
             </div>
             <div>
               <div class="text-[13px] font-bold tracking-tight text-white">KAI Flow Studio</div>
-              <div class="text-[10px] text-white/40 font-mono" id="credits-pill">40 créditos tinta</div>
+              <button onclick="openPaywallModal()" class="text-[10px] text-[#00e699] hover:underline font-mono flex items-center gap-1" id="credits-pill">40 créditos tinta</button>
             </div>
           </div>
-          <button onclick="openApiModal()" title="Cambiar Motor IA (Nano Banana / Flux / HF)" class="px-2.5 py-1 rounded-lg border border-[#262626] hover:border-[#00e699] flex items-center gap-1 text-[10px] font-mono text-[#00e699] transition">
-            <span class="material-symbols-outlined text-[14px]">tune</span>
-            <span>Motor IA</span>
-          </button>
+          <div class="flex items-center gap-1">
+            <button onclick="openPaywallModal()" title="Planes, Trial 72h (US$ 2.99) y Suscripción" class="px-2 py-1 rounded-lg bg-[#00e699]/15 border border-[#00e699]/40 hover:border-[#00e699] flex items-center gap-1 text-[10px] font-mono text-[#00e699] transition">
+              <span class="material-symbols-outlined text-[13px]">payments</span>
+              <span>Trial 72h</span>
+            </button>
+            <button onclick="openApiModal()" title="Cambiar Motor IA (Nano Banana / Flux / HF)" class="px-2 py-1 rounded-lg border border-[#262626] hover:border-white/40 flex items-center gap-1 text-[10px] font-mono text-white/80 transition">
+              <span class="material-symbols-outlined text-[13px]">tune</span>
+              <span>IA</span>
+            </button>
+          </div>
         </div>
 
         <button onclick="openApiModal()" id="active-engine-badge" class="w-full text-left px-2.5 py-1.5 rounded-lg bg-[#141414] border border-white/10 text-[10px] font-mono text-white/70 truncate hover:border-white/30 transition">
@@ -622,6 +628,106 @@
     </div>
   </div>
 
+  <!-- MODAL DE MONETIZACIÓN: PASE DE PRUEBA 72H (US$ 2.99), PLANES Y CANCELACIÓN 1-CLIC -->
+  <div id="modal-paywall" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#111111] border border-white/15 rounded-2xl max-w-3xl w-full p-6 space-y-5 max-h-[92vh] overflow-y-auto dark-scrollbar">
+      <div class="flex justify-between items-start border-b border-white/10 pb-4">
+        <div>
+          <span class="text-[10px] font-mono uppercase tracking-widest text-[#00e699]">KAI Flow Studio · Monetización & Trial Anti-Abuso</span>
+          <h3 class="text-lg font-extrabold text-white mt-0.5">Activa tu Pase de Estudio o Recarga Créditos de Tinta</h3>
+          <p class="text-[12px] text-white/50">Prueba completa por 3 días con pago adelantado mínimo y cancelación instantánea en 1 clic si decides no continuar.</p>
+        </div>
+        <button onclick="closePaywallModal()" class="text-white/50 hover:text-white text-lg px-2">✕</button>
+      </div>
+
+      <!-- Estado del Pase Activo / Suscripción -->
+      <div id="active-pass-banner" class="p-4 rounded-xl bg-[#161616] border border-[#262626] flex flex-wrap items-center justify-between gap-3">
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#00e699]"></span>
+            <span id="pass-status-title" class="text-xs font-bold text-white">Estado: Pase Inicial de Prueba Activo (40 Créditos)</span>
+          </div>
+          <p id="pass-status-subtitle" class="text-[11px] text-white/50 font-mono">
+            Renovación automática: Puedes cancelar en cualquier momento antes de las 72 horas sin cargos adicionales.
+          </p>
+        </div>
+        <button id="btn-cancel-trial" onclick="cancelActiveSubscription()" class="px-3 py-1.5 rounded-lg border border-rose-500/40 hover:bg-rose-500/15 text-rose-400 text-[11px] font-semibold transition">
+          Cancelar Renovación Automática (1-Clic)
+        </button>
+      </div>
+
+      <!-- 3 Planes Oficiales -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <!-- Plan 1: Trial 72h -->
+        <div class="bg-[#161616] border-2 border-[#00e699] rounded-2xl p-4 flex flex-col justify-between relative">
+          <span class="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full bg-[#00e699] text-black text-[9px] font-extrabold uppercase tracking-wider">Más Popular · 3 Días</span>
+          <div class="space-y-2.5 pt-1">
+            <div class="text-xs font-bold text-white/90">Pase Estudio 72 Horas</div>
+            <div>
+              <span class="text-2xl font-extrabold text-white">US$ 2.99</span>
+              <span class="text-[11px] text-white/45 font-mono"> / RD$ 175</span>
+            </div>
+            <div class="text-[11px] font-mono text-[#00e699] bg-[#00e699]/10 px-2.5 py-1 rounded-lg inline-block">
+              +40 Créditos de Tinta (10 págs)
+            </div>
+            <ul class="text-[11px] text-white/65 space-y-1.5 pt-1">
+              <li>✔ Acceso total a 6 estilos y Seed Lock</li>
+              <li>✔ Exportación ZIP sin marca de agua</li>
+              <li>✔ Pasa a Pro (US$ 19.99/mes) al 4to día solo si no cancelas antes</li>
+            </ul>
+          </div>
+          <button onclick="startPlanCheckout('trial_72h')" class="mt-4 w-full py-2.5 rounded-xl bg-[#00e699] hover:bg-[#00d18b] text-black font-extrabold text-xs transition">
+            Activar Pase 72h (US$ 2.99)
+          </button>
+        </div>
+
+        <!-- Plan 2: Mangaka Pro -->
+        <div class="bg-[#161616] border border-[#262626] hover:border-white/30 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="text-xs font-bold text-white/90">Mangaka Pro Mensual</div>
+            <div>
+              <span class="text-2xl font-extrabold text-white">US$ 19.99</span>
+              <span class="text-[11px] text-white/45 font-mono"> / mes (RD$ 1,180)</span>
+            </div>
+            <div class="text-[11px] font-mono text-white/80 bg-white/10 px-2.5 py-1 rounded-lg inline-block">
+              +250 Créditos de Tinta / mes
+            </div>
+            <ul class="text-[11px] text-white/65 space-y-1.5 pt-1">
+              <li>✔ ~62 páginas completas cada mes</li>
+              <li>✔ Prioridad en 🍌 Nano Banana Pro + PuLID</li>
+              <li>✔ 15% descuento en imprenta física RD</li>
+            </ul>
+          </div>
+          <button onclick="startPlanCheckout('pro_monthly')" class="mt-4 w-full py-2.5 rounded-xl bg-white hover:bg-white/90 text-black font-bold text-xs transition">
+            Suscribirme a Pro (US$ 19.99)
+          </button>
+        </div>
+
+        <!-- Plan 3: Pack Tomo Cero -->
+        <div class="bg-[#161616] border border-[#262626] hover:border-white/30 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="text-xs font-bold text-white/90">Pack Editorial Tomo Cero</div>
+            <div>
+              <span class="text-2xl font-extrabold text-white">US$ 49.00</span>
+              <span class="text-[11px] text-white/45 font-mono"> pago único</span>
+            </div>
+            <div class="text-[11px] font-mono text-amber-300 bg-amber-400/10 px-2.5 py-1 rounded-lg inline-block">
+              +600 Créditos + 1 Libro Impreso
+            </div>
+            <ul class="text-[11px] text-white/65 space-y-1.5 pt-1">
+              <li>✔ Créditos para un Tankōbon de 100+ págs</li>
+              <li>✔ Incluye 1 ejemplar físico impreso en Papel Ahuesado 90g</li>
+              <li>✔ Sin cobros recurrentes</li>
+            </ul>
+          </div>
+          <button onclick="startPlanCheckout('studio_pack')" class="mt-4 w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 transition">
+            Comprar Pack Editorial (US$ 49)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = 'kai_flow_project_clean_v1';
 
@@ -1011,6 +1117,10 @@
     }
 
     async function generateCoverWrap() {
+      if (project.credits < 2) {
+        openPaywallModal();
+        return;
+      }
       const promptVal = document.getElementById('cover-prompt-input').value.trim();
       project.cover.prompt = promptVal || `Dramatic manga volume cover wrap for ${project.name}`;
       project.cover.seed = Math.floor(Math.random() * 9000) + 1000;
@@ -1159,6 +1269,10 @@
     async function regenerateSinglePanel(panelNumber) {
       const page = project.pages[activePageIndex];
       if (!page || !page.inked) return;
+      if (project.credits < 1) {
+        openPaywallModal();
+        return;
+      }
       if (!page.panelSeeds) {
         page.panelSeeds = [1, 2, 3, 4].map(i => page.seed + i * 19);
       }
@@ -1264,6 +1378,10 @@
     async function generateCurrentPageInk() {
       const page = project.pages[activePageIndex];
       if (!page) return;
+      if (project.credits < 4) {
+        openPaywallModal();
+        return;
+      }
       const btn = document.getElementById('btn-gen-ink');
       const promptInput = document.getElementById('interior-page-prompt').value.trim() || 'Dramatic manga confrontation scene';
 
@@ -1434,6 +1552,114 @@
       project.credits += amount;
       persistProject();
       closeApiModal();
+    }
+
+    function openPaywallModal() {
+      renderPassStatusBanner();
+      document.getElementById('modal-paywall').classList.remove('hidden');
+    }
+
+    function closePaywallModal() {
+      document.getElementById('modal-paywall').classList.add('hidden');
+    }
+
+    function renderPassStatusBanner() {
+      const savedPass = JSON.parse(localStorage.getItem('kai_active_pass') || 'null');
+      const titleEl = document.getElementById('pass-status-title');
+      const subEl = document.getElementById('pass-status-subtitle');
+      const cancelBtn = document.getElementById('btn-cancel-trial');
+
+      if (!savedPass) {
+        titleEl.textContent = `Saldo Actual: ${project.credits} Créditos de Tinta disponibles`;
+        subEl.textContent = 'Sin cargos recurrentes activos · Activa el Pase de 72h (US$ 2.99) cuando necesites más tinta.';
+        cancelBtn.classList.add('hidden');
+        return;
+      }
+
+      titleEl.textContent = `Pase Activo: ${savedPass.planName} (${savedPass.passId}) · ${project.credits} Créditos`;
+      if (savedPass.cancelled) {
+        subEl.textContent = 'Renovación automática CANCELADA ✔ · Conservas tus créditos sin cobros futuros.';
+        cancelBtn.classList.add('hidden');
+      } else if (savedPass.autoRenewStatus === 'non_recurring') {
+        subEl.textContent = 'Pago único editorial · Sin cobros recurrentes.';
+        cancelBtn.classList.add('hidden');
+      } else {
+        subEl.textContent = `Vence: ${new Date(savedPass.expiresAt).toLocaleString('es-DO')} · ${savedPass.autoRenewLabel}`;
+        cancelBtn.classList.remove('hidden');
+      }
+    }
+
+    async function startPlanCheckout(planId) {
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create_checkout',
+            planId,
+            customerName: project.author,
+            originUrl: window.location.origin
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.mode === 'stripe_live' && data.checkoutUrl) {
+            window.location.href = data.checkoutUrl;
+            return;
+          }
+          if (data.pass) {
+            localStorage.setItem('kai_active_pass', JSON.stringify(data.pass));
+            project.credits += data.pass.creditsGranted;
+            persistProject();
+            renderPassStatusBanner();
+            const statusEl = document.getElementById('status-indicator');
+            statusEl.textContent = `+${data.pass.creditsGranted} Tinta ✔`;
+            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Fallback local para checkout:', e);
+      }
+
+      // Fallback offline local
+      const fallbackCredits = planId === 'studio_pack' ? 600 : planId === 'pro_monthly' ? 250 : 40;
+      const fallbackPass = {
+        passId: 'KAI-' + planId.toUpperCase() + '-LOCAL',
+        planId,
+        planName: planId === 'trial_72h' ? 'Pase de Estudio 72 Horas' : planId === 'pro_monthly' ? 'Mangaka Pro Mensual' : 'Pack Editorial Tomo Cero',
+        creditsGranted: fallbackCredits,
+        expiresAt: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
+        autoRenewStatus: planId === 'studio_pack' ? 'non_recurring' : 'active_trial_auto_renew',
+        autoRenewLabel: 'Renueva a Pro (US$ 19.99/mes) salvo cancelación en 1 clic'
+      };
+      localStorage.setItem('kai_active_pass', JSON.stringify(fallbackPass));
+      project.credits += fallbackCredits;
+      persistProject();
+      renderPassStatusBanner();
+    }
+
+    async function cancelActiveSubscription() {
+      const savedPass = JSON.parse(localStorage.getItem('kai_active_pass') || 'null');
+      if (!savedPass) return;
+
+      try {
+        await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'cancel_subscription',
+            passId: savedPass.passId
+          })
+        });
+      } catch (e) {
+        console.warn('Cancelación local aplicada:', e);
+      }
+
+      savedPass.cancelled = true;
+      localStorage.setItem('kai_active_pass', JSON.stringify(savedPass));
+      renderPassStatusBanner();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
