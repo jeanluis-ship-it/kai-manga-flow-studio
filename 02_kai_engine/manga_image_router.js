@@ -1,9 +1,7 @@
 /**
- * MANGA IMAGE ROUTER v4.4 — Motor Multi-Proveedor de Páginas de Manga con Conexión Directa de Personajes
- * Prioriza en los primeros tokens del prompt:
- * 1. Personajes conectados del Character Roster (Appearance + Signature Clothing + Seed Lock / Base64)
- * 2. Acción de la escena escrita por el autor
- * 3. Composición (1 Splash Page vs Viñetas) y Estilo de Entintado Manga B&W
+ * MANGAI STUDIO — MANGA IMAGE ROUTER v5.0 (Stitch Genkō Edition)
+ * Motor Multi-Proveedor de Viñetas (Koma) y Páginas de Manga con Anclas Settei (@Personaje),
+ * Ángulos de Cámara y Plumillas Tradicionales (G-Pen, Maru-Pen, Kabura, Pincel Beta).
  */
 
 window.KAIMangaImageRouter = {
@@ -13,43 +11,93 @@ window.KAIMangaImageRouter = {
       tokens: 'authentic black and white Japanese shonen manga art, crisp G-pen sumi ink lineart, dynamic speedlines, halftone screentone shading, high contrast monochrome ink, no text, no watermark'
     },
     'Dark Seinen': {
-      label: 'Dark Seinen (Miura / Fujimoto)',
+      label: 'Dark Seinen (Miura / Inoue)',
       tokens: 'gritty dark seinen manga art, heavy crosshatching, deep chiaroscuro black ink shadows, raw expressive pen strokes, monochrome ink, no text, no watermark'
     },
     'Modern Shojo': {
-      label: 'Modern Shojo (Línea Fina & Tramas)',
+      label: 'Modern Shojo (Maru-Pen & Tramas)',
       tokens: 'delicate modern shojo manga art, ultra-thin Maru-pen lineart, soft gradient halftone screentones, expressive luminous eyes, monochrome ink, no text, no watermark'
     },
     'Retro Gekiga': {
-      label: 'Retro Gekiga (90s Otomo / Inoue)',
+      label: 'Retro Gekiga (90s Otomo / Tezuka)',
       tokens: '1990s vintage gekiga manga art, organic fude brush ink strokes, realistic anatomical proportions, cinematic perspective, monochrome ink, no text, no watermark'
     },
     'Cyberpunk Manga': {
-      label: 'Cyberpunk Manga (Blame! / Akira)',
-      tokens: 'cyberpunk biomechanical manga art, stark black and white architectural megastructures, pure black ink and screentones, Tsutomu Nihei style, no text, no watermark'
+      label: 'Cyberpunk Manga (Blame! / Ronin Zero)',
+      tokens: 'cyberpunk seinen manga art, stark black and white architectural megastructures, pure black sumi ink and screentones, Tsutomu Nihei style, no text, no watermark'
     },
     'Taíno Ancestral Ink': {
       label: 'Taíno Ancestral Ink (Edición Caribe)',
-      tokens: 'epic Caribbean Taino fantasy manga illustration, high-contrast black sumi ink wash, glowing ancestral Zemi petroglyph energy, dramatic tropical storm chiaroscuro, screentone shading, monochrome black and white manga, no text'
+      tokens: 'epic Caribbean Taino fantasy seinen manga illustration, high-contrast black sumi ink wash, glowing ancestral Zemi petroglyph energy, dramatic tropical storm chiaroscuro, screentone shading, monochrome black and white manga, no text'
+    }
+  },
+
+  PEN_NIBS: {
+    'g_pen': {
+      label: 'G-Pen Héroe',
+      sub: 'Activa',
+      tokens: 'bold expressive G-Pen sumi ink linework with dynamic thick-to-thin line weight'
+    },
+    'maru_pen': {
+      label: 'Maru-Pen Detalle',
+      sub: '0.15mm',
+      tokens: 'ultra-fine 0.15mm Maru-Pen intricate crosshatching and micro-detail ink lines'
+    },
+    'kabura_pen': {
+      label: 'Kabura Fondo',
+      sub: '0.4mm',
+      tokens: 'uniform 0.4mm Kabura-Pen architectural background and rigid structural manga linework'
+    },
+    'pincel_beta': {
+      label: 'Pincel Beta Negro',
+      sub: 'Beta',
+      tokens: 'heavy solid black Sumi brush (Beta) shadows and dramatic dry-brush ink strokes'
+    }
+  },
+
+  CAMERA_ANGLES: {
+    'low_angle': {
+      label: 'Contrapicado Dramático (Low Angle)',
+      tokens: 'dramatic low-angle heroic perspective looking up'
+    },
+    'wide_establishing': {
+      label: 'Gran Plano General (Establishing Shot)',
+      tokens: 'wide panoramic establishing shot with detailed environment architecture'
+    },
+    'extreme_closeup': {
+      label: 'Primerísimo Plano (Close-Up Ojos/Rostro)',
+      tokens: 'intense extreme close-up on face and eyes with dramatic emotion'
+    },
+    'high_angle': {
+      label: 'Picado Medio (High Angle)',
+      tokens: 'cinematic high-angle overhead shot looking down'
+    },
+    'dynamic_diagonal': {
+      label: 'Acción Diagonal (Dutch Angle Shonen)',
+      tokens: 'dynamic tilted Dutch-angle action shot with intense motion foreshortening'
     }
   },
 
   PAGE_LAYOUTS: {
+    'koma_single': {
+      label: 'Viñeta Individual (Koma)',
+      prompt_hint: 'Single manga comic panel illustration (1 focused frame, no internal panel subdivisions)'
+    },
     'splash_page_1': {
-      label: '1 Splash Page (Página de Impacto)',
-      prompt_hint: 'Full-page single vertical manga splash illustration (1 single full-bleed frame, NO multiple panels)'
+      label: '1 Splash Page (Página Completa)',
+      prompt_hint: 'Full-page single vertical manga splash illustration (1 single full-bleed frame)'
     },
     'kishotenketsu_4': {
-      label: '4 Viñetas (Kishōtenketsu Clásico)',
-      prompt_hint: 'Full vertical manga page divided into 4 sequential comic panels with black panel borders (top establishing panel, two middle action panels, bottom climax panel)'
-    },
-    'shonen_action_5': {
-      label: '5 Viñetas (Diagonal Shonen Action)',
-      prompt_hint: 'Full vertical manga page with 5 dynamic diagonal action panels, intense close-ups and speedlines'
+      label: '4 Viñetas Seinen (Koma-wari 4)',
+      prompt_hint: 'Single focused manga panel illustration for a 4-panel seinen page'
     },
     'cinematic_3': {
       label: '3 Viñetas (Widescreen Cinematográfico)',
-      prompt_hint: 'Full vertical manga page divided into 3 horizontal widescreen cinematic panels stacked vertically'
+      prompt_hint: 'Wide cinematic manga panel illustration'
+    },
+    'duel_2': {
+      label: '2 Viñetas (Impacto / Duelo)',
+      prompt_hint: 'Large half-page manga impact panel illustration'
     }
   },
 
@@ -70,29 +118,53 @@ window.KAIMangaImageRouter = {
   },
 
   /**
-   * Construye el Prompt Maestro colocando PRIMERO al personaje conectado y la escena
-   * para que el generador de imágenes nunca ignore los rasgos del Character Roster.
+   * Construye el Prompt Maestro colocando PRIMERO las Anclas Settei (@Personajes),
+   * el Ángulo de Cámara, la Plumilla Sumi y la Escena.
    */
-  buildMasterPrompt({ scenePrompt, styleName = 'Taíno Ancestral Ink', layoutId = 'splash_page_1', castCharacters = [], isCover = false }) {
-    const styleObj = this.STYLE_PRESETS[styleName] || this.STYLE_PRESETS['Classic Shonen'];
-    const layoutObj = this.PAGE_LAYOUTS[layoutId] || this.PAGE_LAYOUTS['splash_page_1'];
+  buildMasterPrompt({
+    scenePrompt,
+    styleName = 'Taíno Ancestral Ink',
+    layoutId = 'koma_single',
+    cameraAngle = 'low_angle',
+    penNib = 'g_pen',
+    castCharacters = [],
+    isCover = false
+  }) {
+    const styleObj = this.STYLE_PRESETS[styleName] || this.STYLE_PRESETS['Taíno Ancestral Ink'];
+    const camObj = this.CAMERA_ANGLES[cameraAngle] || this.CAMERA_ANGLES['low_angle'];
+    const nibObj = this.PEN_NIBS[penNib] || this.PEN_NIBS['g_pen'];
 
     const castLockString = castCharacters.length > 0
       ? 'MAIN CHARACTER(S): ' +
-        castCharacters.map(c => `${c.name} (${c.appearance || ''}, wearing ${c.clothing || 'signature outfit'})`).join(' AND ') + '. '
+        castCharacters.map(c => {
+          const anchors = Array.isArray(c.anchors) && c.anchors.length ? `, visual anchors: ${c.anchors.join(', ')}` : '';
+          return `${c.name} (${c.appearance || ''}, wearing ${c.clothing || 'signature outfit'}${anchors})`;
+        }).join(' AND ') + '. '
       : '';
 
     if (isCover) {
-      return `Wrap-around manga book cover illustration (16:9). ${castLockString}SCENE: ${scenePrompt}. Vibrant full-color manga cover art, masterpiece studio quality, crisp ink lines.`;
+      return `High-contrast manga tankobon book cover illustration. ${castLockString}CAMERA: ${camObj.tokens}. SCENE: ${scenePrompt}. Masterpiece manga cover art, crisp Sumi ink lines with dramatic crimson and gold accents, no watermark.`;
     }
 
-    return `${layoutObj.prompt_hint}. ${castLockString}SCENE: ${scenePrompt}. STYLE: ${styleObj.tokens}`;
+    return `Single manga panel illustration. ${castLockString}CAMERA ANGLE: ${camObj.tokens}. SCENE ACTION: ${scenePrompt}. INK & PEN TECHNIQUE: ${nibObj.tokens}, ${styleObj.tokens}`;
   },
 
   /**
-   * Genera UNA sola imagen de alta resolución por petición (Evita el bloqueo de 4 imágenes simultáneas)
+   * Genera UNA sola imagen de alta resolución por clic (Evita bloqueos por peticiones simultáneas)
    */
-  async generateImage({ prompt, styleName, layoutId, castCharacters = [], seed = 101, width = 768, height = 1152, isCover = false, isRawPrompt = false }) {
+  async generateImage({
+    prompt,
+    styleName,
+    layoutId = 'koma_single',
+    cameraAngle = 'low_angle',
+    penNib = 'g_pen',
+    castCharacters = [],
+    seed = 101,
+    width = 768,
+    height = 768,
+    isCover = false,
+    isRawPrompt = false
+  }) {
     const cfg = this.getConfig();
     const masterPrompt = isRawPrompt
       ? prompt
@@ -100,6 +172,8 @@ window.KAIMangaImageRouter = {
           scenePrompt: prompt,
           styleName,
           layoutId,
+          cameraAngle,
+          penNib,
           castCharacters,
           isCover
         });
@@ -107,7 +181,7 @@ window.KAIMangaImageRouter = {
     const castSeedOffset = castCharacters.reduce((acc, c) => acc + (Number(c.seed) || 100), 0);
     const deterministicSeed = Number(seed) + castSeedOffset;
 
-    // 1. Llamar primero al Proxy Serverless en Vercel (/api/generate)
+    // 1. Llamar al Proxy Serverless en Vercel (/api/generate)
     if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
       try {
         const castReferences = castCharacters
@@ -153,7 +227,7 @@ window.KAIMangaImageRouter = {
       }
     }
 
-    // 2. Fallback directo (1 sola imagen por clic para no activar rate-limit)
+    // 2. Fallback directo (1 sola imagen por clic)
     const encoded = encodeURIComponent(masterPrompt.slice(0, 900));
     const url = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${deterministicSeed}&model=flux&nologo=true`;
 
