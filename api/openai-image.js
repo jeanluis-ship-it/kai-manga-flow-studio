@@ -26,10 +26,19 @@ function normalizeReference(ref) {
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'private, no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Solo POST.' });
-
   const key = (process.env.OPENAI_API_KEY || '').trim();
   const requiredCode = (process.env.MANGAI_STUDIO_ACCESS_TOKEN || '').trim();
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      ok: true,
+      service: 'MANGAI OpenAI Images',
+      configured: Boolean(key && requiredCode),
+      generator: 'gpt-image-2.5-flare',
+      requiresPrivateAccess: true,
+      note: 'Comprobación gratuita: no genera imágenes ni llama a OpenAI.'
+    });
+  }
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Solo POST.' });
   if (!key || !requiredCode) {
     return res.status(503).json({ ok: false, error: 'El administrador debe configurar OPENAI_API_KEY y MANGAI_STUDIO_ACCESS_TOKEN en Vercel.' });
   }
