@@ -22,14 +22,15 @@ Repositorio actual: HTML, CSS y JavaScript estático + funciones serverless de V
 1. Trabaja sobre la rama `feat/mangai-landing-openai-studio-v06` en Antigravity.
 2. La aplicación se sirve como proyecto estático con funciones `api/*.js` en Vercel.
 3. Abre el preview de Vercel para la rama y visita `/experience/`, `/creator/` y `/`.
-4. Configura **en Vercel**, no en GitHub: `OPENAI_API_KEY`, `MANGAI_STUDIO_ACCESS_TOKEN` y, opcionalmente, `OPENAI_IMAGE_MODEL` (valor por defecto `gpt-image-2.5-flare`). Los secretos no deben enviarse por chat ni registrarse en logs.
-5. Prueba `/api/openai-image` desde Creator con un código privado largo antes de generar imágenes.
-6. Mantén el gasto API limitado y monitoreado. El token compartido es **solo para desarrollo interno**, no un sistema de usuarios real.
-7. Revisa el pull request y despliega primero un entorno Preview. No fusionar hasta validar el resultado.
+4. Configura **en Vercel → Project Settings → Environment Variables**, con destino **Preview**, no en GitHub: `OPENAI_API_KEY`, `MANGAI_STUDIO_ACCESS_TOKEN` y, opcionalmente, `OPENAI_IMAGE_MODEL` (valor por defecto `gpt-image-2.5-flare`). Los secretos no deben enviarse por chat ni registrarse en logs.
+5. Visita `/api/openai-image` (GET) en el dominio Preview: debe mostrar `configured: true`. Es una comprobación **sin consumo de API**; si aparece `false`, revisa variables y haz redeploy de Preview.
+6. Prueba `/api/openai-image` desde Creator con un código privado largo antes de generar una sola imagen de baja calidad. Revisa cuota y consumo.
+7. Mantén el gasto API limitado y monitoreado. El token compartido es **solo para desarrollo interno**, no un sistema de usuarios real.
+8. Revisa el pull request y despliega primero un entorno Preview. No fusionar hasta validar el resultado.
 
 ## Alcance de v0.6
 
-- La landing nueva es una **vista de prueba**. No reemplaza la landing v0.3 aprobada ni la raíz pública hasta revisión visual. Usa cubiertas conceptuales CSS, no ilustraciones finales.
+- La landing en `/experience/` **ya recupera el código original de la v0.3 aprobada** (portadas, animaciones y scroll); únicamente se redirigieron los botones del Studio hacia `/creator/`. La raíz pública sigue intacta.
 - El Creator guarda texto en `localStorage`, referencias en memoria, y permite descargar la imagen. No existen cuentas, base de datos, almacenamiento de imágenes persistente ni pagos validados para esta ruta.
 - El canon es un JSON exportable. La consistencia se favorece reusando descripción y referencias; no se garantiza identidad idéntica entre generaciones.
 - El Studio avanzado tiene una opción OpenAI en su selector de motores. Los motores actuales permanecen.
