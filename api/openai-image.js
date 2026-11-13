@@ -4,8 +4,8 @@
  * quotas, billing, and durable rate limiting; a shared access code is NOT that.
  */
 const crypto = require('node:crypto');
-const MAX_REQUEST_BYTES = 9 * 1024 * 1024;
-const MAX_IMAGE_B64 = 4 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 3500 * 1024;
+const MAX_IMAGE_B64 = 1500 * 1024;
 
 function constantTimeEquals(a, b) {
   const left = Buffer.from(String(a || ''));
@@ -47,12 +47,12 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'Describe la escena (10–6000 caracteres).' });
     }
     const refs = Array.isArray(body.castReferences) ? body.castReferences : [];
-    if (refs.length > 3) {
-      return res.status(400).json({ ok: false, error: 'Máximo tres referencias visuales por imagen.' });
+    if (refs.length > 2) {
+      return res.status(400).json({ ok: false, error: 'Máximo dos referencias visuales por imagen.' });
     }
     const references = refs.map(normalizeReference);
     if (references.some(r => !r)) {
-      return res.status(400).json({ ok: false, error: 'Referencia no válida: solo PNG, JPG o WEBP en base64, máximo 3 MB aprox.' });
+      return res.status(400).json({ ok: false, error: 'Referencia no válida: solo PNG, JPG o WEBP en base64, máximo 1 MB aprox.' });
     }
     const width = Number(body.width) || 768, height = Number(body.height) || 1024;
     const size = width > height * 1.12 ? '1536x1024' : height > width * 1.12 ? '1024x1536' : '1024x1024';
