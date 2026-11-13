@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"inverse-on-surface":"#f3f1eb","tertiary-container":"#007cac","secondary-fixed":"#e1e0ff","on-error":"#ffffff","on-primary-fixed-variant":"#920028","on-secondary-container":"#fffbff","on-primary":"#ffffff","surface-dim":"#dcdad4","on-surface":"#1b1c18","on-secondary":"#ffffff","on-secondary-fixed-variant":"#2f2ebe","on-background":"#1b1c18","surface-bright":"#fbf9f3","on-tertiary-fixed-variant":"#004c6b","tertiary-fixed":"#c6e7ff","error-container":"#ffdad6","surface-container-highest":"#e4e2dc","inverse-primary":"#ffb3b6","secondary":"#4648d4","on-primary-fixed":"#40000c","error":"#ba1a1a","on-tertiary-container":"#f9fbff","inverse-surface":"#30312d","outline":"#906f70","outline-variant":"#e5bdbe","on-primary-container":"#fffaf9","surface-container-low":"#f6f3ed","secondary-fixed-dim":"#c0c1ff","primary-container":"#e11d48","surface-variant":"#e4e2dc","tertiary":"#006288","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","on-surface-variant":"#5c3f40","primary-fixed":"#ffdada","background":"#fbf9f3","primary-fixed-dim":"#ffb3b6","surface-container-high":"#eae8e2","on-secondary-fixed":"#07006c","on-tertiary-fixed":"#001e2d","surface-container":"#f0eee8","surface-tint":"#be0037","on-error-container":"#93000a","tertiary-fixed-dim":"#82cfff","primary":"#b80035","surface":"#fbf9f3","secondary-container":"#6063ee"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-lg":"1rem","gutter":"1rem","margin":"1.5rem","gutter-dense":"0.5rem","margin-mobile":"0.75rem","space-sm":"0.5rem","space-xs":"0.25rem","space-md":"0.75rem","space-xl":"1.5rem"},"fontFamily":{"headline-lg":["Space Grotesk"],"headline-sm":["Space Grotesk"],"headline-md":["Space Grotesk"],"headline-xl":["Space Grotesk"],"label-lg":["Inter"],"body-sm":["Inter"],"label-md":["JetBrains Mono"],"body-md":["Inter"],"label-technical":["JetBrains Mono"],"label-micro":["JetBrains Mono"],"body-lg":["Inter"],"headline-xl-mobile":["Space Grotesk"]},"fontSize":{"headline-lg":["24px",{"lineHeight":"30px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-sm":["15px",{"lineHeight":"20px","fontWeight":"600"}],"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"700"}],"label-lg":["12px",{"lineHeight":"16px","fontWeight":"500"}],"body-sm":["11px",{"lineHeight":"15px","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"500"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"label-technical":["10px",{"lineHeight":"12px","letterSpacing":"0.04em","fontWeight":"500"}],"label-micro":["9px",{"lineHeight":"11px","letterSpacing":"0.05em","fontWeight":"400"}],"body-lg":["15px",{"lineHeight":"22px","fontWeight":"400"}],"headline-xl-mobile":["28px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface select-none"><header class="fixed top-0 left-0 right-0 h-[52px] bg-surface-container-lowest border-b border-surface-container-highest z-50 px-margin flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="MANGAI Studio Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrAK06WhKIq5OMBEX81y-m7msTRyZ_OAYmv6fQhVTWdIlD_u_oQ1WM8LfmvJR1IexpXCulMOGHWzrjEJfxNAP_CoHdu4UhiHPs5xhrO1Ca4sQEWm0JIEOnWVcvdhpSNubxZ858Ddg12Bdq1aTZ-DGyxLjwXP8dBZ9j9GGO8M0EwqrPvHFPnHatSw1KJVcmjIVFTywFr26Vi8vmhvxAzNYFvEDqK7dDfFdC6RykKT7X40EQ"/><div class="h-5 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant"><span class="text-on-surface font-semibold">AnaCaona</span><span class="text-surface-dim">/</span><span>Vol. I</span><span class="text-surface-dim">/</span><span>Cap. 01</span><span class="text-surface-dim">/</span><span class="text-on-surface">Pág. 04</span></div><span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded bg-surface-container-low text-tertiary font-label-technical text-label-technical border border-tertiary/20"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Guardado</span></div><nav class="flex items-center bg-surface-container p-0.5 rounded-lg border border-surface-container-highest" data-active-classes="bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm"><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="biblia-settei" href="#">1. Biblia Settei</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="guion-koso" href="#">2. Guion Kōsō</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="tablero-nemu" href="#">3. Tablero Nemu</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="lienzo-genko" href="#">4. Lienzo Genkō</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="empaque-tankobon" href="#">5. Empaque Tankōbon</a></nav><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs font-label-technical text-label-technical px-space-sm py-1 bg-surface-container-low rounded border border-surface-container-highest"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface">14 / 100 págs</span><span class="text-on-surface-variant">(Plan Pro)</span></div><button class="font-label-technical text-label-technical px-space-sm py-1 rounded border border-secondary text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed-variant transition-colors" type="button">Gestionar Plan</button><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container font-label-technical text-label-technical border border-tertiary-container/30"><span class="w-2 h-2 rounded-full bg-tertiary-container"></span><span class="text-tertiary">Guías Genkō: ON</span></div><button class="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-label-lg text-label-lg hover:bg-primary transition-colors shadow-sm" type="button"><span class="material-symbols-outlined text-[16px]">print</span>Exportar Imprenta</button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><aside class="fixed left-0 top-[52px] bottom-[32px] w-12 bg-surface-container-lowest border-r border-surface-container-highest z-40 flex flex-col items-center py-space-sm justify-between"><div class="flex flex-col items-center gap-space-xs"><button class="w-8 h-8 rounded flex items-center justify-center bg-inverse-surface text-inverse-on-surface" title="G-Pen" type="button"><span class="material-symbols-outlined text-[18px]">stylus_note</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Maru-Pen" type="button"><span class="material-symbols-outlined text-[18px]">draw</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Tinta Sumi" type="button"><span class="material-symbols-outlined text-[18px]">brush</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Cortador Koma" type="button"><span class="material-symbols-outlined text-[18px]">grid_view</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Regla Elíptica" type="button"><span class="material-symbols-outlined text-[18px]">straighten</span></button><div class="w-6 h-px bg-surface-container-highest my-space-xs"></div><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Tramas Screentone" type="button"><span class="material-symbols-outlined text-[18px]">texture</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed-variant" title="Asistente KAI" type="button"><span class="material-symbols-outlined text-[18px]">auto_awesome</span></button></div><div class="flex flex-col items-center gap-space-xs"><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Configuración de Herramientas" type="button"><span class="material-symbols-outlined text-[18px]">tune</span></button></div></aside><div class="pl-12"><main class="relative pt-[52px] pb-[32px] min-h-[calc(100vh-84px)] bg-surface-container-low"><div class="flex flex-col w-full">
+<!-- SCRIPT: Navigation active state synchronizer & workspace interaction -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Set active nav in shell dynamically if present
+      const navLinks = document.querySelectorAll('header nav a');
+      navLinks.forEach(link => {
+        if (link.getAttribute('data-path') === 'empaque-tankobon' || link.textContent.includes('5. Empaque')) {
+          link.className = "px-space-md py-1 rounded bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm font-label-lg text-label-lg transition-colors";
+        } else {
+          link.className = "px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface";
+        }
+      });
+    });
+
+    function toggleGuideLayer(layerId) {
+      const el = document.getElementById(layerId);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function switchViewTab(mode) {
+      const btn2d = document.getElementById('view-btn-2d');
+      const btn3d = document.getElementById('view-btn-3d');
+      const btnObi = document.getElementById('view-btn-obi');
+      const workspace2d = document.getElementById('jacket-spread-container');
+      const workspace3d = document.getElementById('modal-3d-preview');
+
+      [btn2d, btn3d, btnObi].forEach(b => {
+        if (b) {
+          b.classList.remove('bg-inverse-surface', 'text-inverse-on-surface');
+          b.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+        }
+      });
+
+      if (mode === '2d') {
+        btn2d.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+        btn2d.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+      } else if (mode === '3d') {
+        btn3d.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+        btn3d.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+        if (workspace3d) workspace3d.scrollIntoView({ behavior: 'smooth' });
+      } else if (mode === 'obi') {
+        btnObi.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+        btnObi.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+      }
+    }
+  </script>
+<!-- CONTROL SUB-BAR: Tankōbon Volume & Spine Specifications -->
+<section class="w-full bg-surface-container-lowest border-b border-surface-container-highest px-space-lg py-space-xs flex flex-wrap items-center justify-between gap-space-md shadow-sm z-30">
+<!-- Left: Volume Selector & Breadcrumbs Context -->
+<div class="flex items-center gap-space-md min-w-0">
+<div class="flex items-center gap-space-xs font-label-technical text-label-technical">
+<span class="w-2.5 h-2.5 rounded-full bg-primary flex items-center justify-center text-on-primary text-[8px] font-bold">5</span>
+<span class="text-on-surface font-semibold uppercase tracking-wider">Tankōbon B6 Press</span>
+<span class="text-surface-dim">/</span>
+<span class="text-on-surface-variant">AnaCaona: Vol. I</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest hidden sm:block"></div>
+<!-- Volume Selector Pill -->
+<div class="flex items-center bg-surface-container-low px-space-sm py-1 rounded border border-surface-container-highest">
+<span class="material-symbols-outlined text-[15px] text-primary mr-1">auto_stories</span>
+<span class="font-headline-sm text-headline-sm text-on-surface pr-1">Vol. 01: El Despertar del Guanín</span>
+<span class="font-label-technical text-label-micro text-on-surface-variant bg-surface-container px-1 py-0.5 rounded ml-1">192 Págs</span>
+</div>
+<!-- Paper & Spine Density Factor -->
+<div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded font-label-technical text-label-technical text-on-surface">
+<span class="material-symbols-outlined text-[14px] text-tertiary">layers</span>
+<span>Papel: <strong>Manga Crema 70g/m²</strong> (Bulky 2.0)</span>
+<span class="text-surface-dim">|</span>
+<span class="text-secondary font-semibold">Lomo: 11.52mm</span>
+<span class="text-on-surface-variant text-label-micro">(Factor 0.120mm × 96 h)</span>
+</div>
+</div>
+<!-- Center: View Mode Switcher -->
+<div class="flex items-center bg-surface-container p-0.5 rounded border border-surface-container-highest">
+<button class="px-space-md py-1 rounded bg-inverse-surface text-inverse-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1" id="view-btn-2d" onclick="switchViewTab('2d')" type="button">
+<span class="material-symbols-outlined text-[14px]">view_array</span>
+        Pliego Plano 2D
+      </button>
+<button class="px-space-md py-1 rounded text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1" id="view-btn-3d" onclick="switchViewTab('3d')" type="button">
+<span class="material-symbols-outlined text-[14px]">view_in_ar</span>
+        Maqueta 3D
+      </button>
+<button class="px-space-md py-1 rounded text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1" id="view-btn-obi" onclick="switchViewTab('obi')" type="button">
+<span class="material-symbols-outlined text-[14px]">bookmark</span>
+        Faja Obi
+      </button>
+</div>
+<!-- Right: Pre-Flight Safety Tag & Viewport Tools -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1.5 px-space-sm py-1 bg-surface-container rounded border border-tertiary/30 font-label-technical text-label-technical">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+<span class="text-on-surface font-medium">Pre-Flight:</span>
+<span class="text-tertiary font-bold">100% APTO</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Quick Toggles -->
+<button class="w-7 h-7 rounded flex items-center justify-center bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-surface-container-highest" onclick="toggleGuideLayer('guides-layer')" title="Alternar Guías Tonbo y Sangrado" type="button">
+<span class="material-symbols-outlined text-[16px] text-tertiary">crop</span>
+</button>
+<button class="px-space-xs py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-technical text-label-technical border border-surface-container-highest" title="Zoom Óptimo 100%" type="button">
+        85%
+      </button>
+</div>
+</section>
+<!-- MAIN BODY SPLIT: Cutting Mat Canvas + Pre-Flight Inspector Panel -->
+<div class="flex-1 flex flex-col lg:flex-row w-full overflow-hidden bg-surface-container-low min-h-[calc(100vh-120px)]">
+<!-- CANVAS VIEWPORT: Cutting Mat with Millimeter Genkō Rules -->
+<div class="flex-1 flex flex-col relative overflow-auto p-space-md xl:p-space-lg select-none">
+<!-- Top Millimeter Metric Ruler Strip -->
+<div class="w-full h-5 bg-surface-container-lowest border-b border-surface-container-highest flex items-end justify-between px-6 font-label-micro text-label-micro text-on-surface-variant/70 mb-2 rounded-t shadow-sm">
+<span>0mm</span>
+<span>70mm (Solapa Izq)</span>
+<span>198mm (Corte Trasero)</span>
+<span>209.5mm (Lomo Central)</span>
+<span>337.5mm (Corte Portada)</span>
+<span>407.5mm (Solapa Der)</span>
+<span class="text-primary font-semibold">417.5mm (+Sangrado 5mm)</span>
+</div>
+<!-- WORKSPACE BOARD: The Complete Tankōbon Dust Jacket Flat Spread -->
+<div class="relative mx-auto my-auto p-space-lg bg-surface-container-high rounded shadow-md border border-surface-container-highest flex flex-col items-center" id="jacket-spread-container">
+<!-- Overhead Dimension Tag Callout -->
+<div class="w-full flex items-center justify-between mb-2 font-label-technical text-label-technical text-on-surface-variant bg-surface-container-lowest/80 px-space-md py-1 rounded border border-surface-container-highest">
+<div class="flex items-center gap-2">
+<span class="inline-block w-2 h-2 bg-[#00AEEF] rounded-full"></span>
+<span class="text-on-surface font-semibold">Pliego Sobrecubierta B6 Tankōbon</span>
+<span class="text-surface-dim">/</span>
+<span>407.5 × 182.0 mm (Final)</span>
+</div>
+<div class="flex items-center gap-4 text-label-micro">
+<span>Solapa Izq: <strong class="text-on-surface">70mm</strong></span>
+<span>Contraportada: <strong class="text-on-surface">128mm</strong></span>
+<span class="text-secondary font-bold">Lomo: 11.52mm</span>
+<span>Portada: <strong class="text-on-surface">128mm</strong></span>
+<span>Solapa Der: <strong class="text-on-surface">70mm</strong></span>
+</div>
+</div>
+<!-- THE SPREAD JACKET (White paper base with non-photo cyan fold guides and bleed indicators) -->
+<div class="relative bg-surface-container-lowest border border-surface-container-highest shadow-xl flex" style="width: 1040px; height: 490px;">
+<!-- PRINT MARKS OVERLAY (Tonbo & Bleed lines) -->
+<div class="absolute inset-0 pointer-events-none z-30" id="guides-layer">
+<!-- Bleed Box (5mm extra all around represented as bounding margin) -->
+<div class="absolute inset-2 border border-dashed border-[#00AEEF]/70"></div>
+<!-- Spine Crease Vertical Fold Lines (Cyan dashed) -->
+<div class="absolute top-0 bottom-0 border-r border-dashed border-[#00AEEF]" style="left: 178px;"></div>
+<div class="absolute top-0 bottom-0 border-r border-dashed border-[#00AEEF]" style="left: 504px;"></div>
+<div class="absolute top-0 bottom-0 border-r border-dashed border-[#00AEEF]" style="left: 533px;"></div>
+<div class="absolute top-0 bottom-0 border-r border-dashed border-[#00AEEF]" style="left: 860px;"></div>
+<!-- Tonbo Crop Corner Guides -->
+<div class="absolute -top-3 left-0 w-4 h-px bg-primary"></div>
+<div class="absolute top-0 -left-3 h-4 w-px bg-primary"></div>
+<div class="absolute -top-3 right-0 w-4 h-px bg-primary"></div>
+<div class="absolute top-0 -right-3 h-4 w-px bg-primary"></div>
+<div class="absolute -bottom-3 left-0 w-4 h-px bg-primary"></div>
+<div class="absolute bottom-0 -left-3 h-4 w-px bg-primary"></div>
+<div class="absolute -bottom-3 right-0 w-4 h-px bg-primary"></div>
+<div class="absolute bottom-0 -right-3 h-4 w-px bg-primary"></div>
+<!-- Fold Indicator Micro-Labels -->
+<div class="absolute top-3 left-[182px] font-label-micro text-label-micro text-[#00AEEF] -rotate-90 origin-top-left bg-surface-container-lowest/90 px-1">Pliegue Solapa 1</div>
+<div class="absolute top-3 left-[508px] font-label-micro text-label-micro text-[#00AEEF] -rotate-90 origin-top-left bg-surface-container-lowest/90 px-1">Lomo Izquierdo</div>
+<div class="absolute top-3 left-[537px] font-label-micro text-label-micro text-[#00AEEF] -rotate-90 origin-top-left bg-surface-container-lowest/90 px-1">Lomo Derecho</div>
+<div class="absolute top-3 left-[864px] font-label-micro text-label-micro text-[#00AEEF] -rotate-90 origin-top-left bg-surface-container-lowest/90 px-1">Pliegue Solapa 2</div>
+</div>
+<!-- SECTION A: LEFT FLAP (Solapa Anterior / Izquierda - 70mm / 178px) -->
+<div class="relative w-[178px] h-full bg-[#FAF8F5] p-space-sm flex flex-col justify-between border-r border-surface-container-high z-10">
+<div>
+<div class="flex items-center gap-1.5 mb-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-label-technical text-label-technical font-semibold text-on-surface tracking-wider uppercase">Palabras del Mangaka</span>
+</div>
+<!-- Author Avatar & Sketch Frame -->
+<div class="w-14 h-14 rounded-full bg-surface-container overflow-hidden border border-surface-container-highest mb-2 shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Intense black and white ink mangaka self-portrait avatar holding a G-pen, high contrast Japanese manga style with screentone dots and clean confident linework." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1OYLKj1XuELb74jKGkst-g9OTnJGGVXk1-tOxdP62khamE3In6R2UB5EwHuN7EoKpJlZDtlgUXpmO_RiMqNFkGDSYiCcR_MMJwLt8NHoabfioEAWJ4tzsvZgbbW78zTrntQXGSgC2ENRjnr-idbGxF0EC9h56x45uEqCv8COJiO1jlrNifyyuZ2xORSgrJtI6B-t1-H46jxG2HVpJsyLlk3aPjVNWe1KEKm-G-w9T"/>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface leading-tight mb-2 italic">
+                “Gracias de corazón por abrir el primer tomo de <span class="font-semibold text-primary">AnaCaona</span>. Esta historia nació de la necesidad de reimaginar las leyendas del Caribe con la disciplina y el pulso del manga clásico japonés.”
+              </p>
+<div class="font-label-technical text-label-micro text-on-surface-variant">
+                — Studio Mangai, 2025
+              </div>
+</div>
+<!-- Flap Bottom Coordinates & Socials -->
+<div class="border-t border-surface-container-highest pt-2">
+<div class="font-label-micro text-label-micro text-on-surface-variant flex flex-col gap-0.5">
+<span class="text-on-surface font-semibold">@mangai_studio</span>
+<span>#AnaCaonaManga</span>
+<span>www.mangaistudio.io</span>
+</div>
+<div class="mt-2 text-[8px] font-label-micro text-surface-dim uppercase">
+                Impreso en Papel Reciclado FSC
+              </div>
+</div>
+</div>
+<!-- SECTION B: BACK COVER (Contraportada - 128mm / 326px) -->
+<div class="relative w-[326px] h-full bg-surface-container-lowest p-space-md flex flex-col justify-between border-r border-surface-container-high z-10">
+<!-- Back Cover Manga Vignette Artwork -->
+<div class="w-full h-44 bg-surface-container overflow-hidden rounded relative border border-surface-container-highest shadow-sm">
+<img class="w-full h-full object-cover grayscale contrast-125" data-alt="Dramatic Sumi-ink manga back cover illustration featuring the shadowed silhouette of Chief Caonabo standing atop a rocky precipice at dusk with detailed crosshatching, screentone feathering, and Taíno petroglyph symbols glowing faintly." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcBkNpQjL-AB5zITaUL_AuKjBqKQMiZqigHJM8rFUde28cJdHdrURQR-8TH3XZtgH7n5bh7d4YwN0IVMFXF90uA1RFCdAvDoGO5vHMJ2SCfsQxjMbsXDpzfOmxM7xeGl1p47hQ_NC-cR9dprCu2w_ypkWRzBd6pz_xiXbAIXD2AM36dIC6D7jgDt2zcduDwAxz_17DKZshpdeuKu9xq1-ev7WYdAdr1lFm3otYmobl"/>
+<div class="absolute bottom-1 right-1 bg-surface-container-lowest/80 px-1 py-0.5 rounded font-label-micro text-label-micro text-on-surface">
+                Cap. 04: "La Niebla de Maguana"
+              </div>
+</div>
+<!-- Manga Synopsis Block -->
+<div class="my-1">
+<div class="flex items-center gap-1 font-headline-sm text-headline-sm text-on-surface font-bold mb-1">
+<span>EL JURAMENTO QUEBRADO</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface leading-snug line-clamp-4 text-justify">
+                En las tierras del Guanín sagrado, el equilibrio milenario entre los cacicazgos se fractura cuando un presagio oscuro cubre las costas. AnaCaona, portadora de la voz de los cemíes ancestrales, deberá empuñar el cetro de obsidiana y despertar los secretos del fuego antes de que la orden extranjera reduzca a cenizas su dinastía.
+              </p>
+</div>
+<!-- Commercial Barcode, ISBN, Age Rating & Japanese Price Block -->
+<div class="border-t border-surface-container-highest pt-2 flex items-end justify-between">
+<!-- Barcode Box -->
+<div class="flex flex-col">
+<div class="font-label-technical text-[9px] text-on-surface font-mono tracking-tighter">ISBN 978-4-08-882123-4</div>
+<!-- Simulated High Precision EAN-13 SVG Barcode -->
+<svg class="w-32 h-10 my-0.5" fill="currentColor" viewbox="0 0 130 40">
+<rect height="35" width="2" x="0" y="0"></rect>
+<rect height="35" width="1" x="3" y="0"></rect>
+<rect height="35" width="3" x="6" y="0"></rect>
+<rect height="35" width="2" x="11" y="0"></rect>
+<rect height="35" width="1" x="15" y="0"></rect>
+<rect height="35" width="3" x="18" y="0"></rect>
+<rect height="35" width="1" x="23" y="0"></rect>
+<rect height="35" width="2" x="26" y="0"></rect>
+<rect height="35" width="2" x="30" y="0"></rect>
+<rect height="35" width="1" x="34" y="0"></rect>
+<rect height="35" width="3" x="38" y="0"></rect>
+<rect height="35" width="2" x="43" y="0"></rect>
+<rect height="35" width="1" x="47" y="0"></rect>
+<rect height="35" width="2" x="50" y="0"></rect>
+<rect height="35" width="3" x="54" y="0"></rect>
+<rect height="35" width="1" x="59" y="0"></rect>
+<rect height="35" width="2" x="62" y="0"></rect>
+<rect height="35" width="2" x="66" y="0"></rect>
+<rect height="35" width="1" x="70" y="0"></rect>
+<rect height="35" width="3" x="74" y="0"></rect>
+<rect height="35" width="2" x="79" y="0"></rect>
+<rect height="35" width="1" x="83" y="0"></rect>
+<rect height="35" width="3" x="86" y="0"></rect>
+<rect height="35" width="2" x="91" y="0"></rect>
+<rect height="35" width="1" x="95" y="0"></rect>
+<rect height="35" width="2" x="98" y="0"></rect>
+<rect height="35" width="3" x="102" y="0"></rect>
+<rect height="35" width="1" x="107" y="0"></rect>
+<rect height="35" width="2" x="110" y="0"></rect>
+<rect height="35" width="1" x="114" y="0"></rect>
+<rect height="35" width="3" x="117" y="0"></rect>
+<rect height="35" width="2" x="122" y="0"></rect>
+<rect height="35" width="1" x="126" y="0"></rect>
+</svg>
+<div class="font-label-technical text-[8px] text-on-surface-variant flex justify-between w-32">
+<span>9 784088 821234</span>
+<span>C9979 ¥880E</span>
+</div>
+</div>
+<!-- Publisher Stamp & Japanese Rating -->
+<div class="flex flex-col items-end gap-1">
+<div class="px-1.5 py-0.5 rounded bg-surface-container border border-surface-container-highest font-label-technical text-[9px] text-on-surface font-bold">
+                  定価: 本体880円+税
+                </div>
+<div class="px-1 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-micro text-[8px]">
+                  +14 Años (Seinen)
+                </div>
+<div class="flex items-center gap-1 mt-0.5 font-headline-sm text-headline-sm font-bold tracking-tighter text-on-surface">
+<span class="w-3.5 h-3.5 bg-primary text-on-primary rounded-xs flex items-center justify-center text-[9px]">K</span>
+<span>KAI COMICS</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION C: DYNAMIC SPINE (Lomo Tankōbon - 11.52mm / 29px) -->
+<div class="relative w-[29px] h-full bg-[#FBF9F3] border-r border-surface-container-high flex flex-col items-center justify-between py-space-sm z-20 shadow-inner">
+<!-- Spine Top: Character Face Micro-Thumbnail & Volume Number Badge -->
+<div class="flex flex-col items-center gap-1.5">
+<div class="w-5 h-5 rounded-full overflow-hidden border border-surface-container-highest shadow-sm">
+<img class="w-full h-full object-cover" data-alt="Close up face thumbnail of manga heroine Anacaona with piercing eyes and feather hair ornament drawn in meticulous black sumi ink line art." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0aX69McC3t6eqehzBxvoVuegNcwWHihTR3OmawjZxheA_WPIpIL7tXDtPbN5dNk8ZTAusafmEMrAGs2oeXymLTFbhXJoL6QiG6qa9ndx_N5VZwhC2FtYAS-Ql_1HYuGE0jOnZwGFrQui3_dCwHhE6-D6B1CjJkMV_NR4C-SoSIfEvQB0ds1z85DZ5FN9DEJLSDI7TIFu3Dcvixka9Ap8qpw_TbIXnp_gQahJFcLrl"/>
+</div>
+<!-- Red Volume Number Circle -->
+<div class="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center font-headline-sm text-headline-sm font-bold text-[11px] shadow-sm">
+                1
+              </div>
+</div>
+<!-- Spine Center: Vertical Title (Japanese Katakana + Spanish Western) -->
+<div class="flex-1 flex flex-col items-center justify-center gap-2 py-2">
+<span class="font-headline-sm text-[12px] font-bold text-on-surface tracking-wider [writing-mode:vertical-rl]">
+                ANACAONA
+              </span>
+<span class="font-label-technical text-[9px] text-primary tracking-widest [writing-mode:vertical-rl]">
+                アナカオナ
+              </span>
+<span class="font-label-micro text-[8px] text-on-surface-variant [writing-mode:vertical-rl]">
+                VOL. I
+              </span>
+</div>
+<!-- Spine Base: Publisher Logo Stamp -->
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-primary">auto_stories</span>
+<span class="font-label-micro text-[7px] font-bold text-on-surface tracking-tighter uppercase [writing-mode:vertical-rl]">
+                KAI
+              </span>
+</div>
+</div>
+<!-- SECTION D: FRONT COVER (Portada Principal - 128mm / 326px) -->
+<div class="relative w-[326px] h-full bg-surface-container-lowest overflow-hidden flex flex-col justify-between p-space-md z-10 border-r border-surface-container-high">
+<!-- Hero Manga Volume Artwork -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover contrast-110" data-alt="Dynamic masterpiece manga volume front cover illustration of heroine Anacaona wielding a golden Guanin medallion sparking with incandescent energy, intense Japanese action manga G-pen linework, screentone shading, sharp contrast, cinematic lighting, and epic composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJDZiEbgn8Znv2HK0pb8wPo8jqBb9enrxHp1G7hcoeWm1gIeYOTwkYTdEGl9b9jG4AqQ_ujFP3wmn9yn46v4NLYY-bQ7f8rLvgp2XlBFPnaDZyob6zaupFMbBUdlEfX0VM9t3lA7E56JUvxGnUS6dWPytiwBaulhFeMWMq8xq1ZvOrsl8yYKbhTsn3oZ4slV1GqCOOcB-VunKghCyKtjrERYbsDSGhcmKp2OVzlozJ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/90 via-transparent to-inverse-surface/40"></div>
+</div>
+<!-- Top Header & Badges -->
+<div class="relative z-10 flex items-start justify-between">
+<div>
+<span class="inline-block px-1.5 py-0.5 rounded bg-surface-container-lowest/90 font-label-technical text-label-micro font-bold text-on-surface shadow-sm">
+                  TANKŌBON B6 • VOL. 01
+                </span>
+<div class="font-label-micro text-label-micro text-on-primary font-medium mt-0.5 drop-shadow">
+                  Edición Coleccionista Oficial
+                </div>
+</div>
+<!-- Guanin Gold Simulation Stamp -->
+<div class="w-10 h-10 rounded-full bg-primary flex flex-col items-center justify-center text-on-primary border border-surface-container-lowest shadow-md">
+<span class="font-headline-sm text-headline-sm leading-none font-bold">01</span>
+<span class="font-label-micro text-[7px] uppercase tracking-tighter">Primer</span>
+</div>
+</div>
+<!-- Cover Bottom: Stylized Main Logo, Credits & Subtitle -->
+<div class="relative z-10 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="px-1 py-0.5 rounded bg-primary text-on-primary font-label-micro text-label-micro font-bold">
+                  連載
+                </span>
+<span class="font-label-technical text-[10px] text-tertiary-fixed font-semibold tracking-widest drop-shadow">
+                  EL DESPERTAR DEL GUANÍN
+                </span>
+</div>
+<div class="flex flex-col">
+<h1 class="font-headline-xl text-headline-xl text-on-primary font-bold tracking-tight leading-none drop-shadow-md">
+                  ANACAONA
+                </h1>
+<div class="flex items-center justify-between text-on-primary/90 mt-0.5">
+<span class="font-label-technical text-[11px] tracking-widest">
+                    アナカオナ — 1
+                  </span>
+<span class="font-label-technical text-label-micro text-surface-bright">
+                    Mangai Studio
+                  </span>
+</div>
+</div>
+<div class="mt-2 pt-2 border-t border-surface-container-lowest/30 flex items-center justify-between text-[9px] font-label-technical text-on-primary">
+<span>Historia &amp; Arte: <strong>Studio Mangai</strong></span>
+<span class="px-1 py-0.5 bg-surface-container-lowest text-on-surface rounded font-bold">KAI COMICS</span>
+</div>
+</div>
+</div>
+<!-- SECTION E: RIGHT FLAP (Solapa Posterior / Derecha - 70mm / 178px) -->
+<div class="relative w-[178px] h-full bg-[#FAF8F5] p-space-sm flex flex-col justify-between z-10">
+<div>
+<div class="flex items-center gap-1.5 mb-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-technical text-label-technical font-semibold text-on-surface tracking-wider uppercase">Colección KAI</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface leading-tight mb-3">
+                Explora más obras del catálogo de cómic y manga independiente asistido:
+              </p>
+<!-- Mini Related Covers Previews -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 bg-surface-container-lowest p-1 rounded border border-surface-container-highest">
+<div class="w-8 h-10 bg-surface-container rounded overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Miniature manga volume cover for a cyberpunk samurai series with neon and sumi ink style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAum5VuDMBd-JocVWWPZQGP4kLhS6qzfRpsbwkBigDkflSz5G3jRpgzqdksAHAc5mZ2rh2FSFPyOUDTLcOr-y0Jv7bdQL3obBte1ZWjuRhJDRB9FsYxz7laOWxVU1VUhLHGdsm95AmIjgRFPOLJbG2EoOfs4MT3RGgKWln9WOOz-p6wSCVN_z-T9_M4ZXFkWStO4UqsO_-CPkSYmDQcQFbCeHMSyFre0XMb2HxizsLX"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-technical text-[10px] text-on-surface font-bold truncate">CIBER-RONIN</span>
+<span class="font-label-micro text-[8px] text-on-surface-variant">Vol. 03 (En Curso)</span>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-lowest p-1 rounded border border-surface-container-highest">
+<div class="w-8 h-10 bg-surface-container rounded overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Miniature manga volume cover for an ancient folklore fantasy manga series with brush lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4c6AdEmLRcU-r5jr7LNygf1qVZIVxnQMExEjVWEXWJFFfkpVOOOzOYMUYMDBQhnMXEetfVAXYhDOmiFPTaBtG68gC6BkHuj35V4ki-NO0MSS8nhZ8RMKTe1ZacBQPAt6vWLNKQxxYRyAY7UXDORH13SCfRVU8U3_QxcuPLM41Iaj9b1ZyVWJyeM7cPJnx1uf6ZFIvka2Iq_zgLSuO6CJCKu91wGX-0OwCqCh1fv2y"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-technical text-[10px] text-on-surface font-bold truncate">CRÓNICAS DE BOHÍO</span>
+<span class="font-label-micro text-[8px] text-on-surface-variant">Tomo Único</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bonus Chapter QR Code Placeholder -->
+<div class="border-t border-surface-container-highest pt-2 flex flex-col items-center">
+<div class="w-14 h-14 bg-surface-container-lowest p-1 border border-surface-container-highest rounded flex items-center justify-center mb-1">
+<!-- SVG Vector QR Code -->
+<svg class="w-12 h-12" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2,2H10V10H2V2M4,4V8H8V4H4M2,14H10V22H2V14M4,16V20H8V16H4M14,2H22V10H14V2M16,4V8H20V4H16M18,14V18H14V14H18M14,20V22H18V20H14M20,18V22H22V18H20M20,14V16H22V14H20M14,18V20H16V18H14Z"></path>
+</svg>
+</div>
+<span class="font-label-micro text-[8px] text-on-surface font-semibold text-center leading-tight">
+                Escanea para Cap. Extra Digital &amp; Galería
+              </span>
+</div>
+</div>
+</div>
+<!-- Metric Reference Bar Below Jacket -->
+<div class="w-full flex items-center justify-between mt-2 font-label-technical text-label-micro text-on-surface-variant px-2">
+<span>Sangrado Exterior Tonbo: <strong>5.0mm</strong></span>
+<span>Margen de Pliegue Solapa: <strong>1.5mm</strong></span>
+<span>Compensación de Curvatura de Lomo: <strong>+0.3mm</strong></span>
+<span class="text-tertiary">Perfil de Color: ISO Coated v2 / 300DPI Sobrecubierta</span>
+</div>
+</div>
+<!-- FLOATING 3D VOLUME PREVIEW MINI-CARD (Angled realistic paperback book representation) -->
+<div class="mt-4 bg-surface-container-lowest p-space-md rounded-xl border border-surface-container-highest shadow-lg flex flex-col md:flex-row items-center justify-between gap-space-lg" id="modal-3d-preview">
+<div class="flex items-center gap-space-md">
+<!-- 3D Book Render Illusion Container -->
+<div class="relative w-28 h-36 bg-surface-container rounded shadow-2xl flex items-center justify-center transform -rotate-3 hover:rotate-0 transition-transform duration-300 border border-surface-container-highest">
+<img class="w-full h-full object-cover rounded" data-alt="High realism 3D isometric mockup of AnaCaona manga paperback book with visible bulky cream pages, matte laminated dust jacket, and curved spine standing on clean desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHlj5Q-5OfJHRVXav32n4ghhOpfHBWfwf9YVTX4w67qgGiBuedzWK99onQrg8TTMsBKdfQh3AFsUZ2MwJcVdkwuzhwToseQXxo54uwUayej-iRLfjk9PZAJPDnZRZf21hxz0zOang970VZJTmxVOVP9sowyT4u6akWd7bsuY6vITerVa36c6JCEC8QWw6NF7eahHskYTDIG5kGKV-_9MEyR05si0xdFsL2CgqWFwrh"/>
+<div class="absolute -right-2 top-1 bottom-1 w-2 bg-[#FAF8F5] border-l border-surface-container-high rounded-r shadow-inner flex flex-col justify-between py-1">
+<div class="h-px bg-surface-dim"></div>
+<div class="h-px bg-surface-dim"></div>
+<div class="h-px bg-surface-dim"></div>
+</div>
+<span class="absolute top-1 left-1 px-1 bg-inverse-surface/80 text-inverse-on-surface font-label-micro text-[7px] rounded">3D Preview</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 font-headline-sm text-headline-sm text-on-surface font-bold">
+<span>Simulación Física Tankōbon Cerrado</span>
+<span class="inline-flex items-center px-1.5 py-0.2 bg-secondary-fixed text-on-secondary-fixed-variant rounded font-label-technical text-[9px]">Encuadernación Rústica Fresada (PUR)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl mt-0.5">
+              Visualización hiperrealista con textura de papel manga crema 70g (192 páginas interiores), acabado de sobrecubierta plastificado mate suave y barniz selectivo sobre el logo <span class="font-semibold text-on-surface">ANACAONA</span>.
+            </p>
+<div class="flex items-center gap-space-md mt-2 font-label-technical text-label-micro text-on-surface">
+<span>Grosor Real: <strong>11.52mm</strong></span>
+<span class="text-surface-dim">•</span>
+<span>Apertura Plana: <strong>140°</strong></span>
+<span class="text-surface-dim">•</span>
+<span>Resistencia PUR: <strong>18 N/cm</strong></span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg border border-surface-container-highest transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+            Rotar 360°
+          </button>
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-secondary font-label-lg text-label-lg border border-secondary/30 transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">ar_on_you</span>
+            Ver en AR (Móvil)
+          </button>
+</div>
+</div>
+</div>
+<!-- RIGHT INSPECTOR PANEL: PRE-FLIGHT SEMAPHORE & EXPORT PIPELINE (340px) -->
+<aside class="w-full lg:w-[340px] bg-surface-container-lowest border-l border-surface-container-highest p-space-md flex flex-col justify-between overflow-y-auto z-40 shadow-sm flex-shrink-0">
+<div class="flex flex-col gap-space-md">
+<!-- Pre-Flight Header & Status Banner -->
+<div class="flex items-center justify-between pb-space-xs border-b border-surface-container-highest">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Semáforo Pre-Imprenta</h2>
+</div>
+<span class="font-label-technical text-label-micro text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded">v2.8 Nano</span>
+</div>
+<!-- GREEN BANNER OF CONFORMITY -->
+<div class="p-space-sm rounded bg-surface-container-low border border-tertiary/40 flex items-start gap-2 shadow-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px] flex-shrink-0 mt-0.5">check_circle</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-[13px] text-tertiary font-bold leading-tight">SEMÁFORO VERDE: 100% APTO</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant leading-tight mt-0.5">
+              Sin errores bloqueantes. Cumple especificaciones de prensa offset y digital para Tankōbon estándar.
+            </span>
+</div>
+</div>
+<!-- DETAILED TECHNICAL PRE-FLIGHT CHECKLIST -->
+<div class="flex flex-col gap-1.5">
+<span class="font-label-technical text-label-micro uppercase tracking-wider text-on-surface-variant font-semibold">
+            Matriz de Verificación (6 Puntos Críticos)
+          </span>
+<!-- Check 1: Resolution -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Resolución Páginas</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">600 DPI Monocromo (192/192)</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Válido</span>
+</div>
+<!-- Check 2: Naiwaku Safe Area -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Área Segura Naiwaku</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">0 globos ni textos en corte</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Limpio</span>
+</div>
+<!-- Check 3: Spine Bulk Calibration -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Espesor del Lomo</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">11.52mm (Tolerancia ±0.1mm)</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Exacto</span>
+</div>
+<!-- Check 4: Color Separation -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Separación de Color</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">CMYK Fogra39 + Oro 872C</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">5 Tintas</span>
+</div>
+<!-- Check 5: Shitagaki Cyan Layers Purged -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Bocetos Shitagaki</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">Capas azules no-imprimibles</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Purgadas</span>
+</div>
+<!-- Check 6: Barcode & ISBN-13 -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Código ISBN-13</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">Checksum EAN válido</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Aprobado</span>
+</div>
+</div>
+<!-- PRODUCTION PRESET SELECTOR -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-technical text-label-micro uppercase tracking-wider text-on-surface-variant font-semibold">
+            Perfil de Salida Industrial
+          </label>
+<div class="relative">
+<select class="w-full bg-surface-container px-space-sm py-1.5 rounded border border-surface-container-highest font-label-lg text-label-lg text-on-surface appearance-none focus:outline-none focus:border-on-surface">
+<option selected="">Imprenta Manga Estándar (Japón / B6 Tankōbon)</option>
+<option>Distribución Global KDP Manga (Amazon Paperback)</option>
+<option>IngramSpark Graphic Novel POD (Couché Mate)</option>
+<option>Edición Especial Limitada (Tapa Dura con Guardas)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-[16px] text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- METRIC BULK CALCULATOR FORM -->
+<div class="p-space-sm rounded bg-surface-container border border-surface-container-highest flex flex-col gap-2">
+<div class="flex items-center justify-between font-label-technical text-label-technical text-on-surface">
+<span class="font-semibold">Calculadora de Lomo:</span>
+<span class="text-secondary font-bold">11.52 mm</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-label-micro font-label-technical">
+<div>
+<span class="text-on-surface-variant block">Gramaje Hoja:</span>
+<input class="w-full bg-surface-container-lowest px-1.5 py-1 rounded border border-surface-container-highest text-right font-bold text-on-surface" readonly="" type="text" value="70 g/m²"/>
+</div>
+<div>
+<span class="text-on-surface-variant block">Páginas Totales:</span>
+<input class="w-full bg-surface-container-lowest px-1.5 py-1 rounded border border-surface-container-highest text-right font-bold text-on-surface" readonly="" type="text" value="192 págs"/>
+</div>
+</div>
+<div class="font-label-micro text-[9px] text-on-surface-variant">
+            Fórmula: (192 págs / 2) × 0.120mm/hoja = 11.52mm.
+          </div>
+</div>
+</div>
+<!-- EXPORT ACTIONS GROUP (BOTTOM PINNED) -->
+<div class="flex flex-col gap-space-xs pt-space-md border-t border-surface-container-highest">
+<!-- Primary Big Red Hanko Button: PDF Master Export -->
+<button class="w-full py-2.5 px-space-md rounded bg-primary-container text-on-primary-container hover:bg-primary font-headline-sm text-[13px] font-bold shadow-md transition-all flex items-center justify-center gap-2 group" type="button">
+<span class="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">picture_as_pdf</span>
+<span>Descargar PDF Imprenta (480 MB)</span>
+</button>
+<span class="text-center font-label-micro text-[9px] text-on-surface-variant mb-1">
+          Incluye: Sobrecubierta CMYK + 192 Págs TIFF 600DPI + Tonbo
+        </span>
+<!-- Secondary Digital Formats -->
+<div class="grid grid-cols-2 gap-1.5">
+<button class="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-technical text-label-technical border border-surface-container-highest transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">smartphone</span>
+            Webtoon Vertical
+          </button>
+<button class="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-technical text-label-technical border border-surface-container-highest transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">book</span>
+            EPUB Fixed-Layout
+          </button>
+</div>
+<!-- Tertiary Direct Cloud Print Integration -->
+<a class="mt-1 py-1 text-center font-label-technical text-label-micro text-secondary hover:underline flex items-center justify-center gap-1" href="#">
+<span class="material-symbols-outlined text-[13px]">cloud_upload</span>
+          Enviar directo a imprenta KAI Print Partner (Kyoto / Madrid)
+        </a>
+</div>
+</aside>
+</div>
+</div></main></div><footer class="fixed bottom-0 left-0 right-0 h-[32px] bg-surface-container-lowest border-t border-surface-container-highest z-50 px-margin flex items-center justify-between font-label-technical text-label-technical text-on-surface-variant"><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Formato:</strong> Tankōbon B6 (128x182mm)</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Sangrado:</strong> 3mm</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Resolución:</strong> 600 DPI Monocromo</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Zoom:</strong> 125%</span></div><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Motor:</strong> Nano Banana 2 HD</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Coordenadas:</strong> X: 64.2mm Y: 91.0mm</span><span class="text-surface-dim">|</span><span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span><strong class="text-on-surface font-semibold">Memoria VRAM:</strong> 3.4 / 16 GB</span></div></footer></body></html>

@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"inverse-on-surface":"#f3f1eb","tertiary-container":"#007cac","secondary-fixed":"#e1e0ff","on-error":"#ffffff","on-primary-fixed-variant":"#920028","on-secondary-container":"#fffbff","on-primary":"#ffffff","surface-dim":"#dcdad4","on-surface":"#1b1c18","on-secondary":"#ffffff","on-secondary-fixed-variant":"#2f2ebe","on-background":"#1b1c18","surface-bright":"#fbf9f3","on-tertiary-fixed-variant":"#004c6b","tertiary-fixed":"#c6e7ff","error-container":"#ffdad6","surface-container-highest":"#e4e2dc","inverse-primary":"#ffb3b6","secondary":"#4648d4","on-primary-fixed":"#40000c","error":"#ba1a1a","on-tertiary-container":"#f9fbff","inverse-surface":"#30312d","outline":"#906f70","outline-variant":"#e5bdbe","on-primary-container":"#fffaf9","surface-container-low":"#f6f3ed","secondary-fixed-dim":"#c0c1ff","primary-container":"#e11d48","surface-variant":"#e4e2dc","tertiary":"#006288","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","on-surface-variant":"#5c3f40","primary-fixed":"#ffdada","background":"#fbf9f3","primary-fixed-dim":"#ffb3b6","surface-container-high":"#eae8e2","on-secondary-fixed":"#07006c","on-tertiary-fixed":"#001e2d","surface-container":"#f0eee8","surface-tint":"#be0037","on-error-container":"#93000a","tertiary-fixed-dim":"#82cfff","primary":"#b80035","surface":"#fbf9f3","secondary-container":"#6063ee"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-lg":"1rem","gutter":"1rem","margin":"1.5rem","gutter-dense":"0.5rem","margin-mobile":"0.75rem","space-sm":"0.5rem","space-xs":"0.25rem","space-md":"0.75rem","space-xl":"1.5rem"},"fontFamily":{"headline-lg":["Space Grotesk"],"headline-sm":["Space Grotesk"],"headline-md":["Space Grotesk"],"headline-xl":["Space Grotesk"],"label-lg":["Inter"],"body-sm":["Inter"],"label-md":["JetBrains Mono"],"body-md":["Inter"],"label-technical":["JetBrains Mono"],"label-micro":["JetBrains Mono"],"body-lg":["Inter"],"headline-xl-mobile":["Space Grotesk"]},"fontSize":{"headline-lg":["24px",{"lineHeight":"30px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-sm":["15px",{"lineHeight":"20px","fontWeight":"600"}],"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"700"}],"label-lg":["12px",{"lineHeight":"16px","fontWeight":"500"}],"body-sm":["11px",{"lineHeight":"15px","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"500"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"label-technical":["10px",{"lineHeight":"12px","letterSpacing":"0.04em","fontWeight":"500"}],"label-micro":["9px",{"lineHeight":"11px","letterSpacing":"0.05em","fontWeight":"400"}],"body-lg":["15px",{"lineHeight":"22px","fontWeight":"400"}],"headline-xl-mobile":["28px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface select-none"><header class="fixed top-0 left-0 right-0 h-[52px] bg-surface-container-lowest border-b border-surface-container-highest z-50 px-margin flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="MANGAI Studio Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrAK06WhKIq5OMBEX81y-m7msTRyZ_OAYmv6fQhVTWdIlD_u_oQ1WM8LfmvJR1IexpXCulMOGHWzrjEJfxNAP_CoHdu4UhiHPs5xhrO1Ca4sQEWm0JIEOnWVcvdhpSNubxZ858Ddg12Bdq1aTZ-DGyxLjwXP8dBZ9j9GGO8M0EwqrPvHFPnHatSw1KJVcmjIVFTywFr26Vi8vmhvxAzNYFvEDqK7dDfFdC6RykKT7X40EQ"/><div class="h-5 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant"><span class="text-on-surface font-semibold">AnaCaona</span><span class="text-surface-dim">/</span><span>Vol. I</span><span class="text-surface-dim">/</span><span>Cap. 01</span><span class="text-surface-dim">/</span><span class="text-on-surface">Pág. 04</span></div><span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded bg-surface-container-low text-tertiary font-label-technical text-label-technical border border-tertiary/20"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Guardado</span></div><nav class="flex items-center bg-surface-container p-0.5 rounded-lg border border-surface-container-highest" data-active-classes="bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm"><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="biblia-settei" href="#">1. Biblia Settei</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="guion-koso" href="#">2. Guion Kōsō</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="tablero-nemu" href="#">3. Tablero Nemu</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="lienzo-genko" href="#">4. Lienzo Genkō</a><a class="px-space-md py-1 rounded bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm font-label-lg text-label-lg transition-colors" data-path="empaque-tankobon" href="#">5. Empaque Tankōbon</a></nav><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs font-label-technical text-label-technical px-space-sm py-1 bg-surface-container-low rounded border border-surface-container-highest"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface">14 / 100 págs</span><span class="text-on-surface-variant">(Plan Pro)</span></div><button class="font-label-technical text-label-technical px-space-sm py-1 rounded border border-secondary text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed-variant transition-colors" type="button">Gestionar Plan</button><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container font-label-technical text-label-technical border border-tertiary-container/30"><span class="w-2 h-2 rounded-full bg-tertiary-container"></span><span class="text-tertiary">Guías Genkō: ON</span></div><button class="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-label-lg text-label-lg hover:bg-primary transition-colors shadow-sm" type="button"><span class="material-symbols-outlined text-[16px]">print</span>Exportar Imprenta</button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><aside class="fixed left-0 top-[52px] bottom-[32px] w-12 bg-surface-container-lowest border-r border-surface-container-highest z-40 flex flex-col items-center py-space-sm justify-between"><div class="flex flex-col items-center gap-space-xs"><button class="w-8 h-8 rounded flex items-center justify-center bg-inverse-surface text-inverse-on-surface" title="G-Pen" type="button"><span class="material-symbols-outlined text-[18px]">stylus_note</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Maru-Pen" type="button"><span class="material-symbols-outlined text-[18px]">draw</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Tinta Sumi" type="button"><span class="material-symbols-outlined text-[18px]">brush</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Cortador Koma" type="button"><span class="material-symbols-outlined text-[18px]">grid_view</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Regla Elíptica" type="button"><span class="material-symbols-outlined text-[18px]">straighten</span></button><div class="w-6 h-px bg-surface-container-highest my-space-xs"></div><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Tramas Screentone" type="button"><span class="material-symbols-outlined text-[18px]">texture</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed-variant" title="Asistente KAI" type="button"><span class="material-symbols-outlined text-[18px]">auto_awesome</span></button></div><div class="flex flex-col items-center gap-space-xs"><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Configuración de Herramientas" type="button"><span class="material-symbols-outlined text-[18px]">tune</span></button></div></aside><div class="pl-12"><main class="relative pt-[52px] pb-[32px] min-h-[calc(100vh-84px)] bg-surface-container-low"><div class="flex flex-col w-full">
+<!-- SCRIPT: Navigation active state synchronizer & workspace interaction -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const navLinks = document.querySelectorAll('header nav a');
+      navLinks.forEach(link => {
+        if (link.getAttribute('data-path') === 'empaque-tankobon' || link.textContent.includes('5. Empaque')) {
+          link.className = "px-space-md py-1 rounded bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm font-label-lg text-label-lg transition-colors";
+        } else {
+          link.className = "px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface";
+        }
+      });
+    });
+
+    let isObiVisible = true;
+    function handleToggleObi() {
+      if (typeof window.__toggleObiBand === 'function') {
+        const state = window.__toggleObiBand();
+        const badge = document.getElementById('obi-status-badge');
+        if (badge) badge.textContent = state ? 'ON' : 'OFF';
+      }
+    }
+
+    function handleToggleRotate() {
+      if (typeof window.__toggleMangaAutoRotate === 'function') {
+        window.__toggleMangaAutoRotate();
+      }
+    }
+
+    function switchViewTab(mode) {
+      const btn2d = document.getElementById('view-btn-2d');
+      const btn3d = document.getElementById('view-btn-3d');
+      const btnObi = document.getElementById('view-btn-obi');
+
+      [btn2d, btn3d, btnObi].forEach(b => {
+        if (b) {
+          b.classList.remove('bg-inverse-surface', 'text-inverse-on-surface');
+          b.classList.add('bg-surface-container-lowest', 'text-on-surface-variant');
+        }
+      });
+
+      if (mode === '2d') {
+        btn2d.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+        btn2d.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+      } else if (mode === '3d') {
+        btn3d.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+        btn3d.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+      } else if (mode === 'obi') {
+        btnObi.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+        btnObi.classList.remove('bg-surface-container-lowest', 'text-on-surface-variant');
+        handleToggleObi();
+      }
+    }
+  </script>
+<!-- CONTROL SUB-BAR: Tankōbon Volume & Spine Specifications -->
+<section class="w-full bg-surface-container-lowest border-b border-surface-container-highest px-space-lg py-space-xs flex flex-wrap items-center justify-between gap-space-md shadow-sm z-30">
+<!-- Left: Volume Selector & Breadcrumbs Context -->
+<div class="flex items-center gap-space-md min-w-0">
+<div class="flex items-center gap-space-xs font-label-technical text-label-technical">
+<span class="w-2.5 h-2.5 rounded-full bg-primary flex items-center justify-center text-on-primary text-[8px] font-bold">5</span>
+<span class="text-on-surface font-semibold uppercase tracking-wider">Tankōbon B6 Press</span>
+<span class="text-surface-dim">/</span>
+<span class="text-on-surface-variant">AnaCaona: Vol. I</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest hidden sm:block"></div>
+<!-- Volume Selector Pill -->
+<div class="flex items-center bg-surface-container-low px-space-sm py-1 rounded border border-surface-container-highest">
+<span class="material-symbols-outlined text-[15px] text-primary mr-1">auto_stories</span>
+<span class="font-headline-sm text-headline-sm text-on-surface pr-1">Vol. 01: El Despertar del Guanín</span>
+<span class="font-label-technical text-label-micro text-on-surface-variant bg-surface-container px-1 py-0.5 rounded ml-1">192 Págs</span>
+</div>
+<!-- Paper & Spine Density Factor -->
+<div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded font-label-technical text-label-technical text-on-surface">
+<span class="material-symbols-outlined text-[14px] text-tertiary">layers</span>
+<span>Papel: <strong>Manga Crema 70g/m²</strong> (Bulky 2.0)</span>
+<span class="text-surface-dim">|</span>
+<span class="text-secondary font-semibold">Lomo: 11.52mm</span>
+<span class="text-on-surface-variant text-label-micro">(Factor 0.120mm × 96 h)</span>
+</div>
+</div>
+<!-- Center: View Mode Switcher -->
+<div class="flex items-center bg-surface-container p-0.5 rounded border border-surface-container-highest">
+<button class="px-space-md py-1 rounded text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1" id="view-btn-2d" onclick="switchViewTab('2d')" type="button">
+<span class="material-symbols-outlined text-[14px]">view_array</span>
+        Pliego Plano 2D
+      </button>
+<button class="px-space-md py-1 rounded bg-inverse-surface text-inverse-on-surface font-label-lg text-label-lg font-semibold shadow-sm transition-colors flex items-center gap-1.5" id="view-btn-3d" onclick="switchViewTab('3d')" type="button">
+<span class="material-symbols-outlined text-[14px] text-primary">view_in_ar</span>
+        Maqueta 3D
+        <span class="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] bg-primary text-on-primary font-label-technical font-bold leading-none animate-pulse">EN VIVO</span>
+</button>
+<button class="px-space-md py-1 rounded text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors flex items-center gap-1" id="view-btn-obi" onclick="switchViewTab('obi')" type="button">
+<span class="material-symbols-outlined text-[14px]">bookmark</span>
+        Faja Obi
+      </button>
+</div>
+<!-- Right: Pre-Flight Safety Tag & Viewport Tools -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1.5 px-space-sm py-1 bg-surface-container rounded border border-tertiary/30 font-label-technical text-label-technical">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+<span class="text-on-surface font-medium">Pre-Flight:</span>
+<span class="text-tertiary font-bold">100% APTO</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Quick Toggles -->
+<button class="w-7 h-7 rounded flex items-center justify-center bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-surface-container-highest" onclick="handleToggleRotate()" title="Pausar / Reanudar Giro Automático 360°" type="button">
+<span class="material-symbols-outlined text-[16px] text-tertiary">sync</span>
+</button>
+<button class="px-space-xs py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-technical text-label-technical border border-surface-container-highest" title="Escala 1:1 Física" type="button">
+        100%
+      </button>
+</div>
+</section>
+<!-- MAIN BODY SPLIT: 3D Manga Inspector Stage + Pre-Flight Inspector Panel -->
+<div class="flex-1 flex flex-col lg:flex-row w-full overflow-hidden bg-surface-container-low min-h-[calc(100vh-120px)]">
+<!-- CANVAS VIEWPORT: Interactive 3D Manga Stage -->
+<div class="flex-1 flex flex-col relative overflow-auto p-space-md xl:p-space-lg select-none">
+<!-- Top Millimeter Metric Ruler & 3D Lighting Status Strip -->
+<div class="w-full h-6 bg-surface-container-lowest border-b border-surface-container-highest flex items-center justify-between px-4 font-label-micro text-label-micro text-on-surface-variant mb-2 rounded-t shadow-sm">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-on-surface font-semibold">Simulador Fotorrealista B6 Tankōbon</span>
+<span class="text-surface-dim">/</span>
+<span>Proporción 128 × 182 mm • Lomo Rígido 11.52 mm</span>
+</div>
+<div class="flex items-center gap-3">
+<span>Render: <strong>WebGL ACES Filmic</strong></span>
+<span class="text-surface-dim">|</span>
+<span class="text-secondary font-semibold">Shader PBR Soft-Touch + Gloss UV</span>
+</div>
+</div>
+<!-- WORKSPACE BOARD: The Interactive 3D Manga Volume Viewport Container -->
+<div class="relative w-full mx-auto p-space-md bg-gradient-to-b from-surface-container-high to-surface-container rounded-xl shadow-md border border-surface-container-highest flex flex-col items-center justify-center min-h-[640px]" id="manga-3d-stage">
+<!-- OVERLAY BAR TOP: Interactive Mode Indicator & Angle Presets -->
+<div class="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+<!-- Interactive Badge Callout -->
+<div class="inline-flex items-center gap-2 bg-inverse-surface/90 backdrop-blur-md text-inverse-on-surface px-3 py-1.5 rounded-full border border-inverse-surface/40 shadow-lg pointer-events-auto">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<span class="font-label-technical text-label-technical font-medium">Órbita 360° Activa</span>
+<span class="text-inverse-on-surface/50 text-[10px] hidden sm:inline">(Arrastra con el ratón o doble clic para pausar giro automático)</span>
+</div>
+<!-- Quick Angle Presets Selector -->
+<div class="flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md p-1 rounded-lg border border-surface-container-highest shadow-md pointer-events-auto">
+<span class="font-label-technical text-label-micro text-on-surface-variant px-1 font-semibold uppercase">Ángulo:</span>
+<button class="px-2 py-0.5 rounded text-on-surface font-label-technical text-label-micro hover:bg-surface-container transition-colors border border-transparent hover:border-surface-container-highest" onclick="if(window.__setMangaViewAngle) window.__setMangaViewAngle('front')" title="Vista Frontal Cubierta" type="button">
+          [Frontal]
+        </button>
+<button class="px-2 py-0.5 rounded text-on-surface font-label-technical text-label-micro hover:bg-surface-container transition-colors border border-transparent hover:border-surface-container-highest" onclick="if(window.__setMangaViewAngle) window.__setMangaViewAngle('spine')" title="Vista Detallada del Lomo 11.5mm" type="button">
+          [Lomo 11.5mm]
+        </button>
+<button class="px-2 py-0.5 rounded text-on-surface font-label-technical text-label-micro hover:bg-surface-container transition-colors border border-transparent hover:border-surface-container-highest" onclick="if(window.__setMangaViewAngle) window.__setMangaViewAngle('back')" title="Vista Sinopsis y Código de Barras" type="button">
+          [Contraportada]
+        </button>
+<button class="px-2 py-0.5 rounded bg-inverse-surface text-inverse-on-surface font-label-technical text-label-micro font-semibold shadow-xs" onclick="if(window.__setMangaViewAngle) window.__setMangaViewAngle('iso')" title="Perspectiva Isométrica 3D" type="button">
+          [Isométrica 3D]
+        </button>
+</div>
+</div>
+<!-- THE THREE.JS INTERACTIVE 3D SCENE ELEMENT -->
+<div class="w-full relative flex items-center justify-center cursor-grab active:cursor-grabbing">
+<!-- STITCH_THREEJS_START:ANIMATION_11 class="w-full h-[620px] bg-transparent" -->
+<div class="w-full h-[620px] bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_11" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_11');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // Three.js interactive 3D Manga Volume (Tankōbon B6) Closed Book Inspector
+const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || 500;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 1000);
+camera.position.set(2.8, 1.8, 4.0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+container.appendChild(renderer.domElement);
+
+// Lighting setup
+const ambientLight = new THREE.AmbientLight(0xfffbf5, 0.85);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+dirLight.position.set(5, 8, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 1024;
+dirLight.shadow.mapSize.height = 1024;
+scene.add(dirLight);
+
+const fillLight = new THREE.DirectionalLight(0xe0e7ff, 0.6);
+fillLight.position.set(-5, -2, -3);
+scene.add(fillLight);
+
+const warmRim = new THREE.PointLight(0xd97706, 0.8, 10);
+warmRim.position.set(-2, 3, 2);
+scene.add(warmRim);
+
+// Create Book Group
+const bookGroup = new THREE.Group();
+scene.add(bookGroup);
+
+// Dimensions for B6 Tankōbon (128mm x 182mm x 11.5mm proportionally scaled)
+// Ratio: W: 1.28, H: 1.82, Depth (Spine): 0.24
+const bookW = 1.35;
+const bookH = 1.95;
+const bookD = 0.24;
+
+// 1. Procedural Texture Generation for Cover, Back, Spine & Pages
+function createCoverCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1480;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, 1024, 1480);
+  grad.addColorStop(0, '#1c1917');
+  grad.addColorStop(0.5, '#292524');
+  grad.addColorStop(1, '#0c0a09');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 1480);
+
+  // Manga artwork stylized graphic silhouette / energy
+  const sunGrad = ctx.createRadialGradient(512, 650, 50, 512, 650, 480);
+  sunGrad.addColorStop(0, 'rgba(217, 119, 6, 0.45)');
+  sunGrad.addColorStop(0.6, 'rgba(225, 29, 72, 0.2)');
+  sunGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.beginPath();
+  ctx.arc(512, 650, 480, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Screentone dot pattern simulation in hero area
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  for (let x = 80; x < 944; x += 16) {
+    for (let y = 300; y < 1000; y += 16) {
+      ctx.beginPath();
+      ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Speed lines radiating
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1.5;
+  for (let a = 0; a < Math.PI * 2; a += 0.08) {
+    ctx.beginPath();
+    ctx.moveTo(512 + Math.cos(a) * 220, 650 + Math.sin(a) * 220);
+    ctx.lineTo(512 + Math.cos(a) * 580, 650 + Math.sin(a) * 580);
+    ctx.stroke();
+  }
+
+  // Manga Hero Silhouette Drawing
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.arc(512, 540, 110, 0, Math.PI * 2); // Head/aura
+  ctx.fill();
+  
+  ctx.fillStyle = '#111827';
+  ctx.beginPath();
+  ctx.ellipse(512, 550, 85, 95, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Golden Medallion
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.arc(512, 660, 45, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#d97706';
+  ctx.stroke();
+
+  // Top Manga Header Banner
+  ctx.fillStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillRect(60, 60, 904, 90);
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 36px "Space Grotesk", sans-serif';
+  ctx.fillText('TANKŌBON B6 • VOL. 01', 90, 118);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '28px "Space Grotesk", sans-serif';
+  ctx.fillText('Edición Coleccionista Oficial', 520, 118);
+
+  // Volume badge 01
+  ctx.fillStyle = '#e11d48';
+  ctx.beginPath();
+  ctx.roundRect(850, 75, 90, 60, 12);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 32px "Space Grotesk", sans-serif';
+  ctx.fillText('01', 876, 118);
+
+  // Title: ANACAONA
+  ctx.fillStyle = '#e11d48';
+  ctx.font = 'bold 32px "Space Grotesk", sans-serif';
+  ctx.fillText('連載 EL DESPERTAR DEL GUANÍN', 80, 1080);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 88px "Space Grotesk", sans-serif';
+  ctx.fillText('ANACAONA', 75, 1170);
+
+  // Japanese Subtitle
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 38px sans-serif';
+  ctx.fillText('アナカオナ 1', 80, 1230);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '26px "Inter", sans-serif';
+  ctx.fillText('MANGA VOL. 1 | ACTION | FANTASY | TAINO LEGACY', 80, 1280);
+  ctx.fillText('HISTORIA & ARTE: STUDIO MANGAI', 80, 1330);
+
+  // Publisher seal
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(810, 1300, 150, 50);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 26px "Space Grotesk", sans-serif';
+  ctx.fillText('KAI COMICS', 820, 1335);
+
+  // Non-photo blue crop marks in corners
+  ctx.strokeStyle = '#00aeef';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(30, 30, 964, 1420);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createBackCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1480;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#faf8f5'; // Cream manuscript paper tone
+  ctx.fillRect(0, 0, 1024, 1480);
+
+  // Faint screentone frame
+  ctx.strokeStyle = '#e2e0d8';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(60, 60, 904, 1360);
+
+  // Manga Chapter Thumbnail Preview
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(140, 140, 744, 440);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '24px "Inter", sans-serif';
+  ctx.fillText('Capítulo 04: "La Niebla de Maguana"', 160, 620);
+
+  // Synopsis Text Box
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 44px "Space Grotesk", sans-serif';
+  ctx.fillText('EL JURAMENTO QUEBRADO', 140, 720);
+
+  ctx.fillStyle = '#374151';
+  ctx.font = '30px "Inter", sans-serif';
+  ctx.fillText('En las tierras del Guanín sagrado, el equilibrio milenario', 140, 780);
+  ctx.fillText('entre los cacicazgos se fractura cuando un presagio', 140, 825);
+  ctx.fillText('oscuro cubre las costas. AnaCaona, portadora de la voz', 140, 870);
+  ctx.fillText('de los cemíes ancestrales, deberá empuñar el cetro solar...', 140, 915);
+
+  // Barcode / ISBN-13
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(140, 1040, 480, 240);
+  ctx.strokeStyle = '#000000';
+  ctx.strokeRect(140, 1040, 480, 240);
+
+  ctx.fillStyle = '#000000';
+  ctx.font = '26px monospace';
+  ctx.fillText('ISBN 978-4-08-882123-4', 160, 1080);
+
+  // Barcode vertical lines
+  for (let x = 160; x < 580; x += 6) {
+    const barW = (x % 12 === 0) ? 4 : 2;
+    ctx.fillRect(x, 1100, barW, 110);
+  }
+  ctx.fillText('9 784088 821234', 210, 1245);
+
+  // Price box Japanese style
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(660, 1060, 220, 80);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(660, 1060, 220, 80);
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 26px "Space Grotesk", sans-serif';
+  ctx.fillText('定価: 本体880円+税', 675, 1110);
+
+  // Age rating badge
+  ctx.fillStyle = '#111827';
+  ctx.beginPath();
+  ctx.roundRect(660, 1160, 220, 60, 8);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+  ctx.fillText('+14 Años (Seinen)', 680, 1200);
+
+  // Brand seal bottom
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(140, 1320, 180, 44);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+  ctx.fillText('KAI COMICS', 160, 1350);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createSpineCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 1480;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#faf8f5';
+  ctx.fillRect(0, 0, 256, 1480);
+
+  // Top logo
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(40, 50, 176, 70);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px "Space Grotesk", sans-serif';
+  ctx.fillText('KC', 105, 100);
+
+  // Volume circle
+  ctx.fillStyle = '#111827';
+  ctx.beginPath();
+  ctx.arc(128, 200, 50, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px "Space Grotesk", sans-serif';
+  ctx.fillText('1', 116, 215);
+
+  // Vertical Manga Title
+  ctx.fillStyle = '#111827';
+  ctx.font = '900 64px "Space Grotesk", sans-serif';
+  const text = 'ANACAONA';
+  let y = 350;
+  for (let i = 0; i < text.length; i++) {
+    ctx.fillText(text[i], 85, y);
+    y += 65;
+  }
+
+  // Kana vertical title
+  ctx.fillStyle = '#e11d48';
+  ctx.font = 'bold 34px sans-serif';
+  const kana = 'アナカオナ';
+  y = 960;
+  for (let i = 0; i < kana.length; i++) {
+    ctx.fillText(kana[i], 98, y);
+    y += 45;
+  }
+
+  // Vol Roman
+  ctx.fillStyle = '#4b5563';
+  ctx.font = 'bold 30px "Space Grotesk", sans-serif';
+  ctx.fillText('VOL. I', 75, 1260);
+
+  // Bottom Kai logo
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(50, 1340, 156, 60);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 28px "Space Grotesk", sans-serif';
+  ctx.fillText('MANGAI', 72, 1380);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createPagesEdgeCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Cream bulky paper tone
+  ctx.fillStyle = '#f6f1e5';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Fine lines simulating 192 manga pages
+  ctx.strokeStyle = '#e5dcce';
+  ctx.lineWidth = 1;
+  for (let y = 0; y < 512; y += 2) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(512, y);
+    ctx.stroke();
+  }
+  // Subtle darker grain bands
+  ctx.fillStyle = 'rgba(180, 160, 130, 0.08)';
+  for (let i = 0; i < 15; i++) {
+    const rx = Math.random() * 512;
+    ctx.fillRect(rx, 0, 6, 512);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1, 10);
+  return texture;
+}
+
+const coverTex = createCoverCanvas();
+const backTex = createBackCanvas();
+const spineTex = createSpineCanvas();
+const pagesEdgeTex = createPagesEdgeCanvas();
+
+// Standard Materials for Book Mesh
+// [Right (Page edge), Left (Spine), Top (Page edge), Bottom (Page edge), Front (Cover), Back (Back Cover)]
+const materials = [
+  new THREE.MeshStandardMaterial({ map: pagesEdgeTex, roughness: 0.9, metalness: 0.0 }), // Right edge (pages)
+  new THREE.MeshStandardMaterial({ map: spineTex, roughness: 0.35, metalness: 0.05 }),    // Left edge (spine)
+  new THREE.MeshStandardMaterial({ map: pagesEdgeTex, roughness: 0.9, metalness: 0.0 }), // Top edge
+  new THREE.MeshStandardMaterial({ map: pagesEdgeTex, roughness: 0.9, metalness: 0.0 }), // Bottom edge
+  new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.28, metalness: 0.1 }),    // Front Cover (Gloss/Lamination)
+  new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.45, metalness: 0.05 })     // Back Cover
+];
+
+const bookGeo = new THREE.BoxGeometry(bookW, bookH, bookD);
+const bookMesh = new THREE.Mesh(bookGeo, materials);
+bookMesh.castShadow = true;
+bookMesh.receiveShadow = true;
+bookGroup.add(bookMesh);
+
+// Add Removable / Floating Obi Band (Faja Japonesa)
+const obiH = 0.52;
+const obiD = bookD + 0.012;
+const obiW = bookW + 0.012;
+
+function createObiCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#dc2626'; // Deep crimson Obi paper
+  ctx.fillRect(0, 0, 1024, 360);
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 36px "Space Grotesk", sans-serif';
+  ctx.fillText('★ NOVEDAD EDITORIAL • PREMIO SEINEN KAI 2025 ★', 80, 75);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 68px "Space Grotesk", sans-serif';
+  ctx.fillText('¡MÁS DE 500,000 LECTURAS!', 80, 160);
+
+  ctx.fillStyle = '#fef08a';
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText('「カリブの神話と本格少年漫画の融合、堂々開幕！」', 80, 225);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '26px "Inter", sans-serif';
+  ctx.fillText('Incluye póster desplegable exclusivo a color en el interior.', 80, 280);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+const obiTex = createObiCanvas();
+const obiMat = new THREE.MeshStandardMaterial({
+  map: obiTex,
+  roughness: 0.5,
+  metalness: 0.1
+});
+const obiGeo = new THREE.BoxGeometry(obiW, obiH, obiD);
+const obiMesh = new THREE.Mesh(obiGeo, obiMat);
+obiMesh.position.set(0, -bookH / 2 + obiH / 2 + 0.04, 0);
+obiMesh.castShadow = true;
+bookGroup.add(obiMesh);
+
+// Subtle Ground / Shadow Plane
+const shadowGeo = new THREE.PlaneGeometry(6, 6);
+const shadowMat = new THREE.ShadowMaterial({ opacity: 0.28 });
+const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+shadowPlane.rotation.x = -Math.PI / 2;
+shadowPlane.position.y = -bookH / 2 - 0.06;
+shadowPlane.receiveShadow = true;
+scene.add(shadowPlane);
+
+// Smooth Auto-rotation and Interactive Drag Controls
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let autoRotate = true;
+let targetRotationX = 0.12;
+let targetRotationY = -0.45;
+
+const dom = renderer.domElement;
+
+dom.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  autoRotate = false;
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+dom.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const deltaX = e.clientX - previousMousePosition.x;
+  const deltaY = e.clientY - previousMousePosition.y;
+
+  targetRotationY += deltaX * 0.008;
+  targetRotationX += deltaY * 0.008;
+
+  // Clamp vertical tilt
+  targetRotationX = Math.max(-0.6, Math.min(0.6, targetRotationX));
+
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+// Touch events for mobile/trackpad
+dom.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    autoRotate = false;
+    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+});
+
+window.addEventListener('touchend', () => {
+  isDragging = false;
+});
+
+dom.addEventListener('touchmove', (e) => {
+  if (!isDragging || e.touches.length !== 1) return;
+  const deltaX = e.touches[0].clientX - previousMousePosition.x;
+  const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+  targetRotationY += deltaX * 0.01;
+  targetRotationX += deltaY * 0.01;
+  targetRotationX = Math.max(-0.6, Math.min(0.6, targetRotationX));
+
+  previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+});
+
+// Double click to toggle auto-rotation
+dom.addEventListener('dblclick', () => {
+  autoRotate = !autoRotate;
+});
+
+// Expose camera reset / view angle triggers globally for buttons
+window.__toggleMangaAutoRotate = function() {
+  autoRotate = !autoRotate;
+  return autoRotate;
+};
+
+window.__setMangaViewAngle = function(angle) {
+  autoRotate = false;
+  if (angle === 'front') {
+    targetRotationX = 0;
+    targetRotationY = 0;
+  } else if (angle === 'spine') {
+    targetRotationX = 0;
+    targetRotationY = Math.PI / 2;
+  } else if (angle === 'back') {
+    targetRotationX = 0;
+    targetRotationY = Math.PI;
+  } else if (angle === 'iso') {
+    targetRotationX = 0.2;
+    targetRotationY = -0.55;
+  }
+};
+
+window.__toggleObiBand = function(visible) {
+  obiMesh.visible = visible !== undefined ? visible : !obiMesh.visible;
+  return obiMesh.visible;
+};
+
+// Window Resize Handler
+window.addEventListener('resize', () => {
+  const newWidth = container.clientWidth || window.innerWidth;
+  const newHeight = container.clientHeight || 500;
+  camera.aspect = newWidth / newHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(newWidth, newHeight);
+});
+
+// Render Animation Loop
+let clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+
+  if (autoRotate) {
+    targetRotationY += delta * 0.45;
+  }
+
+  // Smooth lerp damping
+  bookGroup.rotation.y += (targetRotationY - bookGroup.rotation.y) * 0.08;
+  bookGroup.rotation.x += (targetRotationX - bookGroup.rotation.x) * 0.08;
+
+  // Gentle float breath effect
+  bookGroup.position.y = Math.sin(clock.getElapsedTime() * 1.5) * 0.035;
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_11 -->
+</div>
+<!-- OVERLAY BAR BOTTOM: Quick Toggle Action Buttons & Material Pills -->
+<div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col md:flex-row items-center justify-between gap-2 pointer-events-none">
+<!-- Functional Interactive Toggle Buttons -->
+<div class="flex items-center gap-1.5 pointer-events-auto">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-lowest/95 backdrop-blur hover:bg-surface-container text-on-surface font-label-technical text-label-technical border border-surface-container-highest shadow-md transition-colors" onclick="handleToggleRotate()" type="button">
+<span class="material-symbols-outlined text-[15px] text-tertiary">motion_photos_on</span>
+<span>Pausar / Reanudar Giro 360°</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-lowest/95 backdrop-blur hover:bg-surface-container text-on-surface font-label-technical text-label-technical border border-surface-container-highest shadow-md transition-colors" onclick="handleToggleObi()" type="button">
+<span class="material-symbols-outlined text-[15px] text-primary">bookmark</span>
+<span>Faja Obi (Folleto de Venta): <strong class="text-primary" id="obi-status-badge">ON</strong></span>
+</button>
+</div>
+<!-- Lighting & Physical Finish Inspector Pills -->
+<div class="hidden xl:flex items-center gap-1.5 pointer-events-auto">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur border border-surface-container-highest font-label-technical text-[10px] text-on-surface shadow-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          Papel Manga Crema 70g (192 págs)
+        </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur border border-surface-container-highest font-label-technical text-[10px] text-on-surface shadow-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+          Laminado Mate Soft-Touch
+        </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur border border-surface-container-highest font-label-technical text-[10px] text-on-surface shadow-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+          Barniz UV Reserva en Título
+        </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur border border-surface-container-highest font-label-technical text-[10px] text-on-surface shadow-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          Encuadernación PUR
+        </span>
+</div>
+</div>
+</div>
+<!-- BOTTOM PHYSICAL SIMULATION CARD: Realistic Tankōbon Metrics -->
+<div class="mt-4 bg-surface-container-lowest p-space-md rounded-xl border border-surface-container-highest shadow-lg flex flex-col md:flex-row items-center justify-between gap-space-lg" id="modal-3d-preview">
+<div class="flex items-center gap-space-md">
+<!-- 3D Book Render Illusion Container -->
+<div class="relative w-28 h-36 bg-surface-container rounded shadow-2xl flex items-center justify-center transform -rotate-3 hover:rotate-0 transition-transform duration-300 border border-surface-container-highest flex-shrink-0">
+<img class="w-full h-full object-cover rounded" data-alt="High realism 3D isometric mockup of AnaCaona manga paperback book with visible bulky cream pages, matte laminated dust jacket, and curved spine standing on clean desk." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHlj5Q-5OfJHRVXav32n4ghhOpfHBWfwf9YVTX4w67qgGiBuedzWK99onQrg8TTMsBKdfQh3AFsUZ2MwJcVdkwuzhwToseQXxo54uwUayej-iRLfjk9PZAJPDnZRZf21hxz0zOang970VZJTmxVOVP9sowyT4u6akWd7bsuY6vITerVa36c6JCEC8QWw6NF7eahHskYTDIG5kGKV-_9MEyR05si0xdFsL2CgqWFwrh"/>
+<div class="absolute -right-2 top-1 bottom-1 w-2 bg-[#FAF8F5] border-l border-surface-container-high rounded-r shadow-inner flex flex-col justify-between py-1">
+<div class="h-px bg-surface-dim"></div>
+<div class="h-px bg-surface-dim"></div>
+<div class="h-px bg-surface-dim"></div>
+</div>
+<span class="absolute top-1 left-1 px-1 bg-inverse-surface/80 text-inverse-on-surface font-label-micro text-[7px] rounded">Simulación 3D</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 font-headline-sm text-headline-sm text-on-surface font-bold">
+<span>Simulación Física Tankōbon Cerrado</span>
+<span class="inline-flex items-center px-1.5 py-0.2 bg-secondary-fixed text-on-secondary-fixed-variant rounded font-label-technical text-[9px]">Encuadernación Rústica Fresada (PUR)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-2xl mt-0.5">
+              Simulación interactiva 3D en tiempo real con física de grosor dinámica calibrada a 11.52mm (192 páginas interiores en Papel Manga Crema 70g Bulky 2.0). Representa el acabado de sobrecubierta plastificado mate suave, barniz UV selectivo sobre el logotipo <span class="font-semibold text-on-surface">ANACAONA</span> y la faja promocional japonesa Obi extraíble.
+            </p>
+<div class="flex items-center gap-space-md mt-2 font-label-technical text-label-micro text-on-surface">
+<span>Grosor Real Calculado: <strong class="text-secondary">11.52mm</strong></span>
+<span class="text-surface-dim">•</span>
+<span>Apertura Plana: <strong>140°</strong></span>
+<span class="text-surface-dim">•</span>
+<span>Resistencia Adhesivo PUR: <strong>18 N/cm</strong></span>
+<span class="text-surface-dim">•</span>
+<span>Faja Obi: <strong class="text-primary font-semibold">Couché 135g Brillante</strong></span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg border border-surface-container-highest transition-colors flex items-center gap-1" onclick="handleToggleRotate()" type="button">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+            Rotar 360°
+          </button>
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-secondary font-label-lg text-label-lg border border-secondary/30 transition-colors flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">ar_on_you</span>
+            Ver en AR (Móvil)
+          </button>
+</div>
+</div>
+</div>
+<!-- RIGHT INSPECTOR PANEL: PRE-FLIGHT SEMAPHORE & EXPORT PIPELINE (340px) -->
+<aside class="w-full lg:w-[340px] bg-surface-container-lowest border-l border-surface-container-highest p-space-md flex flex-col justify-between overflow-y-auto z-40 shadow-sm flex-shrink-0">
+<div class="flex flex-col gap-space-md">
+<!-- Pre-Flight Header & Status Banner -->
+<div class="flex items-center justify-between pb-space-xs border-b border-surface-container-highest">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Semáforo Pre-Imprenta</h2>
+</div>
+<span class="font-label-technical text-label-micro text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded">v2.8 Nano</span>
+</div>
+<!-- GREEN BANNER OF CONFORMITY -->
+<div class="p-space-sm rounded bg-surface-container-low border border-tertiary/40 flex items-start gap-2 shadow-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px] flex-shrink-0 mt-0.5">check_circle</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-[13px] text-tertiary font-bold leading-tight">SEMÁFORO VERDE: 100% APTO</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant leading-tight mt-0.5">
+              Sin errores bloqueantes. Cumple especificaciones de prensa offset y digital para Tankōbon estándar.
+            </span>
+</div>
+</div>
+<!-- DETAILED TECHNICAL PRE-FLIGHT CHECKLIST -->
+<div class="flex flex-col gap-1.5">
+<span class="font-label-technical text-label-micro uppercase tracking-wider text-on-surface-variant font-semibold">
+            Matriz de Verificación (6 Puntos Críticos)
+          </span>
+<!-- Check 1: Resolution -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Resolución Páginas</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">600 DPI Monocromo (192/192)</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Válido</span>
+</div>
+<!-- Check 2: Naiwaku Safe Area -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Área Segura Naiwaku</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">0 globos ni textos en corte</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Limpio</span>
+</div>
+<!-- Check 3: Spine Bulk Calibration -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Espesor del Lomo</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">11.52mm (Tolerancia ±0.1mm)</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Exacto</span>
+</div>
+<!-- Check 4: Color Separation -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Separación de Color</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">CMYK Fogra39 + Oro 872C</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">5 Tintas</span>
+</div>
+<!-- Check 5: Shitagaki Cyan Layers Purged -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Bocetos Shitagaki</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">Capas azules no-imprimibles</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Purgadas</span>
+</div>
+<!-- Check 6: Barcode & ISBN-13 -->
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[15px] text-tertiary flex-shrink-0">check</span>
+<div class="flex flex-col min-w-0">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Código ISBN-13</span>
+<span class="font-label-technical text-[10px] text-on-surface-variant">Checksum EAN válido</span>
+</div>
+</div>
+<span class="font-label-technical text-label-micro font-semibold text-tertiary px-1 py-0.5 bg-surface-container-lowest rounded border border-tertiary/20">Aprobado</span>
+</div>
+</div>
+<!-- PRODUCTION PRESET SELECTOR -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-technical text-label-micro uppercase tracking-wider text-on-surface-variant font-semibold">
+            Perfil de Salida Industrial
+          </label>
+<div class="relative">
+<select class="w-full bg-surface-container px-space-sm py-1.5 rounded border border-surface-container-highest font-label-lg text-label-lg text-on-surface appearance-none focus:outline-none focus:border-on-surface">
+<option selected="">Imprenta Manga Estándar (Japón / B6 Tankōbon)</option>
+<option>Distribución Global KDP Manga (Amazon Paperback)</option>
+<option>IngramSpark Graphic Novel POD (Couché Mate)</option>
+<option>Edición Especial Limitada (Tapa Dura con Guardas)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2 text-[16px] text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- METRIC BULK CALCULATOR FORM -->
+<div class="p-space-sm rounded bg-surface-container border border-surface-container-highest flex flex-col gap-2">
+<div class="flex items-center justify-between font-label-technical text-label-technical text-on-surface">
+<span class="font-semibold">Calculadora de Lomo:</span>
+<span class="text-secondary font-bold">11.52 mm</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-label-micro font-label-technical">
+<div>
+<span class="text-on-surface-variant block">Gramaje Hoja:</span>
+<input class="w-full bg-surface-container-lowest px-1.5 py-1 rounded border border-surface-container-highest text-right font-bold text-on-surface" readonly="" type="text" value="70 g/m²"/>
+</div>
+<div>
+<span class="text-on-surface-variant block">Páginas Totales:</span>
+<input class="w-full bg-surface-container-lowest px-1.5 py-1 rounded border border-surface-container-highest text-right font-bold text-on-surface" readonly="" type="text" value="192 págs"/>
+</div>
+</div>
+<div class="font-label-micro text-[9px] text-on-surface-variant">
+            Fórmula: (192 págs / 2) × 0.120mm/hoja = 11.52mm.
+          </div>
+</div>
+</div>
+<!-- EXPORT ACTIONS GROUP (BOTTOM PINNED) -->
+<div class="flex flex-col gap-space-xs pt-space-md border-t border-surface-container-highest">
+<!-- Primary Big Red Hanko Button: PDF Master Export -->
+<button class="w-full py-2.5 px-space-md rounded bg-primary-container text-on-primary-container hover:bg-primary font-headline-sm text-[13px] font-bold shadow-md transition-all flex items-center justify-center gap-2 group" type="button">
+<span class="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">picture_as_pdf</span>
+<span>Descargar PDF Imprenta (480 MB)</span>
+</button>
+<span class="text-center font-label-micro text-[9px] text-on-surface-variant mb-1">
+          Incluye: Sobrecubierta CMYK + 192 Págs TIFF 600DPI + Tonbo
+        </span>
+<!-- Secondary Digital Formats -->
+<div class="grid grid-cols-2 gap-1.5">
+<button class="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-technical text-label-technical border border-surface-container-highest transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">smartphone</span>
+            Webtoon Vertical
+          </button>
+<button class="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-technical text-label-technical border border-surface-container-highest transition-colors flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">book</span>
+            EPUB Fixed-Layout
+          </button>
+</div>
+<!-- Tertiary Direct Cloud Print Integration -->
+<a class="mt-1 py-1 text-center font-label-technical text-label-micro text-secondary hover:underline flex items-center justify-center gap-1" href="#">
+<span class="material-symbols-outlined text-[13px]">cloud_upload</span>
+          Enviar directo a imprenta KAI Print Partner (Kyoto / Madrid)
+        </a>
+</div>
+</aside>
+</div>
+</div></main></div><footer class="fixed bottom-0 left-0 right-0 h-[32px] bg-surface-container-lowest border-t border-surface-container-highest z-50 px-margin flex items-center justify-between font-label-technical text-label-technical text-on-surface-variant"><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Formato:</strong> Tankōbon B6 (128x182mm)</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Sangrado:</strong> 3mm</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Resolución:</strong> 600 DPI Monocromo</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Zoom:</strong> 125%</span></div><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Motor:</strong> Nano Banana 2 HD</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Coordenadas:</strong> X: 64.2mm Y: 91.0mm</span><span class="text-surface-dim">|</span><span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span><strong class="text-on-surface font-semibold">Memoria VRAM:</strong> 3.4 / 16 GB</span></div></footer></body></html>

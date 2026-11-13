@@ -1,0 +1,495 @@
+<!DOCTYPE html><html class="h-full bg-stone-950 text-slate-100 antialiased" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MANGAI STUDIO | Biblioteca de Proyectos Tankōbon</title>
+<!-- Fonts: Space Grotesk, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            sumi: {
+              950: '#0a0d14',
+              900: '#111827',
+              800: '#1f293d',
+              700: '#334155'
+            },
+            hanko: {
+              DEFAULT: '#E11D48',
+              hover: '#BE123C',
+              glow: 'rgba(225, 29, 72, 0.35)'
+            },
+            nonphoto: {
+              DEFAULT: '#00AEEF',
+              subtle: '#0284C7'
+            },
+            guanin: {
+              DEFAULT: '#D97706',
+              light: '#F59E0B'
+            },
+            genko: {
+              paper: '#FCFCF9',
+              ivory: '#F5F4EE',
+              line: 'rgba(0, 174, 239, 0.15)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="custom-typography">
+    .vertical-rl {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+    .text-shadow-sm {
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    }
+  </style>
+<style data-purpose="shelving-and-spines">
+    /* Subtle 3D book spine lighting and physical paper texture */
+    .spine-book {
+      transform-origin: bottom center;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -4px 6px 16px rgba(0, 0, 0, 0.65), 
+                  inset 2px 0 3px rgba(255, 255, 255, 0.7), 
+                  inset -3px 0 5px rgba(0, 0, 0, 0.22);
+    }
+    .spine-book:hover {
+      transform: translateY(-16px) scale(1.02);
+      box-shadow: -6px 18px 28px rgba(0, 0, 0, 0.75), 
+                  0 0 25px rgba(0, 174, 239, 0.25),
+                  inset 2px 0 4px rgba(255, 255, 255, 0.85);
+    }
+    .spine-book.active-book {
+      transform: translateY(-24px) scale(1.035);
+      box-shadow: 0 20px 38px rgba(0, 0, 0, 0.85), 
+                  0 0 32px rgba(225, 29, 72, 0.45),
+                  inset 2px 0 4px rgba(255, 255, 255, 0.95);
+    }
+    .wood-shelf {
+      background: linear-gradient(180deg, #2b1f1d 0%, #171110 50%, #0d0a09 100%);
+      box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.85), inset 0 2px 0 rgba(255, 255, 255, 0.12);
+    }
+    .wood-shelf-bevel {
+      background: linear-gradient(90deg, #44322e 0%, #684a44 20%, #44322e 80%, #2f211f 100%);
+    }
+  </style>
+<style data-purpose="hud-overlays">
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .genko-grid-bg {
+      background-image: 
+        linear-gradient(to right, rgba(0, 174, 239, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 174, 239, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="h-screen w-screen overflow-hidden select-none font-sans relative flex flex-col justify-between">
+<!-- BEGIN: Immersive Studio Desk Background -->
+<div class="absolute inset-0 z-0 overflow-hidden pointer-events-none" data-purpose="ambient-background">
+<img alt="Rich, cinematic 3D rendered anime mangaka creative studio atelier" class="w-full h-full object-cover object-center filter brightness-[0.72] contrast-[1.12] scale-105 transform origin-center transition-transform duration-1000 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaeuiYhZKEQGzWFIi2q0IAbUQKiRrMkEuaXRYFT2oXX7ObLcwxPor2_dHQy-CQxH2aYWurtufxBlVg1zIvDLAwAHZN9L-OM9ctCj-8TN8Ghg9iggkcgR1rOcp5IAHcCmpEBQO_-6ZDuBZ7u3Mj0xwQJkyiRts-tW-gbSwN8V68pF7CVRYZ6cp9U6s_QlleQrKOIh6H_c7mUTzSwdEtlvQ1RI8pF66byu6UoyDPvM29">
+<!-- Manga Genko Blue & Sumi Vignette overlays -->
+<div class="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-stone-950/80 mix-blend-multiply"></div>
+<div class="absolute inset-0 bg-radial-gradient from-transparent via-stone-950/30 to-stone-950/90"></div>
+<div class="absolute inset-0 genko-grid-bg opacity-30 pointer-events-none"></div>
+</div>
+<!-- END: Immersive Studio Desk Background -->
+<!-- BEGIN: MainHeader -->
+<header class="relative z-30 w-full px-6 py-4 flex items-center justify-between border-b border-white/10 glass-panel" data-purpose="studio-top-nav">
+<!-- Left: Brand Logo & Status -->
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-lg bg-hanko flex items-center justify-center font-display font-black text-xl text-white tracking-tighter shadow-lg shadow-hanko/40 border border-red-300/40">
+          K
+        </div>
+<div>
+<div class="flex items-center space-x-2">
+<span class="font-display font-bold text-lg tracking-wider text-white">MANGAI <span class="text-zinc-400 font-normal">STUDIO</span></span>
+<span class="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono border border-zinc-700">漫画AI</span>
+</div>
+<p class="text-[11px] text-zinc-400 font-mono tracking-tight flex items-center gap-1.5">
+<span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Estudio Conectado • Cloud Sync ON
+          </p>
+</div>
+</div>
+</div>
+<!-- Center: Library Filter Pills -->
+<nav aria-label="Filtro de Proyectos" class="hidden md:flex items-center space-x-1.5 bg-zinc-900/90 p-1.5 rounded-xl border border-white/10 shadow-inner">
+<button class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-white shadow-sm border border-white/10 flex items-center gap-1.5 transition-all">
+<span>Todos los Proyectos</span>
+<span class="bg-zinc-700 text-zinc-300 text-[10px] px-1.5 py-0.2 rounded-full font-mono">4</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all flex items-center gap-1.5">
+<span>En Serialización</span>
+<span class="bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.2 rounded-full font-mono">2</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all flex items-center gap-1.5">
+<span>Bocetos &amp; Nemu</span>
+<span class="bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.2 rounded-full font-mono">1</span>
+</button>
+<button class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-all">
+<span>Archivados</span>
+</button>
+</nav>
+<!-- Right: New Project CTA & User Profile -->
+<div class="flex items-center space-x-4">
+<button class="bg-hanko hover:bg-hanko-hover text-white text-xs font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-lg shadow-hanko/30 border border-rose-400/30 transition-transform active:scale-95">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+</svg>
+<span>Nuevo Tankōbon</span>
+</button>
+<div class="h-6 w-px bg-zinc-800"></div>
+<!-- Mangaka Profile -->
+<div class="flex items-center space-x-3 cursor-pointer group">
+<div class="relative">
+<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-stone-800 to-amber-700 p-0.5 border border-amber-500/40">
+<div class="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center text-xs font-bold text-amber-200">
+              MK
+            </div>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 px-1 py-0.2 bg-guanin text-[9px] font-bold text-white rounded font-mono shadow">PRO</span>
+</div>
+<div class="text-left hidden lg:block">
+<div class="text-xs font-semibold text-zinc-200 group-hover:text-white transition-colors">Sensei Kai</div>
+<div class="text-[10px] text-zinc-400 font-mono">KAI Studio ID #04</div>
+</div>
+<button aria-label="Ajustes del Estudio" class="text-zinc-400 group-hover:text-white transition-colors" title="Ajustes del Estudio">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: Central Workspace & Library Shelf -->
+<main class="relative z-20 flex-1 flex flex-col justify-end items-center px-8 pb-4 w-full max-w-7xl mx-auto overflow-hidden">
+<!-- Manga Shelf Container -->
+<div class="w-full flex flex-col items-center" data-purpose="bookshelf-display">
+<!-- Bookshelf Books Lineup & Anchored Inspector -->
+<div class="relative w-full flex items-end justify-center gap-6 lg:gap-8 px-8 pb-0">
+<!-- BEGIN: Volume 1 (Active Focused Tankōbon Spine) -->
+<div class="relative flex flex-col items-center group cursor-pointer" data-purpose="tankobon-volume-1">
+<!-- Active Glow Indicator Arrow -->
+<div class="absolute -top-7 text-hanko animate-bounce">
+<svg class="w-5 h-5 fill-current" viewBox="0 0 20 20">
+<path clip-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" fill-rule="evenodd"></path>
+</svg>
+</div>
+<!-- Physical Spine -->
+<article class="spine-book active-book w-14 lg:w-16 h-80 lg:h-92 bg-gradient-to-r from-zinc-100 via-white to-zinc-200 text-stone-900 rounded-t-sm flex flex-col justify-between items-center py-4 px-1.5 border-t-2 border-r border-l border-white relative overflow-hidden">
+<!-- Top Spine Stamp -->
+<div class="flex flex-col items-center space-y-1">
+<span class="w-7 h-7 rounded-full bg-hanko text-white font-display font-bold text-xs flex items-center justify-center shadow-md">01</span>
+<span class="text-[9px] font-mono tracking-widest text-zinc-500 uppercase font-semibold">B6 STD</span>
+</div>
+<!-- Vertical Title in Space Grotesk & Japanese Kana -->
+<div class="flex flex-col items-center justify-center my-auto tracking-widest text-center">
+<span class="vertical-rl font-display font-black text-sm lg:text-base tracking-widest text-sumi-950 uppercase py-1">
+                ANACAONA
+              </span>
+<span class="vertical-rl text-[9px] font-sans text-rose-600 font-bold tracking-tight">
+                アナカオナ
+              </span>
+<span class="vertical-rl text-[8px] font-mono text-zinc-500 mt-2 uppercase tracking-tighter">
+                VOL. 01 • GUANÍN
+              </span>
+</div>
+<!-- Bottom Spine Publisher & Status Stamp -->
+<div class="flex flex-col items-center space-y-1.5 pt-2 border-t border-zinc-200/80 w-full text-center">
+<div class="text-[8px] font-mono font-bold text-zinc-700 tracking-wider">KAI COMICS</div>
+<div class="w-3.5 h-3.5 border border-hanko/70 rounded-xs flex items-center justify-center text-[7px] text-hanko font-serif">印</div>
+</div>
+<!-- Spine Paper Rib Texture Overlay -->
+<div class="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/15 pointer-events-none"></div>
+</article>
+</div>
+<!-- END: Volume 1 -->
+<!-- BEGIN: Volume 2 (Ronin Zero) -->
+<div class="relative flex flex-col items-center group cursor-pointer" data-purpose="tankobon-volume-2">
+<article class="spine-book w-12 lg:w-14 h-76 lg:h-84 bg-gradient-to-r from-stone-100 via-genko-ivory to-stone-200 text-stone-900 rounded-t-sm flex flex-col justify-between items-center py-4 px-1 border-t border-r border-l border-zinc-300/70 relative overflow-hidden">
+<div class="flex flex-col items-center space-y-1">
+<span class="w-6 h-6 rounded-full bg-zinc-900 text-white font-display font-semibold text-[11px] flex items-center justify-center">01</span>
+<span class="text-[8px] font-mono text-zinc-500 uppercase">Seinen</span>
+</div>
+<div class="flex flex-col items-center justify-center my-auto tracking-widest text-center">
+<span class="vertical-rl font-display font-bold text-xs lg:text-sm tracking-wider text-zinc-900 uppercase">
+                RONIN ZERO
+              </span>
+<span class="vertical-rl text-[11px] font-serif font-black text-zinc-800 my-1">
+                浪人
+              </span>
+<span class="vertical-rl text-[8px] font-mono text-amber-700 font-semibold tracking-tighter">
+                NEMU LISTO
+              </span>
+</div>
+<div class="flex flex-col items-center space-y-1 pt-1.5 border-t border-stone-300 w-full text-center">
+<span class="text-[8px] font-mono text-zinc-600">28 PÁGS</span>
+<div class="w-3 h-3 bg-zinc-800 rounded-xs"></div>
+</div>
+<div class="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/15 pointer-events-none"></div>
+</article>
+</div>
+<!-- END: Volume 2 -->
+<!-- BEGIN: Volume 3 (Neo Cyber Kitsune) -->
+<div class="relative flex flex-col items-center group cursor-pointer" data-purpose="tankobon-volume-3">
+<article class="spine-book w-13 lg:w-15 h-80 lg:h-88 bg-gradient-to-r from-zinc-200 via-white to-zinc-300 text-stone-900 rounded-t-sm flex flex-col justify-between items-center py-4 px-1 border-t border-r border-l border-zinc-300 relative overflow-hidden">
+<div class="flex flex-col items-center space-y-1">
+<span class="w-6 h-6 rounded-full bg-nonphoto text-white font-display font-bold text-[11px] flex items-center justify-center shadow-sm">03</span>
+<span class="text-[8px] font-mono text-zinc-500 uppercase">Sci-Fi</span>
+</div>
+<div class="flex flex-col items-center justify-center my-auto tracking-widest text-center">
+<span class="vertical-rl font-display font-bold text-xs lg:text-sm tracking-wider text-zinc-900 uppercase">
+                CYBER KITSUNE
+              </span>
+<span class="vertical-rl text-[9px] font-sans font-bold text-sky-600 my-0.5">
+                キツネ
+              </span>
+<span class="vertical-rl text-[8px] font-mono text-zinc-500 tracking-tighter">
+                GUION KŌSŌ
+              </span>
+</div>
+<div class="flex flex-col items-center space-y-1 pt-1.5 border-t border-zinc-200 w-full text-center">
+<span class="text-[8px] font-mono font-medium text-zinc-700">KAI #12</span>
+</div>
+<div class="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/15 pointer-events-none"></div>
+</article>
+</div>
+<!-- END: Volume 3 -->
+<!-- BEGIN: Volume 4 (Crónicas del Cemí) -->
+<div class="relative flex flex-col items-center group cursor-pointer" data-purpose="tankobon-volume-4">
+<article class="spine-book w-11 lg:w-13 h-72 lg:h-78 bg-gradient-to-r from-stone-200 via-stone-50 to-stone-200 text-stone-900 rounded-t-sm flex flex-col justify-between items-center py-3.5 px-1 border-t border-r border-l border-stone-300 relative overflow-hidden">
+<div class="flex flex-col items-center space-y-1">
+<span class="w-5 h-5 rounded-full bg-guanin text-white font-display font-semibold text-[10px] flex items-center justify-center">01</span>
+<span class="text-[7.5px] font-mono text-stone-500 uppercase">Mítico</span>
+</div>
+<div class="flex flex-col items-center justify-center my-auto tracking-widest text-center">
+<span class="vertical-rl font-display font-medium text-xs tracking-wider text-stone-800 uppercase">
+                CRÓNICAS DEL CEMÍ
+              </span>
+<span class="vertical-rl text-[8px] font-mono text-stone-500 mt-1">
+                SETTEI (8 CHARS)
+              </span>
+</div>
+<div class="flex flex-col items-center space-y-1 pt-1 border-t border-stone-300 w-full text-center">
+<span class="text-[7.5px] font-mono text-stone-600">DOCS V2</span>
+</div>
+<div class="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/15 pointer-events-none"></div>
+</article>
+</div>
+<!-- END: Volume 4 -->
+<!-- BEGIN: Volume 5 (New Slot / Crear Nuevo) -->
+<div class="relative flex flex-col items-center group cursor-pointer" data-purpose="tankobon-volume-new">
+<article class="w-12 lg:w-14 h-72 lg:h-78 border-2 border-dashed border-white/30 rounded-t-sm flex flex-col justify-center items-center py-4 px-2 hover:border-white/60 hover:bg-white/5 transition-all text-zinc-400 hover:text-white group">
+<div class="w-7 h-7 rounded-full border border-white/40 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<span class="vertical-rl font-mono text-[10px] tracking-widest uppercase text-zinc-400 group-hover:text-zinc-200">
+              Crear Nuevo Tankōbon
+            </span>
+</article>
+</div>
+<!-- END: Volume 5 -->
+<!-- BEGIN: Detailed Project Inspector Card (Anchored to Volume 1) -->
+<section class="absolute -top-[23rem] left-1/2 -translate-x-1/2 lg:-translate-x-[58%] w-[94%] max-w-2xl glass-panel rounded-2xl p-5 shadow-2xl border border-white/20 z-40 backdrop-blur-xl animate-fade-in" data-purpose="project-inspector-panel">
+<!-- Card Header: Metadata & Badges -->
+<div class="flex items-start justify-between pb-3.5 border-b border-white/10">
+<div class="flex items-start space-x-3.5">
+<!-- Mini Cover Preview / Thumbnail -->
+<div class="w-16 h-22 bg-stone-900 rounded-md border border-white/20 shadow overflow-hidden relative flex-shrink-0 group">
+<div class="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/40 to-transparent z-10"></div>
+<div class="w-full h-full flex flex-col justify-between p-1 relative z-20">
+<span class="text-[7px] font-mono text-zinc-300 font-bold">MANGAI #01</span>
+<div class="text-center">
+<span class="text-[9px] font-display font-black text-rose-400 block leading-tight">ANACAONA</span>
+<span class="text-[6.5px] font-sans text-zinc-300">Vol. 1</span>
+</div>
+<div class="text-[6px] font-mono text-zinc-400 text-right">600 DPI</div>
+</div>
+</div>
+<!-- Project Title & Subtitle -->
+<div>
+<div class="flex items-center space-x-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-hanko/20 text-rose-300 border border-hanko/40">Seinen / Acción Épica</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">Tankōbon B6 Standard</span>
+</div>
+<h2 class="text-lg lg:text-xl font-display font-bold text-white mt-1">
+                  ANACAONA: Vol. 01 — El Despertar del Guanín
+                </h2>
+<p class="text-xs text-zinc-400 flex items-center gap-2 mt-0.5 font-sans">
+<span>Autor: <strong class="text-zinc-200">Studio Mangai</strong></span>
+<span class="text-zinc-600">•</span>
+<span class="text-zinc-400 font-mono text-[11px]">Última edición: Hace 12 min</span>
+</p>
+</div>
+</div>
+<!-- Close / Minimize / Option Buttons -->
+<div class="flex items-center space-x-1.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                ● En Producción
+              </span>
+</div>
+</div>
+<!-- Quick Metrics Bar -->
+<div class="grid grid-cols-4 gap-2.5 my-3 py-2 px-3 bg-zinc-950/60 rounded-xl border border-white/5 font-mono text-xs">
+<div>
+<div class="text-[10px] text-zinc-500 uppercase tracking-tight">Páginas Genkō</div>
+<div class="font-bold text-zinc-200 mt-0.5">24 <span class="text-[10px] font-normal text-zinc-400">/ 24 Activas</span></div>
+</div>
+<div>
+<div class="text-[10px] text-zinc-500 uppercase tracking-tight">Densidad Tinta</div>
+<div class="font-bold text-zinc-200 mt-0.5">600 DPI <span class="text-[10px] font-normal text-zinc-400">Mono</span></div>
+</div>
+<div>
+<div class="text-[10px] text-zinc-500 uppercase tracking-tight">Seed Settei</div>
+<div class="font-bold text-sky-400 mt-0.5 truncate">#8841-KAI</div>
+</div>
+<div>
+<div class="text-[10px] text-zinc-500 uppercase tracking-tight">Estado Pre-Flight</div>
+<div class="font-bold text-emerald-400 mt-0.5 flex items-center gap-1">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                100% Apto
+              </div>
+</div>
+</div>
+<!-- Direct Jump Stages (Workflow Pipeline) -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-[11px] font-mono text-zinc-400 px-0.5">
+<span>Fases del Proyecto (Acceso Directo):</span>
+<span class="text-zinc-500">Pág 04 en entintado</span>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<!-- Stage 1 -->
+<button class="bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/5 rounded-lg p-2 text-left transition group">
+<span class="text-[10px] font-mono text-zinc-500 block group-hover:text-zinc-300">01. BÍBLIA</span>
+<span class="text-xs font-semibold text-zinc-200 block truncate">Settei &amp; Lore</span>
+</button>
+<!-- Stage 2 & 3 -->
+<button class="bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/5 rounded-lg p-2 text-left transition group">
+<span class="text-[10px] font-mono text-zinc-500 block group-hover:text-zinc-300">02. NEMU</span>
+<span class="text-xs font-semibold text-zinc-200 block truncate">Guion y Story</span>
+</button>
+<!-- Stage 4: PRIMARY ACTION -->
+<button class="bg-gradient-to-r from-rose-600 to-hanko hover:from-rose-500 hover:to-rose-600 border border-rose-400/40 rounded-lg p-2 text-left shadow-lg shadow-hanko/30 transition transform hover:-translate-y-0.5">
+<span class="text-[10px] font-mono text-rose-100 font-bold block flex items-center justify-between">
+                  03. LIENZO GENKŌ
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+</span>
+<span class="text-xs font-bold text-white block truncate">Abrir Cabina →</span>
+</button>
+<!-- Stage 5 -->
+<button class="bg-zinc-800/80 hover:bg-zinc-700/80 border border-white/5 rounded-lg p-2 text-left transition group">
+<span class="text-[10px] font-mono text-zinc-500 block group-hover:text-zinc-300">04. EMPAQUE</span>
+<span class="text-xs font-semibold text-zinc-200 block truncate">Pre-Imprenta 3D</span>
+</button>
+</div>
+</div>
+<!-- Recent Activity Banner -->
+<div class="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-[11px] text-zinc-400">
+<div class="flex items-center space-x-2 truncate">
+<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+<span class="truncate font-sans">Actividad reciente: <strong>Página 04 (Spread)</strong> viñeta #2 entintada con G-Pen digital.</span>
+</div>
+<a class="text-xs text-sky-400 hover:text-sky-300 font-medium flex-shrink-0 ml-2" href="#">Historial</a>
+</div>
+</section>
+<!-- END: Detailed Project Inspector Card -->
+</div>
+<!-- END: Manga Bookshelf Spines -->
+<!-- BEGIN: Solid Lacquered Wood Manga Shelf (Base) -->
+<div class="w-full relative z-10" data-purpose="bookshelf-wood-base">
+<!-- Top shelf bevel edge reflection -->
+<div class="h-2 w-full wood-shelf-bevel shadow-sm"></div>
+<!-- Shelf face with rich dark wood finish -->
+<div class="h-10 lg:h-12 w-full wood-shelf flex items-center justify-between px-8 border-t border-amber-900/30">
+<div class="flex items-center space-x-3 text-xs font-mono text-stone-400/90">
+<span class="tracking-wider uppercase text-[10px] text-stone-500">Estantería Principal:</span>
+<span class="text-stone-300 font-semibold">TANZAKU SHELF A-1</span>
+<span class="text-stone-600">/</span>
+<span>4 Tankōbon cargados</span>
+</div>
+<div class="flex items-center space-x-4 text-[11px] font-mono text-stone-400">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-hanko"></span>
+              Lomo Activo: <strong class="text-stone-200">#01 ANACAONA</strong>
+</span>
+</div>
+</div>
+</div>
+<!-- END: Solid Lacquered Wood Manga Shelf -->
+</div>
+</main>
+<!-- END: Central Workspace & Library Shelf -->
+<!-- BEGIN: Ambient Studio Bottom Bar -->
+<footer class="relative z-30 w-full px-6 py-2.5 glass-panel border-t border-white/10 flex items-center justify-between text-xs font-mono text-zinc-400" data-purpose="bottom-ambient-status">
+<!-- Left: Ambient Sound & Atelier Audio -->
+<div class="flex items-center space-x-4">
+<button class="flex items-center space-x-2 text-zinc-300 hover:text-white transition group py-1 px-2 rounded-md hover:bg-zinc-800/60" title="Control de audio ambiental">
+<svg class="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+<path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path>
+</svg>
+<span class="text-xs">Lluvia suave en el atelier / Lofi Mangaka</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+</button>
+<div class="h-4 w-px bg-zinc-800"></div>
+<!-- VRAM / Hardware Performance -->
+<div class="flex items-center space-x-2 text-zinc-400">
+<span class="text-zinc-500">GPU VRAM:</span>
+<span class="text-zinc-200 font-semibold">Nano Banana 2 HD</span>
+<span class="text-[11px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700/60">3.4 / 16 GB</span>
+</div>
+</div>
+<!-- Center: Quick Keyboard Navigation Hints -->
+<div class="hidden md:flex items-center space-x-4 text-[11px] text-zinc-400">
+<div class="flex items-center space-x-1.5">
+<kbd class="px-1.5 py-0.5 bg-zinc-800 text-zinc-300 rounded border border-zinc-700 shadow-sm text-[10px]">←</kbd>
+<kbd class="px-1.5 py-0.5 bg-zinc-800 text-zinc-300 rounded border border-zinc-700 shadow-sm text-[10px]">→</kbd>
+<span>Navegar Tomos</span>
+</div>
+<div class="flex items-center space-x-1.5">
+<kbd class="px-2 py-0.5 bg-zinc-800 text-zinc-300 rounded border border-zinc-700 shadow-sm text-[10px]">Espacio</kbd>
+<span>Inspeccionar</span>
+</div>
+<div class="flex items-center space-x-1.5">
+<kbd class="px-2 py-0.5 bg-hanko/30 text-rose-300 rounded border border-hanko/50 shadow-sm text-[10px]">Enter</kbd>
+<span>Abrir Genkō</span>
+</div>
+</div>
+<!-- Right: Studio Version & Engine Health -->
+<div class="flex items-center space-x-3 text-[11px]">
+<span class="text-zinc-500">Motor Genkō:</span>
+<span class="text-emerald-400 flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        v4.1.8-Pro
+      </span>
+<span class="text-zinc-600">|</span>
+<span class="text-zinc-400">KAI STUDIO JP-EAST</span>
+</div>
+</footer>
+<!-- END: Ambient Studio Bottom Bar -->
+
+
+</body></html>

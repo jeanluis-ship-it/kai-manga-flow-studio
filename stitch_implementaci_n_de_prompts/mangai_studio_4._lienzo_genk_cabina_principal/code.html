@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"inverse-on-surface":"#f3f1eb","tertiary-container":"#007cac","secondary-fixed":"#e1e0ff","on-error":"#ffffff","on-primary-fixed-variant":"#920028","on-secondary-container":"#fffbff","on-primary":"#ffffff","surface-dim":"#dcdad4","on-surface":"#1b1c18","on-secondary":"#ffffff","on-secondary-fixed-variant":"#2f2ebe","on-background":"#1b1c18","surface-bright":"#fbf9f3","on-tertiary-fixed-variant":"#004c6b","tertiary-fixed":"#c6e7ff","error-container":"#ffdad6","surface-container-highest":"#e4e2dc","inverse-primary":"#ffb3b6","secondary":"#4648d4","on-primary-fixed":"#40000c","error":"#ba1a1a","on-tertiary-container":"#f9fbff","inverse-surface":"#30312d","outline":"#906f70","outline-variant":"#e5bdbe","on-primary-container":"#fffaf9","surface-container-low":"#f6f3ed","secondary-fixed-dim":"#c0c1ff","primary-container":"#e11d48","surface-variant":"#e4e2dc","tertiary":"#006288","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","on-surface-variant":"#5c3f40","primary-fixed":"#ffdada","background":"#fbf9f3","primary-fixed-dim":"#ffb3b6","surface-container-high":"#eae8e2","on-secondary-fixed":"#07006c","on-tertiary-fixed":"#001e2d","surface-container":"#f0eee8","surface-tint":"#be0037","on-error-container":"#93000a","tertiary-fixed-dim":"#82cfff","primary":"#b80035","surface":"#fbf9f3","secondary-container":"#6063ee"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-lg":"1rem","gutter":"1rem","margin":"1.5rem","gutter-dense":"0.5rem","margin-mobile":"0.75rem","space-sm":"0.5rem","space-xs":"0.25rem","space-md":"0.75rem","space-xl":"1.5rem"},"fontFamily":{"headline-lg":["Space Grotesk"],"headline-sm":["Space Grotesk"],"headline-md":["Space Grotesk"],"headline-xl":["Space Grotesk"],"label-lg":["Inter"],"body-sm":["Inter"],"label-md":["JetBrains Mono"],"body-md":["Inter"],"label-technical":["JetBrains Mono"],"label-micro":["JetBrains Mono"],"body-lg":["Inter"],"headline-xl-mobile":["Space Grotesk"]},"fontSize":{"headline-lg":["24px",{"lineHeight":"30px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-sm":["15px",{"lineHeight":"20px","fontWeight":"600"}],"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"700"}],"label-lg":["12px",{"lineHeight":"16px","fontWeight":"500"}],"body-sm":["11px",{"lineHeight":"15px","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"500"}],"body-md":["13px",{"lineHeight":"18px","fontWeight":"400"}],"label-technical":["10px",{"lineHeight":"12px","letterSpacing":"0.04em","fontWeight":"500"}],"label-micro":["9px",{"lineHeight":"11px","letterSpacing":"0.05em","fontWeight":"400"}],"body-lg":["15px",{"lineHeight":"22px","fontWeight":"400"}],"headline-xl-mobile":["28px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface select-none"><header class="fixed top-0 left-0 right-0 h-[52px] bg-surface-container-lowest border-b border-surface-container-highest z-50 px-margin flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-space-md"><img alt="MANGAI Studio Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrAK06WhKIq5OMBEX81y-m7msTRyZ_OAYmv6fQhVTWdIlD_u_oQ1WM8LfmvJR1IexpXCulMOGHWzrjEJfxNAP_CoHdu4UhiHPs5xhrO1Ca4sQEWm0JIEOnWVcvdhpSNubxZ858Ddg12Bdq1aTZ-DGyxLjwXP8dBZ9j9GGO8M0EwqrPvHFPnHatSw1KJVcmjIVFTywFr26Vi8vmhvxAzNYFvEDqK7dDfFdC6RykKT7X40EQ"/><div class="h-5 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant"><span class="text-on-surface font-semibold">AnaCaona</span><span class="text-surface-dim">/</span><span>Vol. I</span><span class="text-surface-dim">/</span><span>Cap. 01</span><span class="text-surface-dim">/</span><span class="text-on-surface">Pág. 04</span></div><span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded bg-surface-container-low text-tertiary font-label-technical text-label-technical border border-tertiary/20"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Guardado</span></div><nav class="flex items-center bg-surface-container p-0.5 rounded-lg border border-surface-container-highest" data-active-classes="bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm"><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="biblia-settei" href="#">1. Biblia Settei</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="guion-koso" href="#">2. Guion Kōsō</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="tablero-nemu" href="#">3. Tablero Nemu</a><a aria-current="page" class="px-space-md py-1 rounded transition-colors bg-inverse-surface text-inverse-on-surface font-semibold shadow-sm" data-path="lienzo-genko" href="#">4. Lienzo Genkō</a><a class="px-space-md py-1 rounded text-on-surface-variant font-label-lg text-label-lg transition-colors hover:text-on-surface" data-path="empaque-tankobon" href="#">5. Empaque Tankōbon</a></nav><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs font-label-technical text-label-technical px-space-sm py-1 bg-surface-container-low rounded border border-surface-container-highest"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="text-on-surface">14 / 100 págs</span><span class="text-on-surface-variant">(Plan Pro)</span></div><button class="font-label-technical text-label-technical px-space-sm py-1 rounded border border-secondary text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed-variant transition-colors" type="button">Gestionar Plan</button><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container font-label-technical text-label-technical border border-tertiary-container/30"><span class="w-2 h-2 rounded-full bg-tertiary-container"></span><span class="text-tertiary">Guías Genkō: ON</span></div><button class="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-label-lg text-label-lg hover:bg-primary transition-colors shadow-sm" type="button"><span class="material-symbols-outlined text-[16px]">print</span>Exportar Imprenta</button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><aside class="fixed left-0 top-[52px] bottom-[32px] w-12 bg-surface-container-lowest border-r border-surface-container-highest z-40 flex flex-col items-center py-space-sm justify-between"><div class="flex flex-col items-center gap-space-xs"><button class="w-8 h-8 rounded flex items-center justify-center bg-inverse-surface text-inverse-on-surface" title="G-Pen" type="button"><span class="material-symbols-outlined text-[18px]">stylus_note</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Maru-Pen" type="button"><span class="material-symbols-outlined text-[18px]">draw</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Tinta Sumi" type="button"><span class="material-symbols-outlined text-[18px]">brush</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Cortador Koma" type="button"><span class="material-symbols-outlined text-[18px]">grid_view</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Regla Elíptica" type="button"><span class="material-symbols-outlined text-[18px]">straighten</span></button><div class="w-6 h-px bg-surface-container-highest my-space-xs"></div><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Tramas Screentone" type="button"><span class="material-symbols-outlined text-[18px]">texture</span></button><button class="w-8 h-8 rounded flex items-center justify-center text-secondary hover:bg-secondary-fixed hover:text-on-secondary-fixed-variant" title="Asistente KAI" type="button"><span class="material-symbols-outlined text-[18px]">auto_awesome</span></button></div><div class="flex flex-col items-center gap-space-xs"><button class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface" title="Configuración de Herramientas" type="button"><span class="material-symbols-outlined text-[18px]">tune</span></button></div></aside><div class="pl-12"><main class="relative pt-[52px] pb-[32px] min-h-[calc(100vh-84px)] bg-surface-container-low"><div class="flex flex-col w-full select-none overflow-hidden text-on-surface">
+<!-- Dynamic Top Studio Control Bar for Genkō Canvas -->
+<div class="w-full bg-surface-container-lowest px-margin py-space-xs flex items-center justify-between shadow-sm z-30">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center justify-center w-6 h-6 rounded bg-inverse-surface text-inverse-on-surface font-label-technical text-label-technical">P.04</span>
+<span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Lienzo Genkō</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container font-label-technical text-label-technical text-on-surface-variant">B6 Tankōbon</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Quick Canvas Metrics & Snap state -->
+<div class="flex items-center gap-space-sm font-label-technical text-label-technical text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>Tonbo: Activo (3mm)</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Koma Magnético: 5mm</span>
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-[14px]">aspect_ratio</span> 128 × 182 mm (600 DPI)</span>
+</div>
+</div>
+<!-- Center/Right Action HUD -->
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center bg-surface-container-low rounded p-0.5">
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-xs flex items-center gap-1" title="Vista Página Individual" type="button">
+<span class="material-symbols-outlined text-[15px]">crop_portrait</span>
+          Individual
+        </button>
+<button class="px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface font-label-md text-label-md flex items-center gap-1" title="Vista Doble Pliego" type="button">
+<span class="material-symbols-outlined text-[15px]">auto_stories</span>
+          Doble Pliego
+        </button>
+</div>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<div class="flex items-center gap-1 bg-surface-container-low px-space-xs py-0.5 rounded">
+<button class="w-6 h-6 rounded flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_out</span>
+</button>
+<span class="font-label-technical text-label-technical px-1 font-semibold text-on-surface">125%</span>
+<button class="w-6 h-6 rounded flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container" type="button">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span>
+</button>
+</div>
+<!-- Hanko Quick Stamp CTA -->
+<button class="inline-flex items-center gap-1.5 px-space-md py-1 rounded bg-primary-container text-on-primary-container font-label-lg text-label-lg hover:bg-primary shadow-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">ink_pen</span>
+        Entintar Todo (KAI)
+      </button>
+</div>
+</div>
+<!-- Main 3-Column Studio Workspace Area -->
+<div class="relative w-full flex h-[calc(100vh-124px)] overflow-hidden">
+<!-- 1. LEFT SEMANTIC TOOL DOCK (68px) -->
+<aside class="w-[68px] shrink-0 bg-surface-container-lowest flex flex-col justify-between py-space-sm items-center shadow-[1px_0_0_0_rgba(0,0,0,0.06)] z-20">
+<!-- Primary Tool Strip -->
+<div class="w-full flex flex-col items-center gap-1.5 px-1.5">
+<!-- Tool 1: V Selector de Viñeta -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" title="[V] Selector de Viñeta" type="button">
+<span class="material-symbols-outlined text-[20px]">near_me</span>
+<span class="font-label-micro text-label-micro -mt-0.5 text-on-surface-variant font-semibold">V</span>
+</button>
+<!-- Tool 2: K Cuchilla Katana -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" title="[K] Cuchilla Katana (Divisor)" type="button">
+<span class="material-symbols-outlined text-[20px]">content_cut</span>
+<span class="font-label-micro text-label-micro -mt-0.5 text-on-surface-variant font-semibold">K</span>
+</button>
+<!-- Tool 3: B Lápiz Azul Shitagaki -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-tertiary hover:bg-tertiary-fixed transition-colors" title="[B] Lápiz Azul No-Foto (Shitagaki)" type="button">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+<span class="font-label-micro text-label-micro -mt-0.5 font-semibold text-tertiary">B</span>
+</button>
+<!-- Tool 4: P Plumas de Entintado (ACTIVE WITH FLYOUT) -->
+<div class="relative w-full flex justify-center">
+<button class="w-12 h-11 rounded bg-inverse-surface text-inverse-on-surface flex flex-col items-center justify-center shadow-sm" title="[P] Plumillas Pen-ire" type="button">
+<span class="material-symbols-outlined text-[20px]">stylus_note</span>
+<span class="font-label-micro text-label-micro -mt-0.5 font-semibold">P</span>
+</button>
+<!-- Pen Sub-Tool Flyout Tray -->
+<div class="absolute left-full ml-2 top-0 bg-surface-container-lowest p-1.5 rounded-lg shadow-xl w-44 z-50 flex flex-col gap-1">
+<div class="px-2 py-1 font-label-micro text-label-micro text-on-surface-variant font-semibold uppercase tracking-wider">Plumillas Tinta Sumi</div>
+<button class="flex items-center justify-between px-2 py-1.5 rounded bg-surface-container text-on-surface font-label-md text-label-md font-semibold" type="button">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>G-Pen Héroe</span>
+<span class="font-label-micro text-label-micro text-primary font-bold">Activa</span>
+</button>
+<button class="flex items-center justify-between px-2 py-1.5 rounded text-on-surface-variant hover:bg-surface-container font-label-md text-label-md" type="button">
+<span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>Maru-Pen Detalle</span>
+<span class="font-label-micro text-label-micro">0.15mm</span>
+</button>
+<button class="flex items-center justify-between px-2 py-1.5 rounded text-on-surface-variant hover:bg-surface-container font-label-md text-label-md" type="button">
+<span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>Kabura Fondo</span>
+<span class="font-label-micro text-label-micro">0.4mm</span>
+</button>
+<button class="flex items-center justify-between px-2 py-1.5 rounded text-on-surface-variant hover:bg-surface-container font-label-md text-label-md" type="button">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-inverse-surface"></span>Pincel Beta Negro</span>
+<span class="font-label-micro text-label-micro">Beta</span>
+</button>
+</div>
+</div>
+<!-- Tool 5: T Tramas Screentone -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" title="[T] Aplicador de Tramas" type="button">
+<span class="material-symbols-outlined text-[20px]">texture</span>
+<span class="font-label-micro text-label-micro -mt-0.5 text-on-surface-variant font-semibold">T</span>
+</button>
+<!-- Tool 6: L Líneas Cinéticas FX -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" title="[L] Líneas Cinéticas FX" type="button">
+<span class="material-symbols-outlined text-[20px]">flare</span>
+<span class="font-label-micro text-label-micro -mt-0.5 text-on-surface-variant font-semibold">L</span>
+</button>
+<!-- Tool 7: F Globos Fukidashi -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" title="[F] Globos Fukidashi" type="button">
+<span class="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
+<span class="font-label-micro text-label-micro -mt-0.5 text-on-surface-variant font-semibold">F</span>
+</button>
+<!-- Tool 8: S Sellos Kakimoji -->
+<button class="group relative w-12 h-11 rounded flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" title="[S] Sellos Kakimoji SFX" type="button">
+<span class="material-symbols-outlined text-[20px]">gesture</span>
+<span class="font-label-micro text-label-micro -mt-0.5 text-on-surface-variant font-semibold">S</span>
+</button>
+</div>
+<!-- Bottom Utilities Strip -->
+<div class="w-full flex flex-col items-center gap-2 pt-2">
+<button class="w-10 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container" title="Girar Mesa de Dibujo" type="button">
+<span class="material-symbols-outlined text-[18px]">rotate_90_degrees_ccw</span>
+</button>
+<div class="flex flex-col gap-1">
+<button class="w-10 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container" title="Deshacer (Cmd+Z)" type="button">
+<span class="material-symbols-outlined text-[17px]">undo</span>
+</button>
+<button class="w-10 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container" title="Rehacer (Cmd+Shift+Z)" type="button">
+<span class="material-symbols-outlined text-[17px]">redo</span>
+</button>
+</div>
+<div class="w-8 h-px bg-surface-container-highest my-0.5"></div>
+<div class="font-label-micro text-label-micro text-tertiary font-bold tracking-tighter">B4/B6</div>
+</div>
+</aside>
+<!-- 2. CENTER STAGE WORKSPACE (Mesa de trabajo gris cálido de corte con regla milimétrica) -->
+<section class="flex-1 relative bg-surface-container flex flex-col overflow-auto items-center justify-center p-space-md">
+<!-- Millimeter Metric Guide Strip (Top Edge of Viewport) -->
+<div class="absolute top-0 left-0 right-0 h-4 bg-surface-container-lowest/80 flex items-end px-6 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] pointer-events-none select-none z-10">
+<div class="w-full flex justify-between font-label-micro text-label-micro text-on-surface-variant/70 pb-0.5">
+<span>0mm</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span><span>120</span><span>140</span><span>160</span><span>182mm</span>
+</div>
+</div>
+<!-- Vertical Metric Guide Strip (Left Edge of Viewport) -->
+<div class="absolute top-4 bottom-0 left-0 w-4 bg-surface-container-lowest/80 flex flex-col justify-between py-6 items-center shadow-[1px_0_0_0_rgba(0,0,0,0.05)] pointer-events-none select-none z-10">
+<span class="font-label-micro text-label-micro text-on-surface-variant/70 [writing-mode:vertical-rl]">0mm</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant/70 [writing-mode:vertical-rl]">60</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant/70 [writing-mode:vertical-rl]">120</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant/70 [writing-mode:vertical-rl]">182mm</span>
+</div>
+<!-- Manga Genkō Canvas (Papel de Manuscrito B6 Marfil 135g) -->
+<div class="relative w-[520px] h-[736px] bg-[#FAF8F5] shadow-2xl rounded-sm p-7 my-auto transition-transform duration-200">
+<!-- TONBO CROP MARKS (Cyan Non-photo blue #00AEEF) -->
+<!-- Top Left Tonbo -->
+<div class="absolute top-2 left-2 pointer-events-none">
+<div class="w-4 h-0.5 bg-tertiary-container/80"></div>
+<div class="w-0.5 h-4 bg-tertiary-container/80 -mt-0.5"></div>
+</div>
+<!-- Top Right Tonbo -->
+<div class="absolute top-2 right-2 pointer-events-none flex flex-col items-end">
+<div class="w-4 h-0.5 bg-tertiary-container/80"></div>
+<div class="w-0.5 h-4 bg-tertiary-container/80 -mt-0.5"></div>
+</div>
+<!-- Bottom Left Tonbo -->
+<div class="absolute bottom-2 left-2 pointer-events-none">
+<div class="w-0.5 h-4 bg-tertiary-container/80"></div>
+<div class="w-4 h-0.5 bg-tertiary-container/80"></div>
+</div>
+<!-- Bottom Right Tonbo -->
+<div class="absolute bottom-2 right-2 pointer-events-none flex flex-col items-end">
+<div class="w-0.5 h-4 bg-tertiary-container/80"></div>
+<div class="w-4 h-0.5 bg-tertiary-container/80"></div>
+</div>
+<!-- Bleed Boundary (Tachikiri 3mm) & Safe Area (Naiwaku Inner Box) -->
+<div class="absolute inset-4 pointer-events-none border border-dashed border-tertiary-container/30"></div>
+<div class="absolute inset-7 pointer-events-none border border-tertiary-container/40"></div>
+<!-- Page Header Stamp metadata on margin -->
+<div class="absolute top-3 left-8 right-8 flex justify-between font-label-micro text-label-micro text-tertiary-container/80 pointer-events-none">
+<span>MANGAI GENKO PAPER // TANKŌBON B6</span>
+<span>CAP. 01 / PÁG. 04</span>
+<span>NAIWAKU: 110 x 165 mm</span>
+</div>
+<!-- KOMA-WARI (Manga Panels Composition) -->
+<div class="relative w-full h-full flex flex-col gap-2 z-0">
+<!-- PANEL 1: Top Establishing Shot (Full-width cinematic vista) -->
+<div class="relative w-full h-[140px] bg-surface-container-lowest overflow-hidden shadow-xs">
+<img class="w-full h-full object-cover" data-alt="High contrast black and white Japanese manga panel showing an ancient tropical temple ruined in a thunderstorm, destroyed monolithic stone pillars, turbulent stormy sky filled with hatched screentone ink clouds, lightning bolts in pure white, dynamic Sumi ink brush strokes, retro manga linework style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjbWAeqf7k_bq73OmO7J2Y0vGJUHXDj0Cmzvu-RNeCajCSlIA9h62oE2riV2Lcy92WJlrYTskXwtDIy_-I3u2cFf7i4IAW_X-S7g-Z-V_DGtWmfalEmGRK8rHuzMoDs54FGdYqjGG549cidzDaTDDz6B9RoAk8DTOtP-ekV1FqgIp-LoByBx-Hs125Krn47MtLGzDeIVMx0sZCWe0oJ6AcEnXJvQBKQueWeg0JKWx7"/>
+<!-- Subtle panel tone badge -->
+<div class="absolute top-1.5 left-2 bg-inverse-surface/80 px-1.5 py-0.5 rounded text-inverse-on-surface font-label-micro text-label-micro backdrop-blur-xs">
+              Koma #1 • Gran Plano General
+            </div>
+</div>
+<!-- MIDDLE ROW: Split action panel + tension shot -->
+<div class="relative w-full h-[330px] flex gap-2">
+<!-- PANEL 2 (MIDDLE-LEFT): DIAGONAL CUT, SELECTED & ACTIVE WITH GLOW AND CONTROLS -->
+<div class="relative flex-1 bg-surface-container-lowest overflow-hidden shadow-lg ring-2 ring-secondary ring-offset-2 ring-offset-background">
+<!-- Floating Mini Quick-Action Bar above active panel -->
+<div class="absolute top-2 left-2 right-2 z-30 flex items-center justify-between bg-inverse-surface/90 text-inverse-on-surface backdrop-blur-md px-2 py-1 rounded shadow-md">
+<div class="flex items-center gap-1.5">
+<span class="inline-block w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+<span class="font-label-micro text-label-micro font-bold text-secondary-fixed">Koma #2 Activa</span>
+</div>
+<div class="flex items-center gap-1 font-label-micro text-label-micro">
+<button class="px-1.5 py-0.5 rounded bg-secondary text-on-secondary hover:bg-secondary-container transition-colors flex items-center gap-0.5" type="button">
+<span class="material-symbols-outlined text-[12px]">auto_awesome</span> Pose KAI
+                  </button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container-highest/20 hover:bg-surface-container-highest/40 text-inverse-on-surface" type="button">
+                    Invertir
+                  </button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container-highest/20 hover:bg-surface-container-highest/40 text-inverse-on-surface" type="button">
+                    60L 30%
+                  </button>
+<button class="px-1.5 py-0.5 rounded bg-surface-container-highest/20 hover:bg-surface-container-highest/40 text-inverse-on-surface flex items-center gap-0.5" type="button">
+<span class="material-symbols-outlined text-[12px]">lock</span>
+</button>
+</div>
+</div>
+<!-- Inked Character Artwork (@Alo leaping with Guanín medallion) -->
+<img class="w-full h-full object-cover" data-alt="Dynamic black and white manga action illustration of Caribbean Taíno warrior Alo leaping fiercely through the air, wearing a glowing metallic circular guanín medallion emitting radiant light rays, long flowing dark cape billowing with stark black beta ink contrast, intense determined facial expression, cross-hatched sumi ink shading, classic shonen manga hero pose" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAauggxO9VEzyvnftRpRdeIvqUzI6w0A_xC9PSOR_KJQilZuC3Jcsfw8oraADSqGFSR88oGaem5xxRWv69sgKXm2WP_RgSPV5OLQDmQtqSB6V6ipch0c73afnD_N4NNvkbQ3Ndp04vAgqwdm4tkiw64UaO3-jtvUgPrTSbA5UwQV6BjGUWdH5zYg-BWilKJ_4k9_POdiYb81xi9P3c_yhOvuL1I__Y2ateLmsThPH4n"/>
+<!-- Manga Speech Balloon (Fukidashi) -->
+<div class="absolute bottom-6 right-3 max-w-[170px] bg-surface-container-lowest rounded-[20px] p-2.5 shadow-md z-20">
+<p class="font-headline-sm text-[12px] leading-tight font-bold text-on-surface text-center tracking-tight uppercase">
+                  ¡El pacto del guanín no se romperá jamás!
+                </p>
+<!-- Tail of bubble -->
+<div class="absolute -bottom-1.5 left-6 w-3 h-3 bg-surface-container-lowest rotate-45"></div>
+</div>
+<!-- Active Corner Resize & Rotation Handles -->
+<div class="absolute top-0 left-0 w-2.5 h-2.5 bg-secondary z-30"></div>
+<div class="absolute top-0 right-0 w-2.5 h-2.5 bg-secondary z-30"></div>
+<div class="absolute bottom-0 left-0 w-2.5 h-2.5 bg-secondary z-30"></div>
+<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-secondary z-30"></div>
+<!-- Diagonal split indication overlay styling -->
+<div class="absolute bottom-0 right-0 w-8 h-8 pointer-events-none">
+<svg class="w-full h-full fill-secondary/20" viewbox="0 0 100 100">
+<polygon points="100,0 100,100 0,100"></polygon>
+</svg>
+</div>
+</div>
+<!-- PANEL 3 (MIDDLE-RIGHT): Close-up eye tension -->
+<div class="relative w-[130px] bg-surface-container-lowest overflow-hidden shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Extreme close up manga eyes panel with deep intense gaze, heavy dark eyelashes, screen tone shading 40 percent dots on skin, dramatic pupil reflections, tension lines radiating from corners, stark monochrome sumi ink style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF9l0awt7lEH_c_B0J-yIDVjizw52wZAV9WCF1lPuU9OR3ZwJiOeo7V6shSoMEyYQ781HbtBJ8ibX7XxzbhaTLpqB-n-kAnmz380naeChrYzw2nbNa87ee6e786IQmDBHuqG1iVVZr1toI2cWJ5R109m1MoLLVBdkTZvbFBKGww0N3Hagqn8RxyIwMmp6teFOiMreREHMQ0dMCU1964VB-9IXQnGf8sl6jw7BjHh8I"/>
+<div class="absolute top-1 right-1 bg-surface-container-lowest/80 px-1 rounded font-label-micro text-label-micro text-on-surface-variant">
+                Koma #3
+              </div>
+</div>
+</div>
+<!-- PANEL 4: Dynamic ground impact crater with kinetic speed lines -->
+<div class="relative w-full flex-1 bg-surface-container-lowest overflow-hidden shadow-xs">
+<img class="w-full h-full object-cover" data-alt="Dynamic manga explosion impact crater panel, cracked shattered earth ground breaking into floating jagged rocks, aggressive speed lines and motion blur hatching radiating outward from impact center, stark black and white ink contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5dNQmNQrzjn8bQm0-Kewfyo3EZzO3sLG_77tljw8oE6g--RweojlZamLora271qAC2OjX0ocC_q7vTIMRF63uW7rcyy6APPsEjBRLvQMJerzok28dXseQMfOa_CU2D6ucnmSKpyY2eGLqr7UZR6i15PKc0mANa9aqOpXaSMsWZHnU5YOAeopj4kSFHbiBCTBdY-KGdOeOKLwgoqdSuGBBapUkwmy-2lmTbbmPD48g"/>
+<!-- Kakimoji Onomatopoeia Overlay: ドドド (DODODO) -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="font-headline-xl text-headline-xl font-black text-on-surface tracking-widest drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)] select-none scale-125 transform -rotate-6">
+                ドドド
+              </div>
+</div>
+<div class="absolute bottom-1.5 left-2 bg-surface-container-lowest/90 px-1.5 py-0.5 rounded font-label-micro text-label-micro text-on-surface font-semibold shadow-xs">
+              Koma #4 • Clímax Terrestre
+            </div>
+</div>
+</div>
+</div>
+<!-- Bottom Floating Viewport Navigation Toolbar -->
+<div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-surface-container-lowest/95 backdrop-blur px-space-md py-1 rounded-full shadow-lg flex items-center gap-space-md z-30">
+<button class="flex items-center gap-1 font-label-micro text-label-micro text-on-surface hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">straighten</span> Reglas: 1mm
+        </button>
+<div class="h-3 w-px bg-surface-container-highest"></div>
+<button class="flex items-center gap-1 font-label-micro text-label-micro text-on-surface hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">grid_4x4</span> Retícula Koma: ON
+        </button>
+<div class="h-3 w-px bg-surface-container-highest"></div>
+<button class="flex items-center gap-1 font-label-micro text-label-micro text-secondary font-semibold hover:text-secondary-fixed-variant transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">fit_screen</span> Ajustar al Centro
+        </button>
+</div>
+</section>
+<!-- 3. RIGHT CONTEXTUAL INSPECTOR (320px) -->
+<aside class="w-[320px] shrink-0 bg-surface-container-lowest flex flex-col justify-between overflow-y-auto shadow-[-1px_0_0_0_rgba(0,0,0,0.06)] z-20">
+<!-- TOP SECTION: Inspector de Viñeta Activa - Koma #2 -->
+<div class="p-space-md flex flex-col gap-space-md">
+<!-- Header & Breadcrumb -->
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Inspector de Viñeta</span>
+<span class="font-label-technical text-label-technical text-secondary font-semibold">Koma #2 • Acción Central (Alo)</span>
+</div>
+<span class="px-space-xs py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-technical text-label-technical font-semibold">
+            Activo
+          </span>
+</div>
+<!-- 5-State Stepper Bar -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-micro text-label-micro text-on-surface-variant font-medium">
+<span>S1 Nemu</span>
+<span class="text-secondary font-bold">S2 Pen-ire</span>
+<span>S3 Tramas</span>
+<span>S4 Fukidashi</span>
+<span>S5 Listo</span>
+</div>
+<div class="grid grid-cols-5 gap-1 h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="bg-secondary"></div>
+<div class="bg-secondary-container"></div>
+<div class="bg-surface-container-highest"></div>
+<div class="bg-surface-container-highest"></div>
+<div class="bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Linked Character Chips ("Anclas Settei") -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase font-semibold text-on-surface-variant">Anclas Settei Vinculadas</span>
+<span class="font-label-micro text-label-micro text-tertiary">Hoja Modelo</span>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<!-- Active Linked Character Chip -->
+<div class="inline-flex items-center gap-1.5 bg-secondary-fixed/50 px-2 py-1 rounded text-on-secondary-fixed-variant font-label-md text-label-md">
+<span class="w-3.5 h-3.5 rounded-full bg-secondary text-[9px] text-on-secondary flex items-center justify-center font-bold">A</span>
+<span class="font-semibold">@Alo</span>
+<span class="text-[10px] text-secondary font-label-technical">Seed #8841 ✓</span>
+</div>
+<!-- Add Co-character -->
+<button class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[13px]">person_add</span>
+              + @Anacaona
+            </button>
+</div>
+<!-- Locked Traits Badges -->
+<div class="flex items-center gap-1 font-label-micro text-label-micro text-on-surface-variant">
+<span class="px-1.5 py-0.5 rounded bg-surface-container">Medallón Guanín</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container">Capa Oscura</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container">Cicatriz Pómulo</span>
+</div>
+</div>
+<!-- Camera Angle Selector -->
+<div class="flex flex-col gap-1">
+<label class="font-label-micro text-label-micro uppercase font-semibold text-on-surface-variant">Ángulo de Cámara Manga</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-label-md text-label-md rounded px-2.5 py-1.5 appearance-none focus:outline-none focus:bg-surface-container">
+<option selected="">Contrapicado Dramático (Low Angle)</option>
+<option>Plano Picado Cenital</option>
+<option>Plano Holandés (Inclinado FX)</option>
+<option>Primer Plano Emocional</option>
+</select>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant absolute right-2 top-2 pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- AI Co-pilot Box ("KAI Sensei + Nano Banana 2 HD") -->
+<div class="bg-surface-container-low rounded-lg p-space-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-secondary font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+              KAI Sensei • Nano Banana 2 HD
+            </div>
+<span class="font-label-micro text-label-micro text-tertiary">Latencia: 1.1s</span>
+</div>
+<!-- Compact prompt input -->
+<textarea class="w-full bg-surface-container-lowest rounded p-2 text-on-surface font-label-md text-label-md focus:outline-none resize-none" placeholder="Instrucción de trazo..." rows="2">Ataque frontal en salto, capa ondeando con fuerza, tinta Sumi de alto contraste con trama 60L.</textarea>
+<!-- Action buttons inside copilot -->
+<div class="flex flex-col gap-1.5">
+<button class="w-full py-1.5 px-space-sm rounded bg-secondary text-on-secondary font-label-lg text-label-lg hover:bg-secondary-container transition-colors flex items-center justify-center gap-1.5 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[15px]">draw</span>
+              Generar / Refinar Entintado
+            </button>
+<button class="w-full py-1 px-space-sm rounded bg-surface-container-lowest text-on-surface font-label-md text-label-md hover:bg-surface-container flex items-center justify-center gap-1 text-on-surface-variant" type="button">
+<span class="material-symbols-outlined text-[14px]">view_in_ar</span>
+              Convertir Fondo 3D a Línea (LT)
+            </button>
+</div>
+</div>
+<!-- Screentone Quick Swatches (4 Halftone dot swatches) -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-micro text-label-micro uppercase font-semibold text-on-surface-variant">Tramas Rápidas (Screentone)</span>
+<span class="font-label-micro text-label-micro text-on-surface-variant">60L Manga</span>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<!-- Swatch 1 -->
+<button class="flex flex-col items-center gap-1 p-1 rounded bg-surface-container-low hover:bg-surface-container group" type="button">
+<div class="w-full h-8 rounded bg-surface-container-lowest overflow-hidden flex items-center justify-center">
+<svg class="fill-on-surface/40" height="24" viewbox="0 0 20 20" width="24">
+<circle cx="4" cy="4" r="1"></circle>
+<circle cx="10" cy="4" r="1"></circle>
+<circle cx="16" cy="4" r="1"></circle>
+<circle cx="4" cy="10" r="1"></circle>
+<circle cx="10" cy="10" r="1"></circle>
+<circle cx="16" cy="10" r="1"></circle>
+</svg>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant group-hover:text-on-surface">15% 60L</span>
+</button>
+<!-- Swatch 2 (Active) -->
+<button class="flex flex-col items-center gap-1 p-1 rounded bg-secondary-fixed/40 group" type="button">
+<div class="w-full h-8 rounded bg-surface-container-lowest overflow-hidden flex items-center justify-center">
+<svg class="fill-on-surface/70" height="24" viewbox="0 0 20 20" width="24">
+<circle cx="3" cy="3" r="1.5"></circle>
+<circle cx="9" cy="3" r="1.5"></circle>
+<circle cx="15" cy="3" r="1.5"></circle>
+<circle cx="3" cy="9" r="1.5"></circle>
+<circle cx="9" cy="9" r="1.5"></circle>
+<circle cx="15" cy="9" r="1.5"></circle>
+</svg>
+</div>
+<span class="font-label-micro text-label-micro font-bold text-secondary">30% 60L</span>
+</button>
+<!-- Swatch 3 -->
+<button class="flex flex-col items-center gap-1 p-1 rounded bg-surface-container-low hover:bg-surface-container group" type="button">
+<div class="w-full h-8 rounded bg-surface-container-lowest overflow-hidden flex items-center justify-center">
+<svg class="fill-on-surface" height="24" viewbox="0 0 20 20" width="24">
+<circle cx="3" cy="3" r="2.2"></circle>
+<circle cx="9" cy="3" r="2.2"></circle>
+<circle cx="15" cy="3" r="2.2"></circle>
+<circle cx="3" cy="9" r="2.2"></circle>
+<circle cx="9" cy="9" r="2.2"></circle>
+<circle cx="15" cy="9" r="2.2"></circle>
+</svg>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant group-hover:text-on-surface">60% Sombra</span>
+</button>
+<!-- Swatch 4 -->
+<button class="flex flex-col items-center gap-1 p-1 rounded bg-surface-container-low hover:bg-surface-container group" type="button">
+<div class="w-full h-8 rounded bg-gradient-to-b from-surface-container-highest to-inverse-surface"></div>
+<span class="font-label-micro text-label-micro text-on-surface-variant group-hover:text-on-surface">Degradado</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BOTTOM SECTION: Pila Fija de 6 Capas -->
+<div class="p-space-md flex flex-col gap-2 bg-surface-container-low/50">
+<!-- Layers Stack Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Capas Genkō</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-highest font-label-micro text-label-micro">7</span>
+</div>
+<div class="flex items-center gap-2">
+<!-- Mini Opacity preview -->
+<div class="flex items-center gap-1 font-label-micro text-label-micro text-on-surface-variant">
+<span>Opac:</span>
+<span class="font-semibold text-on-surface font-label-technical">100%</span>
+</div>
+<button class="w-5 h-5 rounded flex items-center justify-center bg-surface-container hover:bg-surface-container-highest text-on-surface" title="Nueva Capa" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+</button>
+</div>
+</div>
+<!-- Ordered Locked Manga Layer Stack -->
+<div class="flex flex-col gap-1">
+<!-- Layer 6: Guías Genkō -->
+<div class="h-8 px-2 rounded bg-surface-container-lowest flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<button class="text-tertiary-container" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-on-surface-variant">lock</span>
+<span class="w-3.5 h-3.5 rounded bg-tertiary-fixed flex items-center justify-center text-[9px] text-tertiary font-bold">G</span>
+<span class="text-tertiary-container font-semibold truncate max-w-[130px]">Guías Genkō (No-Imp.)</span>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant">#00AEEF</span>
+</div>
+<!-- Layer 5: Globos Fukidashi y Texto -->
+<div class="h-8 px-2 rounded bg-surface-container-lowest flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<button class="text-on-surface" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-surface-dim">lock_open</span>
+<span class="w-3.5 h-3.5 rounded bg-surface-container flex items-center justify-center text-[9px] font-bold">F</span>
+<span class="text-on-surface truncate max-w-[130px]">Globos Fukidashi • Texto</span>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant">100%</span>
+</div>
+<!-- Layer 4: Onomatopeyas Kakimoji SFX -->
+<div class="h-8 px-2 rounded bg-surface-container-lowest flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<button class="text-on-surface" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-surface-dim">lock_open</span>
+<span class="w-3.5 h-3.5 rounded bg-surface-container flex items-center justify-center text-[9px] font-bold">S</span>
+<span class="text-on-surface truncate max-w-[130px]">Onomatopeyas (SFX)</span>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant">100%</span>
+</div>
+<!-- Layer 3: Marcos de Viñeta y Líneas FX -->
+<div class="h-8 px-2 rounded bg-surface-container-lowest flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<button class="text-on-surface" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-surface-dim">lock_open</span>
+<span class="w-3.5 h-3.5 rounded bg-surface-container flex items-center justify-center text-[9px] font-bold">M</span>
+<span class="text-on-surface truncate max-w-[130px]">Marcos Koma (0.8mm)</span>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant">100%</span>
+</div>
+<!-- Layer 2: Tinta y Arte G-Pen / Render IA (CAPA ACTIVA) -->
+<div class="h-8 px-2 rounded bg-inverse-surface text-inverse-on-surface flex items-center justify-between font-label-md text-label-md shadow-xs">
+<div class="flex items-center gap-2">
+<button class="text-inverse-on-surface" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-inverse-on-surface/50">lock_open</span>
+<span class="w-3.5 h-3.5 rounded bg-secondary flex items-center justify-center text-[9px] font-bold text-on-secondary">T</span>
+<span class="font-bold truncate max-w-[130px]">Tinta Sumi • G-Pen</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="font-label-micro text-label-micro font-semibold text-secondary-fixed">ACTIVA</span>
+</div>
+</div>
+<!-- Layer 1: Tramas Screentones y Negros Beta -->
+<div class="h-8 px-2 rounded bg-surface-container-lowest flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<button class="text-on-surface" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-surface-dim">lock_open</span>
+<span class="w-3.5 h-3.5 rounded bg-surface-container flex items-center justify-center text-[9px] font-bold">B</span>
+<span class="text-on-surface truncate max-w-[130px]">Tramas • Beta Negro</span>
+</div>
+<span class="font-label-micro text-label-micro text-on-surface-variant">100%</span>
+</div>
+<!-- Layer 0: Boceto Azul Shitagaki Draft -->
+<div class="h-8 px-2 rounded bg-surface-container-lowest flex items-center justify-between text-tertiary font-label-md text-label-md">
+<div class="flex items-center gap-2">
+<button class="text-tertiary" type="button"><span class="material-symbols-outlined text-[15px]">visibility</span></button>
+<span class="material-symbols-outlined text-[13px] text-tertiary/60">lock</span>
+<span class="w-3.5 h-3.5 rounded bg-tertiary-fixed flex items-center justify-center text-[9px] font-bold text-tertiary">S</span>
+<span class="text-tertiary font-medium truncate max-w-[130px]">Boceto Azul (Shitagaki)</span>
+</div>
+<span class="font-label-micro text-label-micro text-tertiary">40%</span>
+</div>
+</div>
+<!-- Layer Actions Bar -->
+<div class="flex items-center justify-between pt-1 font-label-micro text-label-micro text-on-surface-variant">
+<button class="hover:text-on-surface flex items-center gap-0.5" type="button">
+<span class="material-symbols-outlined text-[13px]">merge_type</span> Fusionar Abajo
+          </button>
+<button class="hover:text-on-surface flex items-center gap-0.5" type="button">
+<span class="material-symbols-outlined text-[13px]">content_copy</span> Duplicar
+          </button>
+<button class="hover:text-error flex items-center gap-0.5 text-error" type="button">
+<span class="material-symbols-outlined text-[13px]">delete</span>
+</button>
+</div>
+</div>
+</aside>
+</div>
+</div></main></div><footer class="fixed bottom-0 left-0 right-0 h-[32px] bg-surface-container-lowest border-t border-surface-container-highest z-50 px-margin flex items-center justify-between font-label-technical text-label-technical text-on-surface-variant"><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Formato:</strong> Tankōbon B6 (128x182mm)</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Sangrado:</strong> 3mm</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Resolución:</strong> 600 DPI Monocromo</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Zoom:</strong> 125%</span></div><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Motor:</strong> Nano Banana 2 HD</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Coordenadas:</strong> X: 64.2mm Y: 91.0mm</span><span class="text-surface-dim">|</span><span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span><strong class="text-on-surface font-semibold">Memoria VRAM:</strong> 3.4 / 16 GB</span></div></footer></body></html>

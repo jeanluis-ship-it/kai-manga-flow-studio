@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_11 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_11" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_11');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // Three.js interactive 3D Manga Volume (Tankōbon B6) Closed Book Inspector
+const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || 500;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 1000);
+camera.position.set(2.8, 1.8, 4.0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+container.appendChild(renderer.domElement);
+
+// Lighting setup
+const ambientLight = new THREE.AmbientLight(0xfffbf5, 0.85);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+dirLight.position.set(5, 8, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 1024;
+dirLight.shadow.mapSize.height = 1024;
+scene.add(dirLight);
+
+const fillLight = new THREE.DirectionalLight(0xe0e7ff, 0.6);
+fillLight.position.set(-5, -2, -3);
+scene.add(fillLight);
+
+const warmRim = new THREE.PointLight(0xd97706, 0.8, 10);
+warmRim.position.set(-2, 3, 2);
+scene.add(warmRim);
+
+// Create Book Group
+const bookGroup = new THREE.Group();
+scene.add(bookGroup);
+
+// Dimensions for B6 Tankōbon (128mm x 182mm x 11.5mm proportionally scaled)
+// Ratio: W: 1.28, H: 1.82, Depth (Spine): 0.24
+const bookW = 1.35;
+const bookH = 1.95;
+const bookD = 0.24;
+
+// 1. Procedural Texture Generation for Cover, Back, Spine & Pages
+function createCoverCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1480;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, 1024, 1480);
+  grad.addColorStop(0, '#1c1917');
+  grad.addColorStop(0.5, '#292524');
+  grad.addColorStop(1, '#0c0a09');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 1480);
+
+  // Manga artwork stylized graphic silhouette / energy
+  const sunGrad = ctx.createRadialGradient(512, 650, 50, 512, 650, 480);
+  sunGrad.addColorStop(0, 'rgba(217, 119, 6, 0.45)');
+  sunGrad.addColorStop(0.6, 'rgba(225, 29, 72, 0.2)');
+  sunGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.beginPath();
+  ctx.arc(512, 650, 480, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Screentone dot pattern simulation in hero area
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  for (let x = 80; x < 944; x += 16) {
+    for (let y = 300; y < 1000; y += 16) {
+      ctx.beginPath();
+      ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Speed lines radiating
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1.5;
+  for (let a = 0; a < Math.PI * 2; a += 0.08) {
+    ctx.beginPath();
+    ctx.moveTo(512 + Math.cos(a) * 220, 650 + Math.sin(a) * 220);
+    ctx.lineTo(512 + Math.cos(a) * 580, 650 + Math.sin(a) * 580);
+    ctx.stroke();
+  }
+
+  // Manga Hero Silhouette Drawing
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.arc(512, 540, 110, 0, Math.PI * 2); // Head/aura
+  ctx.fill();
+  
+  ctx.fillStyle = '#111827';
+  ctx.beginPath();
+  ctx.ellipse(512, 550, 85, 95, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Golden Medallion
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath();
+  ctx.arc(512, 660, 45, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#d97706';
+  ctx.stroke();
+
+  // Top Manga Header Banner
+  ctx.fillStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillRect(60, 60, 904, 90);
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 36px "Space Grotesk", sans-serif';
+  ctx.fillText('TANKŌBON B6 • VOL. 01', 90, 118);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '28px "Space Grotesk", sans-serif';
+  ctx.fillText('Edición Coleccionista Oficial', 520, 118);
+
+  // Volume badge 01
+  ctx.fillStyle = '#e11d48';
+  ctx.beginPath();
+  ctx.roundRect(850, 75, 90, 60, 12);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 32px "Space Grotesk", sans-serif';
+  ctx.fillText('01', 876, 118);
+
+  // Title: ANACAONA
+  ctx.fillStyle = '#e11d48';
+  ctx.font = 'bold 32px "Space Grotesk", sans-serif';
+  ctx.fillText('連載 EL DESPERTAR DEL GUANÍN', 80, 1080);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 88px "Space Grotesk", sans-serif';
+  ctx.fillText('ANACAONA', 75, 1170);
+
+  // Japanese Subtitle
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 38px sans-serif';
+  ctx.fillText('アナカオナ 1', 80, 1230);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '26px "Inter", sans-serif';
+  ctx.fillText('MANGA VOL. 1 | ACTION | FANTASY | TAINO LEGACY', 80, 1280);
+  ctx.fillText('HISTORIA & ARTE: STUDIO MANGAI', 80, 1330);
+
+  // Publisher seal
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(810, 1300, 150, 50);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 26px "Space Grotesk", sans-serif';
+  ctx.fillText('KAI COMICS', 820, 1335);
+
+  // Non-photo blue crop marks in corners
+  ctx.strokeStyle = '#00aeef';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(30, 30, 964, 1420);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createBackCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 1480;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#faf8f5'; // Cream manuscript paper tone
+  ctx.fillRect(0, 0, 1024, 1480);
+
+  // Faint screentone frame
+  ctx.strokeStyle = '#e2e0d8';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(60, 60, 904, 1360);
+
+  // Manga Chapter Thumbnail Preview
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(140, 140, 744, 440);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '24px "Inter", sans-serif';
+  ctx.fillText('Capítulo 04: "La Niebla de Maguana"', 160, 620);
+
+  // Synopsis Text Box
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 44px "Space Grotesk", sans-serif';
+  ctx.fillText('EL JURAMENTO QUEBRADO', 140, 720);
+
+  ctx.fillStyle = '#374151';
+  ctx.font = '30px "Inter", sans-serif';
+  ctx.fillText('En las tierras del Guanín sagrado, el equilibrio milenario', 140, 780);
+  ctx.fillText('entre los cacicazgos se fractura cuando un presagio', 140, 825);
+  ctx.fillText('oscuro cubre las costas. AnaCaona, portadora de la voz', 140, 870);
+  ctx.fillText('de los cemíes ancestrales, deberá empuñar el cetro solar...', 140, 915);
+
+  // Barcode / ISBN-13
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(140, 1040, 480, 240);
+  ctx.strokeStyle = '#000000';
+  ctx.strokeRect(140, 1040, 480, 240);
+
+  ctx.fillStyle = '#000000';
+  ctx.font = '26px monospace';
+  ctx.fillText('ISBN 978-4-08-882123-4', 160, 1080);
+
+  // Barcode vertical lines
+  for (let x = 160; x < 580; x += 6) {
+    const barW = (x % 12 === 0) ? 4 : 2;
+    ctx.fillRect(x, 1100, barW, 110);
+  }
+  ctx.fillText('9 784088 821234', 210, 1245);
+
+  // Price box Japanese style
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(660, 1060, 220, 80);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(660, 1060, 220, 80);
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 26px "Space Grotesk", sans-serif';
+  ctx.fillText('定価: 本体880円+税', 675, 1110);
+
+  // Age rating badge
+  ctx.fillStyle = '#111827';
+  ctx.beginPath();
+  ctx.roundRect(660, 1160, 220, 60, 8);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+  ctx.fillText('+14 Años (Seinen)', 680, 1200);
+
+  // Brand seal bottom
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(140, 1320, 180, 44);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px "Space Grotesk", sans-serif';
+  ctx.fillText('KAI COMICS', 160, 1350);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createSpineCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 1480;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#faf8f5';
+  ctx.fillRect(0, 0, 256, 1480);
+
+  // Top logo
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(40, 50, 176, 70);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px "Space Grotesk", sans-serif';
+  ctx.fillText('KC', 105, 100);
+
+  // Volume circle
+  ctx.fillStyle = '#111827';
+  ctx.beginPath();
+  ctx.arc(128, 200, 50, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px "Space Grotesk", sans-serif';
+  ctx.fillText('1', 116, 215);
+
+  // Vertical Manga Title
+  ctx.fillStyle = '#111827';
+  ctx.font = '900 64px "Space Grotesk", sans-serif';
+  const text = 'ANACAONA';
+  let y = 350;
+  for (let i = 0; i < text.length; i++) {
+    ctx.fillText(text[i], 85, y);
+    y += 65;
+  }
+
+  // Kana vertical title
+  ctx.fillStyle = '#e11d48';
+  ctx.font = 'bold 34px sans-serif';
+  const kana = 'アナカオナ';
+  y = 960;
+  for (let i = 0; i < kana.length; i++) {
+    ctx.fillText(kana[i], 98, y);
+    y += 45;
+  }
+
+  // Vol Roman
+  ctx.fillStyle = '#4b5563';
+  ctx.font = 'bold 30px "Space Grotesk", sans-serif';
+  ctx.fillText('VOL. I', 75, 1260);
+
+  // Bottom Kai logo
+  ctx.fillStyle = '#e11d48';
+  ctx.fillRect(50, 1340, 156, 60);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 28px "Space Grotesk", sans-serif';
+  ctx.fillText('MANGAI', 72, 1380);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+function createPagesEdgeCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Cream bulky paper tone
+  ctx.fillStyle = '#f6f1e5';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Fine lines simulating 192 manga pages
+  ctx.strokeStyle = '#e5dcce';
+  ctx.lineWidth = 1;
+  for (let y = 0; y < 512; y += 2) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(512, y);
+    ctx.stroke();
+  }
+  // Subtle darker grain bands
+  ctx.fillStyle = 'rgba(180, 160, 130, 0.08)';
+  for (let i = 0; i < 15; i++) {
+    const rx = Math.random() * 512;
+    ctx.fillRect(rx, 0, 6, 512);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1, 10);
+  return texture;
+}
+
+const coverTex = createCoverCanvas();
+const backTex = createBackCanvas();
+const spineTex = createSpineCanvas();
+const pagesEdgeTex = createPagesEdgeCanvas();
+
+// Standard Materials for Book Mesh
+// [Right (Page edge), Left (Spine), Top (Page edge), Bottom (Page edge), Front (Cover), Back (Back Cover)]
+const materials = [
+  new THREE.MeshStandardMaterial({ map: pagesEdgeTex, roughness: 0.9, metalness: 0.0 }), // Right edge (pages)
+  new THREE.MeshStandardMaterial({ map: spineTex, roughness: 0.35, metalness: 0.05 }),    // Left edge (spine)
+  new THREE.MeshStandardMaterial({ map: pagesEdgeTex, roughness: 0.9, metalness: 0.0 }), // Top edge
+  new THREE.MeshStandardMaterial({ map: pagesEdgeTex, roughness: 0.9, metalness: 0.0 }), // Bottom edge
+  new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.28, metalness: 0.1 }),    // Front Cover (Gloss/Lamination)
+  new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.45, metalness: 0.05 })     // Back Cover
+];
+
+const bookGeo = new THREE.BoxGeometry(bookW, bookH, bookD);
+const bookMesh = new THREE.Mesh(bookGeo, materials);
+bookMesh.castShadow = true;
+bookMesh.receiveShadow = true;
+bookGroup.add(bookMesh);
+
+// Add Removable / Floating Obi Band (Faja Japonesa)
+const obiH = 0.52;
+const obiD = bookD + 0.012;
+const obiW = bookW + 0.012;
+
+function createObiCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#dc2626'; // Deep crimson Obi paper
+  ctx.fillRect(0, 0, 1024, 360);
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 36px "Space Grotesk", sans-serif';
+  ctx.fillText('★ NOVEDAD EDITORIAL • PREMIO SEINEN KAI 2025 ★', 80, 75);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 68px "Space Grotesk", sans-serif';
+  ctx.fillText('¡MÁS DE 500,000 LECTURAS!', 80, 160);
+
+  ctx.fillStyle = '#fef08a';
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText('「カリブの神話と本格少年漫画の融合、堂々開幕！」', 80, 225);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '26px "Inter", sans-serif';
+  ctx.fillText('Incluye póster desplegable exclusivo a color en el interior.', 80, 280);
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+const obiTex = createObiCanvas();
+const obiMat = new THREE.MeshStandardMaterial({
+  map: obiTex,
+  roughness: 0.5,
+  metalness: 0.1
+});
+const obiGeo = new THREE.BoxGeometry(obiW, obiH, obiD);
+const obiMesh = new THREE.Mesh(obiGeo, obiMat);
+obiMesh.position.set(0, -bookH / 2 + obiH / 2 + 0.04, 0);
+obiMesh.castShadow = true;
+bookGroup.add(obiMesh);
+
+// Subtle Ground / Shadow Plane
+const shadowGeo = new THREE.PlaneGeometry(6, 6);
+const shadowMat = new THREE.ShadowMaterial({ opacity: 0.28 });
+const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+shadowPlane.rotation.x = -Math.PI / 2;
+shadowPlane.position.y = -bookH / 2 - 0.06;
+shadowPlane.receiveShadow = true;
+scene.add(shadowPlane);
+
+// Smooth Auto-rotation and Interactive Drag Controls
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let autoRotate = true;
+let targetRotationX = 0.12;
+let targetRotationY = -0.45;
+
+const dom = renderer.domElement;
+
+dom.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  autoRotate = false;
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+window.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+dom.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const deltaX = e.clientX - previousMousePosition.x;
+  const deltaY = e.clientY - previousMousePosition.y;
+
+  targetRotationY += deltaX * 0.008;
+  targetRotationX += deltaY * 0.008;
+
+  // Clamp vertical tilt
+  targetRotationX = Math.max(-0.6, Math.min(0.6, targetRotationX));
+
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+});
+
+// Touch events for mobile/trackpad
+dom.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    autoRotate = false;
+    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+});
+
+window.addEventListener('touchend', () => {
+  isDragging = false;
+});
+
+dom.addEventListener('touchmove', (e) => {
+  if (!isDragging || e.touches.length !== 1) return;
+  const deltaX = e.touches[0].clientX - previousMousePosition.x;
+  const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+  targetRotationY += deltaX * 0.01;
+  targetRotationX += deltaY * 0.01;
+  targetRotationX = Math.max(-0.6, Math.min(0.6, targetRotationX));
+
+  previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+});
+
+// Double click to toggle auto-rotation
+dom.addEventListener('dblclick', () => {
+  autoRotate = !autoRotate;
+});
+
+// Expose camera reset / view angle triggers globally for buttons
+window.__toggleMangaAutoRotate = function() {
+  autoRotate = !autoRotate;
+  return autoRotate;
+};
+
+window.__setMangaViewAngle = function(angle) {
+  autoRotate = false;
+  if (angle === 'front') {
+    targetRotationX = 0;
+    targetRotationY = 0;
+  } else if (angle === 'spine') {
+    targetRotationX = 0;
+    targetRotationY = Math.PI / 2;
+  } else if (angle === 'back') {
+    targetRotationX = 0;
+    targetRotationY = Math.PI;
+  } else if (angle === 'iso') {
+    targetRotationX = 0.2;
+    targetRotationY = -0.55;
+  }
+};
+
+window.__toggleObiBand = function(visible) {
+  obiMesh.visible = visible !== undefined ? visible : !obiMesh.visible;
+  return obiMesh.visible;
+};
+
+// Window Resize Handler
+window.addEventListener('resize', () => {
+  const newWidth = container.clientWidth || window.innerWidth;
+  const newHeight = container.clientHeight || 500;
+  camera.aspect = newWidth / newHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(newWidth, newHeight);
+});
+
+// Render Animation Loop
+let clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = clock.getDelta();
+
+  if (autoRotate) {
+    targetRotationY += delta * 0.45;
+  }
+
+  // Smooth lerp damping
+  bookGroup.rotation.y += (targetRotationY - bookGroup.rotation.y) * 0.08;
+  bookGroup.rotation.x += (targetRotationX - bookGroup.rotation.x) * 0.08;
+
+  // Gentle float breath effect
+  bookGroup.position.y = Math.sin(clock.getElapsedTime() * 1.5) * 0.035;
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_11 -->
+</body>
+</html>
