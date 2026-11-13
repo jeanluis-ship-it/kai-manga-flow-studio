@@ -23,7 +23,17 @@ module.exports = async function handler(req, res) {
       const mResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(geminiKey)}`);
       const mData = await mResp.json();
       const names = (mData.models || []).map(m => m.name.replace('models/', '')).filter(n => n.includes('image') || n.includes('imagen') || n.includes('banana') || n.includes('flash'));
-      return res.status(200).json({ ok: true, availableModels: names });
+      const testModel = req.query.model || 'gemini-2.5-flash-image';
+      const tResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${encodeURIComponent(geminiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: 'Draw a black and white manga sketch of a warrior' }] }],
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+        })
+      });
+      const tText = await tResp.text();
+      return res.status(200).json({ ok: true, availableModels: names, testStatus: tResp.status, testBody: tText.slice(0, 500) });
     }
     return res.status(200).json({
       ok: true,
