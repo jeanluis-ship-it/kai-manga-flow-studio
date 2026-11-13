@@ -325,30 +325,46 @@
           </div>
 
           <div id="page-rendered-grid" class="hidden flex-1 grid grid-rows-12 gap-2 p-3 bg-white">
-            <div class="row-span-4 border-[2px] border-black relative overflow-hidden bg-zinc-100">
+            <div id="panel-box-1" class="group row-span-4 border-[2px] border-black relative overflow-hidden bg-zinc-100">
               <img id="p-img-1" class="w-full h-full object-cover manga-bw-filter" alt="Panel 1" />
-              <div id="p-dlg-1" contenteditable="true" class="absolute top-2 left-2 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-bold max-w-[78%] shadow-[2px_2px_0px_#000]">
+              <button onclick="regenerateSinglePanel(1)" title="Regenerar solo Viñeta 1 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
+                <span class="material-symbols-outlined text-[12px]">refresh</span>
+                <span>Re-Ink P1</span>
+              </button>
+              <div id="p-dlg-1" data-panel="1" contenteditable="true" oninput="saveBubbleText(1, this.innerText)" class="draggable-bubble absolute top-2 left-2 z-10 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-bold max-w-[78%] shadow-[2px_2px_0px_#000] cursor-move">
                 ...
               </div>
             </div>
             <div class="row-span-4 grid grid-cols-2 gap-2">
-              <div class="border-[2px] border-black relative overflow-hidden bg-zinc-900">
+              <div id="panel-box-2" class="group border-[2px] border-black relative overflow-hidden bg-zinc-900">
                 <img id="p-img-2" class="w-full h-full object-cover manga-bw-filter" alt="Panel 2" />
-                <div id="p-dlg-2" contenteditable="true" class="absolute bottom-1.5 left-1.5 right-1.5 bg-white border-[1.5px] border-black px-2 py-0.5 text-[9.5px] font-bold">
+                <button onclick="regenerateSinglePanel(2)" title="Regenerar solo Viñeta 2 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
+                  <span class="material-symbols-outlined text-[12px]">refresh</span>
+                  <span>Re-Ink P2</span>
+                </button>
+                <div id="p-dlg-2" data-panel="2" contenteditable="true" oninput="saveBubbleText(2, this.innerText)" class="draggable-bubble absolute bottom-1.5 left-1.5 z-10 bg-white border-[1.5px] border-black px-2 py-0.5 text-[9.5px] font-bold max-w-[88%] cursor-move">
                   ...
                 </div>
               </div>
-              <div class="border-[2px] border-black relative overflow-hidden bg-zinc-100">
+              <div id="panel-box-3" class="group border-[2px] border-black relative overflow-hidden bg-zinc-100">
                 <img id="p-img-3" class="w-full h-full object-cover manga-bw-filter" alt="Panel 3" />
-                <div id="p-dlg-3" contenteditable="true" class="absolute bottom-2 left-2 right-2 bg-white border-[1.5px] border-black rounded-full px-2.5 py-1 text-[9.5px] font-bold text-center">
+                <button onclick="regenerateSinglePanel(3)" title="Regenerar solo Viñeta 3 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
+                  <span class="material-symbols-outlined text-[12px]">refresh</span>
+                  <span>Re-Ink P3</span>
+                </button>
+                <div id="p-dlg-3" data-panel="3" contenteditable="true" oninput="saveBubbleText(3, this.innerText)" class="draggable-bubble absolute bottom-2 left-2 z-10 bg-white border-[1.5px] border-black rounded-full px-2.5 py-1 text-[9.5px] font-bold text-center max-w-[88%] cursor-move">
                   ...
                 </div>
               </div>
             </div>
-            <div class="row-span-4 border-[2.5px] border-black relative overflow-hidden bg-zinc-100 flex items-end justify-between p-2">
+            <div id="panel-box-4" class="group row-span-4 border-[2.5px] border-black relative overflow-hidden bg-zinc-100 flex items-end justify-between p-2">
               <img id="p-img-4" class="absolute inset-0 w-full h-full object-cover manga-bw-filter" alt="Panel 4" />
-              <span class="relative z-10 bg-black text-white font-extrabold text-sm px-2 py-0.5 -rotate-6">¡DOOOM!</span>
-              <div id="p-dlg-4" contenteditable="true" class="relative z-10 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-extrabold max-w-[68%] shadow-[2px_2px_0px_#000]">
+              <button onclick="regenerateSinglePanel(4)" title="Regenerar solo Viñeta 4 (1 crédito)" class="no-print opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 z-20 px-2 py-0.5 rounded bg-black/85 text-[#00e699] border border-[#00e699]/50 text-[9px] font-mono font-bold flex items-center gap-1 transition hover:bg-black">
+                <span class="material-symbols-outlined text-[12px]">refresh</span>
+                <span>Re-Ink P4</span>
+              </button>
+              <span contenteditable="true" class="relative z-10 bg-black text-white font-extrabold text-sm px-2 py-0.5 -rotate-6 cursor-text">¡DOOOM!</span>
+              <div id="p-dlg-4" data-panel="4" contenteditable="true" oninput="saveBubbleText(4, this.innerText)" class="draggable-bubble relative z-10 bg-white border-[1.5px] border-black px-2.5 py-1 text-[10px] font-extrabold max-w-[68%] shadow-[2px_2px_0px_#000] cursor-move">
                 ...
               </div>
             </div>
@@ -1111,24 +1127,126 @@
         for (let i = 1; i <= 4; i++) {
           const imgEl = document.getElementById('p-img-' + i);
           const dlgEl = document.getElementById('p-dlg-' + i);
+          const panelSeed = (page.panelSeeds && page.panelSeeds[i - 1]) ? page.panelSeeds[i - 1] : (page.seed + i * 19);
           if (imgEl) {
             const panelRes = await window.KAIMangaImageRouter.generateImage({
               prompt: `${shots[i - 1]}. ${page.prompt}`,
               styleName: page.artStyle,
               layoutId: page.layoutId,
               castCharacters: activeChars,
-              seed: page.seed + i * 19,
+              seed: panelSeed,
               width: i === 1 || i === 4 ? 768 : 512,
               height: i === 1 || i === 4 ? 384 : 512
             });
             imgEl.src = panelRes.url;
             document.getElementById('page-provider-used').textContent = panelRes.providerUsed;
           }
-          if (dlgEl && page.dialogues && page.dialogues[i - 1]) {
-            dlgEl.textContent = page.dialogues[i - 1];
+          if (dlgEl) {
+            if (page.dialogues && page.dialogues[i - 1]) {
+              dlgEl.textContent = page.dialogues[i - 1];
+            }
+            if (page.bubblePositions && page.bubblePositions[i - 1]) {
+              dlgEl.style.left = page.bubblePositions[i - 1].left;
+              dlgEl.style.top = page.bubblePositions[i - 1].top;
+              dlgEl.style.bottom = 'auto';
+              dlgEl.style.right = 'auto';
+            }
           }
         }
       }
+    }
+
+    async function regenerateSinglePanel(panelNumber) {
+      const page = project.pages[activePageIndex];
+      if (!page || !page.inked) return;
+      if (!page.panelSeeds) {
+        page.panelSeeds = [1, 2, 3, 4].map(i => page.seed + i * 19);
+      }
+      page.panelSeeds[panelNumber - 1] = Math.floor(Math.random() * 9000) + 100;
+      project.credits = Math.max(0, project.credits - 1);
+      persistProject();
+
+      const shots = [
+        'Panel 1 (Ki): wide establishing shot, atmospheric background',
+        'Panel 2 (Sho): medium action shot, dramatic shadows and tension',
+        'Panel 3 (Ten): extreme close-up on intense eyes, speedlines',
+        'Panel 4 (Ketsu): low-angle dynamic climax pose, impact frame'
+      ];
+      const activeChars = project.characters.filter(c => page.castIds.includes(c.id));
+      const imgEl = document.getElementById('p-img-' + panelNumber);
+      if (imgEl) {
+        imgEl.classList.add('animate-pulse-slow');
+        const panelRes = await window.KAIMangaImageRouter.generateImage({
+          prompt: `${shots[panelNumber - 1]}. ${page.prompt}`,
+          styleName: page.artStyle,
+          layoutId: page.layoutId,
+          castCharacters: activeChars,
+          seed: page.panelSeeds[panelNumber - 1],
+          width: panelNumber === 1 || panelNumber === 4 ? 768 : 512,
+          height: panelNumber === 1 || panelNumber === 4 ? 384 : 512
+        });
+        imgEl.src = panelRes.url;
+        imgEl.classList.remove('animate-pulse-slow');
+      }
+    }
+
+    function saveBubbleText(panelNumber, text) {
+      const page = project.pages[activePageIndex];
+      if (!page) return;
+      if (!page.dialogues) page.dialogues = ['', '', '', ''];
+      page.dialogues[panelNumber - 1] = text.trim();
+      persistProject();
+    }
+
+    function initDraggableBubbles() {
+      let draggingBubble = null;
+      let startX = 0;
+      let startY = 0;
+      let origLeft = 0;
+      let origTop = 0;
+
+      document.querySelectorAll('.draggable-bubble').forEach(bubble => {
+        bubble.addEventListener('mousedown', (e) => {
+          if (e.detail === 2) return; // Double-click edits text smoothly
+          draggingBubble = bubble;
+          const parentRect = bubble.parentElement.getBoundingClientRect();
+          const rect = bubble.getBoundingClientRect();
+          startX = e.clientX;
+          startY = e.clientY;
+          origLeft = rect.left - parentRect.left;
+          origTop = rect.top - parentRect.top;
+          bubble.style.position = 'absolute';
+          bubble.style.bottom = 'auto';
+          bubble.style.right = 'auto';
+        });
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!draggingBubble) return;
+        const parent = draggingBubble.parentElement;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        const newLeft = Math.max(4, Math.min(parent.clientWidth - draggingBubble.offsetWidth - 4, origLeft + dx));
+        const newTop = Math.max(4, Math.min(parent.clientHeight - draggingBubble.offsetHeight - 4, origTop + dy));
+        draggingBubble.style.left = `${newLeft}px`;
+        draggingBubble.style.top = `${newTop}px`;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (!draggingBubble) return;
+        const panelNum = parseInt(draggingBubble.getAttribute('data-panel') || '1', 10);
+        const page = project.pages[activePageIndex];
+        if (page) {
+          if (!page.bubblePositions) page.bubblePositions = [null, null, null, null];
+          page.bubblePositions[panelNum - 1] = {
+            left: draggingBubble.style.left,
+            top: draggingBubble.style.top
+          };
+          persistProject();
+        }
+        draggingBubble = null;
+      });
     }
 
     function toggleCastOnPage(charId) {
@@ -1322,6 +1440,7 @@
       syncInputsFromProject();
       updateEngineBadge();
       updateProjectState();
+      initDraggableBubbles();
       setView('project');
     });
   </script>
