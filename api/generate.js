@@ -19,6 +19,12 @@ module.exports = async function handler(req, res) {
 
   // Healthcheck GET /api/generate para verificar qué llaves están activas en Vercel (sin exponer su valor)
   if (req.method === 'GET') {
+    if (req.query && req.query.check === 'models' && geminiKey) {
+      const mResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(geminiKey)}`);
+      const mData = await mResp.json();
+      const names = (mData.models || []).map(m => m.name.replace('models/', '')).filter(n => n.includes('image') || n.includes('imagen') || n.includes('banana') || n.includes('flash'));
+      return res.status(200).json({ ok: true, availableModels: names });
+    }
     return res.status(200).json({
       ok: true,
       service: 'KAI Flow Studio Serverless AI Proxy v4.3',
