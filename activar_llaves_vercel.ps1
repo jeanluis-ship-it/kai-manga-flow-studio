@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # KAI FLOW STUDIO — Asistente Seguro para Activar Llaves en Vercel (.env.local)
 # Este script guarda tus claves localmente en .env.local (protegido por .gitignore)
 # sin exponerlas en el historial del chat y abre el importador de Vercel.
