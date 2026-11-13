@@ -41,6 +41,11 @@ window.KAIMangaImageRouter = {
       badge: 'KAI Auto Pipeline'
     },
     {
+      id: 'openai_gpt_image',
+      label: '✨ OpenAI Images · Generar / Editar con referencias (privado)',
+      badge: 'OpenAI Images'
+    },
+    {
       id: 'gemini_flash_image',
       label: '🍌 Nano Banana 2 HD (Gemini Flash Image · Pro/Master)',
       badge: 'Nano Banana 2 HD'
@@ -602,9 +607,29 @@ window.KAIMangaImageRouter = {
           });
         }
 
-        const srvResp = await fetch('/api/generate', {
+        if (chosenEngine === 'openai_gpt_image') {
+          for (const character of castList.slice(0, 2)) {
+            const portrait = character.turnaround_sheet_url || character.portraitUrl || character.referenceImage || '';
+            if (typeof portrait === 'string' && /^data:image\/(png|jpeg|webp);base64,/.test(portrait)) {
+              castReferences.push({ name: character.name || 'personaje', dataUrl: portrait });
+            }
+          }
+        }
+        const openaiStudioCode = chosenEngine === 'openai_gpt_image'
+          ? (sessionStorage.getItem('mangai_studio_access') || window.prompt('Código privado MANGAI Studio (configurado en Vercel):') || '')
+          : '';
+        if (chosenEngine === 'openai_gpt_image' && openaiStudioCode) {
+          sessionStorage.setItem('mangai_studio_access', openaiStudioCode);
+        }
+        if (chosenEngine === 'openai_gpt_image' && !openaiStudioCode) {
+          throw new Error('Necesitas el código privado del Studio para OpenAI Images.');
+        }
+        const srvResp = await fetch(chosenEngine === 'openai_gpt_image' ? '/api/openai-image' : '/api/generate', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(chosenEngine === 'openai_gpt_image' ? { 'X-MANGAI-STUDIO-KEY': openaiStudioCode } : {})
+          },
           body: JSON.stringify({
             action: 'image',
             engine: chosenEngine,
@@ -621,6 +646,11 @@ window.KAIMangaImageRouter = {
           })
         });
 
+        if (!srvResp.ok && chosenEngine === 'openai_gpt_image') {
+          const errorResult = await srvResp.json().catch(() => ({}));
+          if (srvResp.status === 401) sessionStorage.removeItem('mangai_studio_access');
+          throw new Error(errorResult.error || 'No se pudo generar con OpenAI Images.');
+        }
         if (srvResp.ok) {
           const srvData = await srvResp.json();
           if (srvData && srvData.ok && srvData.url) {
@@ -644,7 +674,17 @@ window.KAIMangaImageRouter = {
           }
         }
       } catch (err) {
-        console.warn('[KAIMangaImageRouter] Error calling /api/generate:', err);
+        console.warn('[KAIMangaImageRouter] Error calling image API:', err);
+        if (chosenEngine === 'openai_gpt_image') {
+          return {
+            url: '',
+            error: err.message || 'Fallo de OpenAI Images',
+            provider: 'OpenAI Images · Error',
+            providerUsed: 'OpenAI Images · Error',
+            consistencyReport,
+            canvasState
+          };
+        }
       }
     }
 
