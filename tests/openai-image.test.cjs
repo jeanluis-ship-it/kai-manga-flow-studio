@@ -24,6 +24,17 @@ test('new landing and Creator inline JavaScript syntax is valid', () => {
   }
 });
 
+test('health reports readiness without exposing keys or making provider calls', async () => {
+  process.env.OPENAI_API_KEY='fake-openai-key';
+  process.env.MANGAI_STUDIO_ACCESS_TOKEN='development-secret-long';
+  const res=response();
+  await imageHandler({method:'GET',headers:{}},res);
+  assert.equal(res.statusCode,200);
+  assert.equal(res.body.configured,true);
+  assert.ok(!JSON.stringify(res.body).includes('fake-openai-key'));
+  assert.ok(!JSON.stringify(res.body).includes('development-secret-long'));
+});
+
 test('server refuses when credentials missing', async () => {
   delete process.env.OPENAI_API_KEY;
   delete process.env.MANGAI_STUDIO_ACCESS_TOKEN;
