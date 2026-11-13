@@ -20,7 +20,7 @@ function normalizeReference(ref) {
     typeof ref.base64 === 'string' ? 'data:' + (ref.mimeType || 'image/png') + ';base64,' + ref.base64 : '';
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/i.exec(input);
   if (!match || match[2].length > MAX_IMAGE_B64) return null;
-  return { image_url: 'data:' + match[1].toLowerCase() + ';base64,' + match[2] };
+  return { mimeType: match[1].toLowerCase(), data: Buffer.from(match[2], 'base64') };
 }
 
 module.exports = async function handler(req, res) {
@@ -61,11 +61,23 @@ module.exports = async function handler(req, res) {
     const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare';
     const payload = { model, prompt, size, quality, n: 1, output_format: 'webp', output_compression: 85 };
     const edit = references.length > 0;
-    if (edit) payload.images = references;
+    let requestBody, requestHeaders = { Authorization: 'Bearer ' + key };
+    if (edit) {
+      const form = new FormData();
+      for (const [field, value] of Object.entries(payload)) form.append(field, String(value));
+      references.forEach((ref, index) => {
+        const ext = ref.mimeType === 'image/jpeg' ? 'jpg' : ref.mimeType.split('/')[1];
+        form.append('image[]', new Blob([ref.data], { type: ref.mimeType }), 'reference-' + index + '.' + ext);
+      });
+      requestBody = form;
+    } else {
+      requestHeaders['Content-Type'] = 'application/json';
+      requestBody = JSON.stringify(payload);
+    }
     const response = await fetch('https://api.openai.com/v1/images/' + (edit ? 'edits' : 'generations'), {
       method: 'POST',
-      headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: requestHeaders,
+      body: requestBody,
       signal: AbortSignal.timeout(110000)
     });
     const result = await response.json().catch(() => ({}));
