@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI, { toFile } from 'openai';
 import { timingSafeEqual } from 'node:crypto';
-import { IMAGE_MODES } from '@/lib/prompts';
+import { CLOUDFLARE_IMAGE_MODEL, IMAGE_MODES } from '@/lib/prompts';
+import { cloudflareImageConfig, generateCloudflareImage } from '@/lib/cloudflare-images';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -433,6 +434,7 @@ export async function POST(req: NextRequest) {
       isLocalHost &&
       !alreadyForwarded &&
       preferredModel !== 'flux-schnell-hf' &&
+      preferredModel !== CLOUDFLARE_IMAGE_MODEL &&
       !customApiKey &&
       !process.env.OPENAI_API_KEY &&
       !process.env.GEMINI_API_KEY &&
@@ -509,6 +511,35 @@ export async function POST(req: NextRequest) {
         refs.push(item);
       }
     }
+    if (preferredModel === CLOUDFLARE_IMAGE_MODEL) {
+      const config = cloudflareImageConfig();
+      if (!config) {
+        return NextResponse.json({ error: 'Configura Cloudflare Workers AI en el servidor para activar FLUX.2 Klein.' }, { status: 503 });
+      }
+
+      try {
+        const result = await generateCloudflareImage(config, prompt, aspectRatio, refs);
+        if (result.image) {
+          return NextResponse.json({
+            image: result.image,
+            mode: modeData.id,
+            model: 'FLUX.2 Klein 4B (Cloudflare)',
+            providerStatus: 'official-ai',
+          });
+        }
+        const message =
+          result.status === 429 ? 'Cloudflare alcanzó un límite de solicitudes o de cuota. Prueba más tarde.'
+          : result.status === 401 || result.status === 403 ? 'Cloudflare rechazó el token. Revisa el permiso Workers AI y la cuenta.'
+          : 'Cloudflare no pudo generar una imagen para esta solicitud.';
+        return NextResponse.json({
+          error: message,
+          diagnosticReason: `Cloudflare HTTP ${result.status}`,
+        }, { status: result.status === 429 ? 429 : 502 });
+      } catch {
+        return NextResponse.json({ error: 'No se recibió una imagen de Cloudflare. Intenta nuevamente.' }, { status: 502 });
+      }
+    }
+
     const primaryRef = refs[0] ?? null;
 
     let compactPrompt = buildCompactPrompt({

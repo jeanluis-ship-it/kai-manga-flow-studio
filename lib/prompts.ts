@@ -1,8 +1,15 @@
+export const CLOUDFLARE_IMAGE_MODEL = 'flux-2-klein-4b-cloudflare';
+
 export const AI_MODELS = [
   {
     id: 'flux-schnell-hf',
     label: '⚡ FLUX.1 Schnell (Space compartido · puede estar ocupado)',
     provider: 'huggingface',
+  },
+  {
+    id: CLOUDFLARE_IMAGE_MODEL,
+    label: 'FLUX.2 Klein 4B (Cloudflare · cuota de prueba y referencias)',
+    provider: 'cloudflare',
   },
   {
     id: 'gemini-3-pro-image',

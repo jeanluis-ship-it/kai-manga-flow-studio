@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { cloudflareImageConfig } from '@/lib/cloudflare-images';
+import { CLOUDFLARE_IMAGE_MODEL } from '@/lib/prompts';
+
 export const runtime = 'nodejs';
 export const maxDuration = 45;
 
@@ -24,16 +27,18 @@ export interface HealthDiagnosticsResponse {
 export async function GET() {
   const openaiConfigured = Boolean(process.env.OPENAI_API_KEY);
   const geminiConfigured = Boolean(process.env.GEMINI_API_KEY);
+  const cloudflareConfigured = Boolean(cloudflareImageConfig());
   const hfConfigured = Boolean(process.env.HF_API_TOKEN);
   const tokenEnforced = process.env.ENFORCE_STUDIO_TOKEN === 'true' && Boolean(process.env.STUDIO_ACCESS_TOKEN);
 
   return NextResponse.json({
     ok: true,
     service: 'mangai-studio',
-    imageApiConfigured: geminiConfigured || openaiConfigured || hfConfigured || Boolean(process.env.POLLINATIONS_API_KEY),
+    imageApiConfigured: cloudflareConfigured || geminiConfigured || openaiConfigured || hfConfigured || Boolean(process.env.POLLINATIONS_API_KEY),
     requiresAccessToken: tokenEnforced,
     providers: {
       gemini: geminiConfigured,
+      cloudflare: cloudflareConfigured,
       openai: openaiConfigured,
       huggingface: hfConfigured,
       builtInMangaEngine: false, // SVG mockups are not AI-generated images
@@ -249,6 +254,23 @@ export async function POST(req: NextRequest) {
   const preferredModel = String(body.preferredModel ?? '').trim().slice(0, 80);
 
   const isLocalHost = req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
+  if (preferredModel === CLOUDFLARE_IMAGE_MODEL) {
+    const configured = Boolean(cloudflareImageConfig());
+    const unchecked = { configured: false, ok: false, detail: 'Sin comprobar para el modelo seleccionado.' };
+    return NextResponse.json({
+      ok: false,
+      source: isLocalHost ? 'local' : 'vercel',
+      summary: configured ? 'Cloudflare Workers AI está configurado.' : 'Cloudflare Workers AI requiere configuración.',
+      recommendation: configured
+        ? 'Genera una imagen para confirmar el acceso y la cuota.'
+        : 'Configura CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_WORKERS_AI_TOKEN en el servidor.',
+      geminiTextStatus: unchecked,
+      geminiImageStatus: unchecked,
+      hfStatus: unchecked,
+      openaiStatus: unchecked,
+    } satisfies HealthDiagnosticsResponse);
+  }
+
   const alreadyForwarded = req.headers.get('x-mangai-forwarded') === '1';
 
   // Forward to Vercel if running locally with zero local env keys and no user-supplied key
