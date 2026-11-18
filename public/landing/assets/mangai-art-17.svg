@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
+ <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
+ <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
+ <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
+ </defs><rect width="640" height="900" fill="#eae6df"/>
+  <circle cx="359" cy="396" r="228" fill="#2c2830"/>
+  <path d="M60 510 Q177 229 355 231 Q491 247 534 510 Q497 624 370 641 Q215 609 60 510Z" fill="#fffdf5"/>
+  <path d="M146 486 Q190 288 341 286 Q460 291 478 487 L432 622 251 621Z" fill="#1a1921"/>
+  <path d="M255 412 Q326 384 381 420 L421 453 Q377 496 332 473 L284 479Z" fill="#f1e3d8"/>
+  <path d="M285 420 L309 424 M366 432 L391 428" stroke="#101014" stroke-width="10"/>
+  <path d="M0 667 Q184 610 298 663 T640 649 V900 H0Z" fill="#e25253"/>
+  <path d="M0 693 Q241 649 640 694" stroke="#12131c" stroke-width="9" fill="none"/><path d="M 291 194 l 42 93" stroke="#15141b" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#15141b" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#15141b" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#15141b" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#15141b" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#15141b" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#15141b" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#15141b" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#15141b" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#15141b" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#15141b" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#15141b" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#15141b" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#15141b" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
+ <text x="42" y="119" fill="#15141b" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">LOS SILENCIOS TAMBIÉN GRITAN</text>
+ <text x="39" y="794" fill="#15141b" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">KURO</text>
+ <path d="M43 818 H597" stroke="#15141b" stroke-width="2"/>
+ <text x="45" y="848" fill="#15141b" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">El peso del silencio</text>
+ <text x="548" y="848" fill="#15141b" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
+ <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
+ <rect x="5" y="5" width="630" height="890" fill="none" stroke="#15141b" stroke-width="3" opacity=".36"/>
+ </svg>

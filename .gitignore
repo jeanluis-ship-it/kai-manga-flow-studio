@@ -1,16 +1,21 @@
 # Secrets & Environment Variables (NEVER COMMIT)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+.env*
+!.env.example
 *.key
 *.pem
 
-# Vercel & Node
-.vercel
+# Next.js / Vercel / Node
 node_modules/
+.next/
+out/
+build/
+.vercel/
 npm-debug.log*
+*.tsbuildinfo
+coverage/
+
+# OS & Local Artifacts
 .DS_Store
 Thumbs.db
+*.pdf
+gemini-code-*.sql

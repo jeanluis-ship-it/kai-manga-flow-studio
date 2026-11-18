@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
+ <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
+ <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
+ <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
+ </defs><rect width="640" height="900" fill="#161923"/><circle cx="348" cy="417" r="270" fill="#b6a7fd"/>
+  <circle cx="348" cy="417" r="240" fill="none" stroke="#fff9e9" stroke-width="3"/><circle cx="348" cy="417" r="198" fill="none" stroke="#fff9e9" stroke-width="2"/>
+  <path d="M65 386 Q218 218 386 324 T647 376 M59 500 Q272 389 414 498 T653 516 M100 559 Q286 608 580 533" fill="none" stroke="#27213d" stroke-width="8"/>
+  <path d="M154 627 L277 543 338 599 423 509 525 619 V800 H154Z" fill="#302942"/>
+  <path d="M303 563 Q282 599 286 635 L264 740 367 740 347 629 Q354 584 332 556Z" fill="#10141e"/><circle cx="318" cy="523" r="49" fill="#111522"/>
+  <path d="M0 730 L92 702 180 745 320 695 470 752 640 690 V900 H0Z" fill="#11131d"/>
+  <path d="M318 231 L318 681 M91 426 L550 426" stroke="#f7f1e3" stroke-width="2" opacity=".4"/><path d="M 291 194 l 42 93" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#f4f0e7" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
+ <text x="42" y="119" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">LOS MAPAS CAMBIAN AL ANOCHECER</text>
+ <text x="39" y="794" fill="#f4f0e7" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">ATLAS</text>
+ <path d="M43 818 H597" stroke="#f4f0e7" stroke-width="2"/>
+ <text x="45" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">Los mapas del olvido</text>
+ <text x="548" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
+ <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
+ <rect x="5" y="5" width="630" height="890" fill="none" stroke="#f4f0e7" stroke-width="3" opacity=".36"/>
+ </svg>

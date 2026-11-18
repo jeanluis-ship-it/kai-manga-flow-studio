@@ -1,4 +1,3 @@
-[MANGAI_README.md](https://github.com/user-attachments/files/34818391/MANGAI_README.md)
 # MANGAI Studio · Web Experience + Creator Studio
 
 **Versión 0.4 — noviembre 2026.** Repositorio inicial preparado para **GitHub → Vercel → Google Antigravity**.

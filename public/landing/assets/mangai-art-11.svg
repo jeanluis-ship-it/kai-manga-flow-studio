@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
+ <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
+ <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
+ <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
+ </defs><rect width="640" height="900" fill="#eee6d5"/><circle cx="363" cy="400" r="256" fill="#d85349"/>
+  <circle cx="363" cy="400" r="222" stroke="#2e2531" fill="none" stroke-width="2" opacity=".6"/>
+  <path d="M83 688 Q116 540 165 483 Q187 350 307 304 Q405 261 457 352 Q480 395 459 479 Q438 536 512 688Z" fill="#191921"/>
+  <path d="M324 306 Q279 333 270 405 Q263 465 219 489 Q297 487 319 465 Q374 457 394 400 L414 341Z" fill="#e6b69b"/>
+  <path d="M288 368 Q358 357 400 401 L433 452 Q385 466 332 448 L308 431Z" fill="#201e24"/>
+  <path d="M284 421 Q335 439 371 417" stroke="#191921" stroke-width="6" fill="none"/>
+  <path d="M189 630 Q288 562 420 626" stroke="#e9bd78" stroke-width="28" fill="none"/><path d="M178 649 Q296 580 435 654" stroke="#e5a86d" stroke-width="7" fill="none"/>
+  <path d="M126 255 C195 187 219 199 281 227 M393 203 C472 244 501 283 521 353" stroke="#f9deb4" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <circle cx="419" cy="498" r="18" fill="#ddb680"/><path d="M414 501 l-45 57" stroke="#ddb680" stroke-width="7"/>
+  <path d="M0 684 Q177 652 349 731 Q456 692 640 681 V900 H0Z" fill="#1c1b22"/><path d="M 291 194 l 42 93" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#f6ecdf" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#f6ecdf" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#f6ecdf" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#f6ecdf" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
+ <text x="42" y="119" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">UNA LEYENDA NACE EN EL CARIBE</text>
+ <text x="39" y="794" fill="#f6ecdf" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">ANACAONA</text>
+ <path d="M43 818 H597" stroke="#f6ecdf" stroke-width="2"/>
+ <text x="45" y="848" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">Flor de guerra</text>
+ <text x="548" y="848" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
+ <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
+ <rect x="5" y="5" width="630" height="890" fill="none" stroke="#f6ecdf" stroke-width="3" opacity=".36"/>
+ </svg>
