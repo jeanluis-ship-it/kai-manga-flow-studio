@@ -93,9 +93,10 @@ export default function StudioPage() {
   const [reference, setReference] = useState<File | null>(null);
   const [useGeneratedAsReference, setUseGeneratedAsReference] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedModel, setGeneratedModel] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [accessToken, setAccessToken] = useState('');
+  const [trialCredits, setTrialCredits] = useState(5);
   const [importError, setImportError] = useState('');
 
   useEffect(() => {
@@ -106,7 +107,13 @@ export default function StudioPage() {
       setSelectedId(p.characters[0]?.id ?? '');
       setTab('settei');
     }
-    setAccessToken(window.sessionStorage.getItem('mangai-studio-access') ?? '');
+    const savedCredits = window.localStorage.getItem('mangai-trial-credits-v1');
+    if (savedCredits !== null) {
+      const parsed = Number(savedCredits);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        setTrialCredits(parsed);
+      }
+    }
     setHydrated(true);
   }, []);
 
@@ -220,9 +227,11 @@ export default function StudioPage() {
     setMenuOpen(false);
   }
 
-  function setToken(v: string) {
-    setAccessToken(v);
-    window.sessionStorage.setItem('mangai-studio-access', v);
+  function rechargeTrialCredits() {
+    setTrialCredits(5);
+    window.localStorage.setItem('mangai-trial-credits-v1', '5');
+    setError('');
+    setToast('🎨 Créditos recargados: tienes 5 pruebas disponibles.');
   }
 
   async function importJSON(evt: ChangeEvent<HTMLInputElement>) {
@@ -257,6 +266,10 @@ export default function StudioPage() {
 
   async function generateImage() {
     if (!selected || isGenerating) return;
+    if (trialCredits <= 0) {
+      setError('Agotaste tus 5 créditos de prueba. Pulsa "+ Recargar 5 créditos gratis" para seguir probando.');
+      return;
+    }
     setError('');
     setIsGenerating(true);
     try {
@@ -280,11 +293,16 @@ export default function StudioPage() {
       const res = await fetch('/api/images/generate', {
         method: 'POST',
         body: fd,
-        headers: { 'x-mangai-access': accessToken },
       });
       const data = (await res.json()) as { image?: string; error?: string; model?: string };
       if (!res.ok || !data.image) throw Error(data.error ?? `Error ${res.status}`);
       setGeneratedImage(data.image);
+      setGeneratedModel(data.model ?? '');
+      setTrialCredits((old) => {
+        const next = Math.max(0, old - 1);
+        window.localStorage.setItem('mangai-trial-credits-v1', String(next));
+        return next;
+      });
       setToast(
         data.model
           ? `Imagen generada (${data.model}). Descárgala o úsala como referencia.`
@@ -786,16 +804,19 @@ export default function StudioPage() {
                 )}
                 <div className="access-box">
                   <div className="access-title">
-                    <Lock size={15} /> Acceso al motor visual
+                    <Sparkles size={15} /> 🎨 Créditos de Prueba: <strong>{trialCredits} / 5 disponibles</strong>
                   </div>
-                  <input
-                    type="password"
-                    autoComplete="off"
-                    placeholder="Introduce tu código de Studio"
-                    value={accessToken}
-                    onChange={(e) => setToken(e.target.value)}
-                  />
-                  <small>Las claves de API permanecen en el servidor. Este código privado autoriza la prueba del prototipo.</small>
+                  <small style={{ display: 'block', marginBottom: 10 }}>
+                    Genera ilustraciones en 1 clic sin configurar claves técnicas ni contraseñas.
+                  </small>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={rechargeTrialCredits}
+                    style={{ width: '100%' }}
+                  >
+                    + Recargar 5 créditos gratis
+                  </button>
                 </div>
                 {error && (
                   <div className="error" role="alert">
@@ -805,7 +826,7 @@ export default function StudioPage() {
                 <button
                   className="primary wide"
                   onClick={generateImage}
-                  disabled={isGenerating || !selected || !accessToken || !selected.appearance.trim()}
+                  disabled={isGenerating || !selected || !selected.appearance.trim() || trialCredits <= 0}
                 >
                   {isGenerating ? (
                     <>
@@ -817,12 +838,12 @@ export default function StudioPage() {
                     </>
                   )}
                 </button>
-                <p className="microcopy">Revisa calidad y derechos antes de publicar cada ilustración generada.</p>
+                <p className="microcopy">Motor en nube listo. Revisa la ilustración antes de enviarla a tu página.</p>
               </div>
               <div className="image-result">
                 <div className="preview-head">
                   <strong>Vista previa</strong>
-                  <span>768×1152 / 1024×1536 px</span>
+                  <span>{generatedModel ? `Motor: ${generatedModel}` : '768×1152 / 1024×1536 px'}</span>
                 </div>
                 <div className="image-canvas">
                   {generatedImage ? (

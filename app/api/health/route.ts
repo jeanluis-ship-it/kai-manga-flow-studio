@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const studioTokenConfigured = Boolean(process.env.STUDIO_ACCESS_TOKEN);
   const openaiConfigured = Boolean(process.env.OPENAI_API_KEY);
   const geminiConfigured = Boolean(process.env.GEMINI_API_KEY);
+  const tokenEnforced = process.env.ENFORCE_STUDIO_TOKEN === 'true' && Boolean(process.env.STUDIO_ACCESS_TOKEN);
 
   return NextResponse.json({
     ok: true,
     service: 'mangai-studio',
-    imageApiConfigured: Boolean(studioTokenConfigured && (openaiConfigured || geminiConfigured)),
-    studioTokenConfigured,
+    imageApiConfigured: true,
+    requiresAccessToken: tokenEnforced,
     providers: {
-      openai: openaiConfigured,
       gemini: geminiConfigured,
-      fluxServerProxy: studioTokenConfigured,
+      openai: openaiConfigured,
+      builtInMangaEngine: true,
     },
   });
 }

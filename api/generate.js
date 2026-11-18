@@ -83,7 +83,7 @@ module.exports = async function handler(req, res) {
       if (activeGeminiKey) {
         try {
           const pingResp = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -106,7 +106,7 @@ module.exports = async function handler(req, res) {
 
     if (activeGeminiKey && prompt.length > 5) {
       try {
-        const compilerModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+        const compilerModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
         for (const cModel of compilerModels) {
           const compilerResp = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${cModel}:generateContent?key=${encodeURIComponent(activeGeminiKey)}`,
@@ -160,9 +160,9 @@ module.exports = async function handler(req, res) {
       }
 
       const flashImgModels = [
-        'gemini-2.0-flash-exp-image-generation',
-        'gemini-2.0-flash-preview-image-generation',
-        'gemini-2.5-flash-image'
+        'gemini-nano-banana-2.1',
+        'gemini-3.1-flash-lite-image',
+        'gemini-3-pro-image'
       ];
 
       for (const modelId of flashImgModels) {
@@ -174,7 +174,10 @@ module.exports = async function handler(req, res) {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 contents: [{ role: 'user', parts }],
-                generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+                generationConfig: {
+                  responseModalities: ['TEXT', 'IMAGE'],
+                  imageConfig: { aspectRatio: '3:4', imageSize: '1K' }
+                }
               })
             }
           );
