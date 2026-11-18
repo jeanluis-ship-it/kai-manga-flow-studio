@@ -212,34 +212,10 @@ async function generateWithGemini(opts: {
     return null;
   };
 
-  // Prioritize discovered models + user's preferred model (at most 2 generateContent attempts to stay well below Vercel timeout)
-  const preferredClean = opts.preferredModel && !opts.preferredModel.startsWith('gpt-') ? opts.preferredModel : '';
-  const liveCandidates = Array.from(
-    new Set([
-      ...(preferredClean && !preferredClean.startsWith('imagen-') ? [preferredClean] : []),
-      ...discoveredImageModels.filter((m) => !m.startsWith('imagen-')),
-      ...DEFAULT_GEMINI_IMAGE_MODELS.slice(0, 2),
-    ]),
-  ).slice(0, 2);
-
-  for (const modelId of liveCandidates) {
+  // Helper to invoke Imagen :predict endpoint
+  const tryImagenPredict = async (imagenModel: string) => {
     try {
-      const hit = await tryGenerateContentModel(modelId);
-      if (hit?.image) return { image: hit.image, model: hit.model };
-      if (hit?.stopLoop) break;
-    } catch {
-      diagnostics.push(`${modelId}:TIMEOUT`);
-    }
-  }
-
-  // Try 1 Imagen predict model if requested or discovered
-  const liveImagen =
-    (preferredClean.startsWith('imagen-') ? preferredClean : '') ||
-    discoveredImageModels.find((m) => m.startsWith('imagen-'));
-
-  if (liveImagen && !diagnostics.some((d) => d.includes('HTTP_429') || d.includes('HTTP_403'))) {
-    try {
-      const imagenResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${liveImagen}:predict`, {
+      const imagenResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${imagenModel}:predict`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -259,15 +235,52 @@ async function generateWithGemini(opts: {
         if (prediction?.bytesBase64Encoded) {
           return {
             image: `data:${prediction.mimeType || 'image/png'};base64,${prediction.bytesBase64Encoded}`,
-            model: liveImagen,
+            model: imagenModel,
           };
         }
       } else {
-        diagnostics.push(`${liveImagen}:HTTP_${imagenResp.status}`);
+        diagnostics.push(`${imagenModel}:HTTP_${imagenResp.status}`);
       }
     } catch {
-      diagnostics.push(`${liveImagen}:TIMEOUT`);
+      diagnostics.push(`${imagenModel}:TIMEOUT`);
     }
+    return null;
+  };
+
+  // Prioritize discovered models + user's preferred model (at most 2 generateContent attempts to stay well below Vercel timeout)
+  const preferredClean = opts.preferredModel && !opts.preferredModel.startsWith('gpt-') ? opts.preferredModel : '';
+  const liveImagen =
+    (preferredClean.startsWith('imagen-') ? preferredClean : '') ||
+    discoveredImageModels.find((m) => m.startsWith('imagen-'));
+
+  // If user explicitly chose an Imagen model, try it FIRST before generateContent models can hit 429
+  if (preferredClean.startsWith('imagen-') && liveImagen) {
+    const imagenHit = await tryImagenPredict(liveImagen);
+    if (imagenHit) return imagenHit;
+  }
+
+  const liveCandidates = Array.from(
+    new Set([
+      ...(preferredClean && !preferredClean.startsWith('imagen-') ? [preferredClean] : []),
+      ...discoveredImageModels.filter((m) => !m.startsWith('imagen-')),
+      ...DEFAULT_GEMINI_IMAGE_MODELS.slice(0, 2),
+    ]),
+  ).slice(0, 2);
+
+  for (const modelId of liveCandidates) {
+    try {
+      const hit = await tryGenerateContentModel(modelId);
+      if (hit?.image) return { image: hit.image, model: hit.model };
+      if (hit?.stopLoop) break;
+    } catch {
+      diagnostics.push(`${modelId}:TIMEOUT`);
+    }
+  }
+
+  // Otherwise try 1 Imagen predict model if discovered and not already aborted with 429/403
+  if (!preferredClean.startsWith('imagen-') && liveImagen && !diagnostics.some((d) => d.includes('HTTP_429') || d.includes('HTTP_403'))) {
+    const imagenHit = await tryImagenPredict(liveImagen);
+    if (imagenHit) return imagenHit;
   }
 
   // Compile prompt via first live text model for crisp fallback
@@ -310,6 +323,49 @@ async function generateWithGemini(opts: {
   return { compiledPrompt: null, diagnostics };
 }
 
+async function generateWithHuggingFace(opts: {
+  token: string;
+  prompt: string;
+  aspectRatio: string;
+}): Promise<{ image: string; model: string } | { diagnostic: string }> {
+  const dims = aspectToFluxDimensions(opts.aspectRatio);
+  try {
+    const resp = await fetch('https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${opts.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: opts.prompt,
+        parameters: {
+          width: dims.width,
+          height: dims.height,
+          num_inference_steps: 4,
+        },
+      }),
+      signal: AbortSignal.timeout(25_000),
+    });
+
+    if (resp.ok) {
+      const rawMime = (resp.headers.get('content-type') ?? 'image/jpeg').split(';')[0].trim();
+      const mime = rawMime.startsWith('image/') ? rawMime : 'image/jpeg';
+      const arr = await resp.arrayBuffer();
+      if (arr.byteLength > 2000) {
+        return {
+          image: `data:${mime};base64,${Buffer.from(arr).toString('base64')}`,
+          model: 'flux.1-schnell (HuggingFace HD)',
+        };
+      }
+      return { diagnostic: 'hf-flux-schnell:EMPTY_IMAGE' };
+    }
+
+    return { diagnostic: `hf-flux-schnell:HTTP_${resp.status}` };
+  } catch {
+    return { diagnostic: 'hf-flux-schnell:TIMEOUT' };
+  }
+}
+
 export async function POST(req: NextRequest) {
   const enforceToken = process.env.ENFORCE_STUDIO_TOKEN === 'true' && Boolean(process.env.STUDIO_ACCESS_TOKEN);
   if (enforceToken && process.env.STUDIO_ACCESS_TOKEN) {
@@ -326,11 +382,16 @@ export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();
 
-    // Localhost -> Vercel Bridge: if running locally without API keys in .env.local, reuse Vercel's live keys cleanly
+    const customApiKey = read(form, 'customApiKey', 260);
+    const activeGeminiKey = customApiKey.startsWith('AIza') ? customApiKey : process.env.GEMINI_API_KEY || '';
+    const activeOpenaiKey = customApiKey.startsWith('sk-') ? customApiKey : process.env.OPENAI_API_KEY || '';
+    const activeHfKey = customApiKey.startsWith('hf_') ? customApiKey : process.env.HF_API_TOKEN || '';
+
+    // Localhost -> Vercel Bridge: if running locally without env keys or custom key, reuse Vercel's live keys cleanly
     const isLocalHost =
       req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
     const alreadyForwarded = req.headers.get('x-mangai-forwarded') === '1';
-    if (isLocalHost && !alreadyForwarded && !process.env.OPENAI_API_KEY && !process.env.GEMINI_API_KEY) {
+    if (isLocalHost && !alreadyForwarded && !customApiKey && !process.env.OPENAI_API_KEY && !process.env.GEMINI_API_KEY && !process.env.HF_API_TOKEN) {
       try {
         const relayResp = await fetch('https://kai-manga-flow-studio.vercel.app/api/images/generate', {
           method: 'POST',
@@ -339,7 +400,14 @@ export async function POST(req: NextRequest) {
           signal: AbortSignal.timeout(45_000),
         });
         if (relayResp.ok) {
-          const relayData = (await relayResp.json()) as { image?: string; model?: string; mode?: string };
+          const relayData = (await relayResp.json()) as {
+            image?: string;
+            model?: string;
+            mode?: string;
+            providerStatus?: string;
+            diagnosticReason?: string;
+            note?: string;
+          };
           if (relayData?.image) {
             return NextResponse.json({
               ...relayData,
@@ -408,9 +476,9 @@ export async function POST(req: NextRequest) {
       canon,
     });
 
-    // Branch A: OpenAI Images API (when OPENAI_API_KEY is configured and chosen or default)
-    if (process.env.OPENAI_API_KEY && (!preferredModel || preferredModel.startsWith('gpt-') || !process.env.GEMINI_API_KEY)) {
-      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 110_000 });
+    // Branch A: OpenAI Images API (when OPENAI_API_KEY or sk-... key is configured and chosen or default)
+    if (activeOpenaiKey && (!preferredModel || preferredModel.startsWith('gpt-') || customApiKey.startsWith('sk-') || (!activeGeminiKey && !activeHfKey))) {
+      const client = new OpenAI({ apiKey: activeOpenaiKey, timeout: 110_000 });
       // Fast for new drafts; precise edits can use OPENAI_IMAGE_MODEL=gpt-image-2.5-sunburst.
       const model = (preferredModel.startsWith('gpt-') ? preferredModel : process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare';
       const size =
@@ -428,16 +496,36 @@ export async function POST(req: NextRequest) {
         : await client.images.generate(params);
       const b64 = result.data?.[0]?.b64_json;
       if (b64) {
-        return NextResponse.json({ image: `data:image/png;base64,${b64}`, mode: modeData.id, model });
+        return NextResponse.json({
+          image: `data:image/png;base64,${b64}`,
+          mode: modeData.id,
+          model,
+          providerStatus: 'official-ai',
+        });
       }
+    }
+
+    const diagnostics: string[] = [];
+
+    // Fast-path Branch B2 if user explicitly selected HuggingFace or pasted an hf_ token
+    if (activeHfKey && (preferredModel === 'flux-schnell-hf' || customApiKey.startsWith('hf_'))) {
+      const hfRes = await generateWithHuggingFace({ token: activeHfKey, prompt: compactPrompt, aspectRatio });
+      if ('image' in hfRes) {
+        return NextResponse.json({
+          image: hfRes.image,
+          mode: modeData.id,
+          model: hfRes.model,
+          providerStatus: 'official-ai',
+        });
+      }
+      diagnostics.push(hfRes.diagnostic);
     }
 
     // Branch B: Google Gemini Models with Auto-Discovery & Reference Sheets
     let compiledWithGemini = false;
-    let geminiDiagnostics: string[] = [];
-    if (process.env.GEMINI_API_KEY) {
+    if (activeGeminiKey && preferredModel !== 'flux-schnell-hf') {
       const geminiResult = await generateWithGemini({
-        apiKey: process.env.GEMINI_API_KEY,
+        apiKey: activeGeminiKey,
         prompt,
         aspectRatio,
         preferredModel,
@@ -448,13 +536,42 @@ export async function POST(req: NextRequest) {
           image: geminiResult.image,
           mode: modeData.id,
           model: geminiResult.model,
+          providerStatus: 'official-ai',
         });
       }
       if (geminiResult.compiledPrompt) {
         compactPrompt = geminiResult.compiledPrompt;
         compiledWithGemini = true;
       }
-      geminiDiagnostics = geminiResult.diagnostics;
+      diagnostics.push(...geminiResult.diagnostics);
+    }
+
+    // Fallback Branch B2: HuggingFace Inference Router (when HF_API_TOKEN is configured and Gemini fell through)
+    if (activeHfKey && preferredModel !== 'flux-schnell-hf' && !customApiKey.startsWith('hf_')) {
+      const hfRes = await generateWithHuggingFace({ token: activeHfKey, prompt: compactPrompt, aspectRatio });
+      if ('image' in hfRes) {
+        return NextResponse.json({
+          image: hfRes.image,
+          mode: modeData.id,
+          model: hfRes.model,
+          providerStatus: 'official-ai',
+        });
+      }
+      diagnostics.push(hfRes.diagnostic);
+    }
+
+    const hasGemini429 = diagnostics.some((d) => d.includes('HTTP_429'));
+    let diagnosticReason = '';
+    if (hasGemini429) {
+      diagnosticReason =
+        'Tu GEMINI_API_KEY en Google AI Studio está en Plan Gratis (cuota 0 para imágenes, HTTP 429). Activa Tier 1 en Google AI Studio o pega un token gratuito hf_... de HuggingFace.';
+    } else if (preferredModel === 'flux-schnell-hf' && !activeHfKey) {
+      diagnosticReason =
+        'Seleccionaste FLUX.1 Schnell HD (HuggingFace), pero falta un token gratuito hf_... en 🔑 Conectar / Probar Llave o en HF_API_TOKEN.';
+    } else if (diagnostics.length > 0) {
+      diagnosticReason = `Motor oficial no devolvió imagen (${diagnostics.slice(0, 2).join(', ')}).`;
+    } else if (!activeGeminiKey && !activeOpenaiKey && !activeHfKey) {
+      diagnosticReason = 'No hay ninguna clave de IA de imagen configurada.';
     }
 
     // Branch C: Server-side Flux proxy with exact aspect ratio dimensions
@@ -475,7 +592,9 @@ export async function POST(req: NextRequest) {
           image: `data:${mime};base64,${b64}`,
           mode: modeData.id,
           model: compiledWithGemini ? 'gemini-prompt + flux-proxy' : 'flux-server-proxy',
-          note: geminiDiagnostics.length > 0 ? `Gemini image fallback (${geminiDiagnostics.slice(0, 2).join(', ')})` : undefined,
+          providerStatus: 'free-fallback',
+          diagnosticReason: diagnosticReason || undefined,
+          note: diagnostics.length > 0 ? diagnostics.slice(0, 2).join(', ') : undefined,
         });
       }
     } catch {
@@ -495,7 +614,9 @@ export async function POST(req: NextRequest) {
       image: fallbackSvg,
       mode: modeData.id,
       model: 'mangai-draft-svg',
-      note: geminiDiagnostics.length > 0 ? geminiDiagnostics.join(', ') : undefined,
+      providerStatus: 'free-fallback',
+      diagnosticReason: diagnosticReason || undefined,
+      note: diagnostics.length > 0 ? diagnostics.join(', ') : undefined,
     });
   } catch (err: unknown) {
     // Do not expose upstream request objects, keys or internal error contents to browsers.

@@ -2,12 +2,14 @@
 
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import {
+  Activity,
   ArrowLeft,
   BookOpen,
   Check,
   Download,
   FileJson,
   Grid,
+  KeyRound,
   Lock,
   Plus,
   Printer,
@@ -40,6 +42,24 @@ import './studio.css';
 
 type StudioView = 'project' | 'characters' | 'cover' | 'pages';
 
+interface EngineStatusItem {
+  configured: boolean;
+  ok: boolean;
+  code?: number;
+  detail: string;
+}
+
+interface EngineDiagnosticsState {
+  ok: boolean;
+  source: string;
+  summary: string;
+  recommendation: string;
+  geminiTextStatus: EngineStatusItem;
+  geminiImageStatus: EngineStatusItem;
+  hfStatus: EngineStatusItem;
+  openaiStatus: EngineStatusItem;
+}
+
 async function dataUrlToFile(dataUrl: string, filename: string): Promise<File | null> {
   try {
     const resp = await fetch(dataUrl);
@@ -57,12 +77,18 @@ export default function StudioPage() {
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [hydrated, setHydrated] = useState(false);
 
-  // Selected generation model & UI toggles
+  // Selected generation model, diagnostics & live key tester
   const [selectedModel, setSelectedModel] = useState<string>(AI_MODELS[0].id);
   const [showGuides, setShowGuides] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lockingCharId, setLockingCharId] = useState<string | null>(null);
   const [lastModelReport, setLastModelReport] = useState('');
+  const [lastProviderStatus, setLastProviderStatus] = useState<'official-ai' | 'free-fallback' | ''>('');
+  const [lastDiagnosticReason, setLastDiagnosticReason] = useState('');
+  const [customApiKey, setCustomApiKey] = useState('');
+  const [showKeyDrawer, setShowKeyDrawer] = useState(false);
+  const [isTestingEngines, setIsTestingEngines] = useState(false);
+  const [engineDiagnostics, setEngineDiagnostics] = useState<EngineDiagnosticsState | null>(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [trialCredits, setTrialCredits] = useState(5);
@@ -81,6 +107,10 @@ export default function StudioPage() {
     if (savedCredits !== null) {
       const parsed = Number(savedCredits);
       if (Number.isFinite(parsed) && parsed >= 0) setTrialCredits(parsed);
+    }
+    const savedCustomKey = window.localStorage.getItem('mangai-custom-key-v1');
+    if (savedCustomKey) {
+      setCustomApiKey(savedCustomKey);
     }
     setHydrated(true);
   }, []);
@@ -135,6 +165,51 @@ export default function StudioPage() {
     });
   }
 
+  async function runConnectionProbe(keyOverride?: string, modelOverride?: string) {
+    setIsTestingEngines(true);
+    setError('');
+    try {
+      const resp = await fetch('/api/health', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customApiKey: (keyOverride ?? customApiKey).trim(),
+          preferredModel: modelOverride ?? selectedModel,
+        }),
+      });
+      if (!resp.ok) {
+        throw new Error(`No se pudo completar la prueba (HTTP ${resp.status}).`);
+      }
+      const data = (await resp.json()) as EngineDiagnosticsState;
+      setEngineDiagnostics(data);
+      setToast(data.ok ? '✅ Motor oficial de imagen verificado.' : '⚠️ Diagnóstico completado: revisa el estado.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error probando la conexión de motores.');
+    } finally {
+      setIsTestingEngines(false);
+    }
+  }
+
+  function handleSaveCustomKey(nextKeyRaw: string) {
+    const clean = nextKeyRaw.trim();
+    setCustomApiKey(nextKeyRaw);
+    if (clean) {
+      window.localStorage.setItem('mangai-custom-key-v1', clean);
+      if (clean.startsWith('hf_') && selectedModel !== 'flux-schnell-hf') {
+        setSelectedModel('flux-schnell-hf');
+        updateProject({ selectedModel: 'flux-schnell-hf' });
+      } else if (clean.startsWith('sk-') && !selectedModel.startsWith('gpt-')) {
+        setSelectedModel('gpt-image-2.5-flare');
+        updateProject({ selectedModel: 'gpt-image-2.5-flare' });
+      } else if (clean.startsWith('AIza') && (selectedModel === 'flux-schnell-hf' || selectedModel.startsWith('gpt-'))) {
+        setSelectedModel('gemini-3-pro-image');
+        updateProject({ selectedModel: 'gemini-3-pro-image' });
+      }
+    } else {
+      window.localStorage.removeItem('mangai-custom-key-v1');
+    }
+  }
+
   async function callImageEndpoint(opts: {
     mode: 'sheet' | 'cover_wrap' | 'panel';
     aspectRatio: '1:1' | '16:9' | '3:4';
@@ -152,6 +227,9 @@ export default function StudioPage() {
     fd.set('mode', opts.mode);
     fd.set('aspectRatio', opts.aspectRatio);
     fd.set('preferredModel', selectedModel);
+    if (customApiKey.trim()) {
+      fd.set('customApiKey', customApiKey.trim());
+    }
     fd.set('name', opts.name);
     fd.set('details', opts.details);
     fd.set('style', opts.style);
@@ -168,13 +246,22 @@ export default function StudioPage() {
       method: 'POST',
       body: fd,
     });
-    const data = (await resp.json()) as { image?: string; error?: string; model?: string; note?: string };
+    const data = (await resp.json()) as {
+      image?: string;
+      error?: string;
+      model?: string;
+      note?: string;
+      providerStatus?: 'official-ai' | 'free-fallback';
+      diagnosticReason?: string;
+    };
     if (!resp.ok || !data.image) {
       throw new Error(data.error || `Error HTTP ${resp.status}`);
     }
     consumeCredit();
     const report = data.note ? `${data.model || selectedModel} (${data.note})` : data.model || selectedModel;
     setLastModelReport(report);
+    setLastProviderStatus(data.providerStatus ?? '');
+    setLastDiagnosticReason(data.diagnosticReason ?? '');
     return { image: data.image, model: data.model || selectedModel };
   }
 
@@ -867,18 +954,129 @@ export default function StudioPage() {
               </select>
             </div>
             <small style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.4 }}>
-              No necesitas pegar ninguna clave: usa automáticamente tu motor conectado en la nube.
+              Usa tu motor conectado en la nube o prueba al instante con una llave propia (sin marca de agua).
             </small>
+
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                style={{ padding: '7px 11px', fontSize: 11, flex: 1 }}
+                disabled={isTestingEngines}
+                onClick={() => runConnectionProbe()}
+              >
+                {isTestingEngines ? (
+                  <>
+                    <RefreshCw size={12} className="spin" /> Probando...
+                  </>
+                ) : (
+                  <>
+                    <Activity size={12} /> 🩺 Hacer Prueba de Conexión Ahora
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                style={{ padding: '7px 10px', fontSize: 11 }}
+                onClick={() => setShowKeyDrawer((v) => !v)}
+              >
+                <KeyRound size={12} /> {customApiKey.trim() ? 'Llave Activa' : '🔑 Llave'}
+              </button>
+            </div>
+
+            {showKeyDrawer && (
+              <div className="key-drawer">
+                <label style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em' }}>
+                  🔑 Pegar llave propia (Gemini Tier 1 / HuggingFace Gratis hf_ / OpenAI sk-)
+                </label>
+                <input
+                  type="password"
+                  className="field-input"
+                  style={{ fontSize: 11, padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace' }}
+                  placeholder="hf_... o AIza... o sk-..."
+                  value={customApiKey}
+                  onChange={(e) => handleSaveCustomKey(e.target.value)}
+                />
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="pill-btn pill-solid"
+                    style={{ padding: '6px 12px', fontSize: 11 }}
+                    disabled={isTestingEngines}
+                    onClick={() => {
+                      const nextModel = customApiKey.trim().startsWith('hf_')
+                        ? 'flux-schnell-hf'
+                        : customApiKey.trim().startsWith('sk-')
+                        ? 'gpt-image-2.5-flare'
+                        : selectedModel;
+                      runConnectionProbe(customApiKey, nextModel);
+                    }}
+                  >
+                    Probar Llave
+                  </button>
+                  {customApiKey.trim() && (
+                    <button
+                      type="button"
+                      className="pill-btn pill-outline"
+                      style={{ padding: '6px 10px', fontSize: 11 }}
+                      onClick={() => {
+                        handleSaveCustomKey('');
+                        setToast('Llave temporal eliminada.');
+                      }}
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+                <small style={{ fontSize: 10, color: 'var(--sub)', lineHeight: 1.45 }}>
+                  Gratis sin tarjeta: crea un token en{' '}
+                  <strong>huggingface.co/settings/tokens</strong> con permiso{' '}
+                  <em>Make calls to Inference Providers</em> (`hf_...`). Se guarda solo en este navegador.
+                </small>
+              </div>
+            )}
+
+            {engineDiagnostics && (
+              <div className={`diag-box ${engineDiagnostics.ok ? 'diag-ok' : 'diag-warn'}`}>
+                <strong>{engineDiagnostics.summary}</strong>
+                <div className="diag-row">
+                  <span>Gemini Texto:</span>
+                  <span>{engineDiagnostics.geminiTextStatus.detail}</span>
+                </div>
+                <div className="diag-row">
+                  <span>Nano Banana Img:</span>
+                  <span>{engineDiagnostics.geminiImageStatus.detail}</span>
+                </div>
+                <div className="diag-row">
+                  <span>HF FLUX.1-schnell:</span>
+                  <span>{engineDiagnostics.hfStatus.detail}</span>
+                </div>
+                <div className="diag-row">
+                  <span>OpenAI Img:</span>
+                  <span>{engineDiagnostics.openaiStatus.detail}</span>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: 10, lineHeight: 1.45 }}>
+                  {engineDiagnostics.recommendation}
+                </p>
+              </div>
+            )}
+
             {lastModelReport && (
               <div
                 style={{
                   fontSize: 11,
                   fontFamily: 'JetBrains Mono, monospace',
-                  color: 'var(--violet)',
+                  color: lastProviderStatus === 'free-fallback' ? '#9a3412' : 'var(--violet)',
                   fontWeight: 700,
                 }}
               >
                 Último render: {lastModelReport}
+              </div>
+            )}
+            {lastProviderStatus === 'free-fallback' && lastDiagnosticReason && (
+              <div className="diag-warn-inline">
+                ⚠️ {lastDiagnosticReason}
               </div>
             )}
           </div>

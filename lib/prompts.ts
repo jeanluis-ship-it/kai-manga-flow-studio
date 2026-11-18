@@ -20,6 +20,11 @@ export const AI_MODELS = [
     provider: 'google',
   },
   {
+    id: 'flux-schnell-hf',
+    label: '⚡ FLUX.1 Schnell HD (HuggingFace · Gratis sin marca)',
+    provider: 'huggingface',
+  },
+  {
     id: 'gpt-image-2.5-flare',
     label: '✨ OpenAI GPT-Image 2.5 Flare',
     provider: 'openai',
