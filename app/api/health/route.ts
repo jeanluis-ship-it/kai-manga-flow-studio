@@ -30,13 +30,13 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     service: 'mangai-studio',
-    imageApiConfigured: true,
+    imageApiConfigured: geminiConfigured || openaiConfigured || hfConfigured || Boolean(process.env.POLLINATIONS_API_KEY),
     requiresAccessToken: tokenEnforced,
     providers: {
       gemini: geminiConfigured,
       openai: openaiConfigured,
       huggingface: hfConfigured,
-      builtInMangaEngine: true,
+      builtInMangaEngine: false, // SVG mockups are not AI-generated images
     },
   });
 }
@@ -119,7 +119,7 @@ async function testGeminiImage(apiKey: string, preferredModel?: string): Promise
         configured: true,
         ok: false,
         code: 429,
-        detail: '⚠️ Bloqueado por Plan Gratis de Google (HTTP 429 — cuota 0 para imágenes, requiere Tier 1)',
+        detail: '⚠️ Google rechazó la generación (HTTP 429): cuota agotada o no disponible para esta clave. Revisa uso y facturación en AI Studio.',
       };
     }
     if (resp.status === 404) {
@@ -154,10 +154,10 @@ async function probeDirectFluxSpace(): Promise<EngineCheckStatus> {
     });
     if (resp.ok) {
       return {
-        configured: true,
-        ok: true,
+        configured: false,
+        ok: false,
         code: 200,
-        detail: '✅ FLUX.1-schnell Directo activo (Gratis sin clave ni marca de agua)',
+        detail: 'ℹ️ FLUX Space responde, pero el chequeo /info NO verifica la GPU ni garantiza generar imágenes.',
       };
     }
     return {
@@ -197,7 +197,11 @@ async function testHuggingFace(token: string): Promise<EngineCheckStatus> {
       signal: AbortSignal.timeout(12_000),
     });
     if (infResp.ok) {
-      return { configured: true, ok: true, code: 200, detail: '✅ FLUX.1-schnell HD conectado y listo (sin marca de agua)' };
+      const mime = (infResp.headers.get('content-type') ?? '').split(';')[0].trim();
+      if (mime.startsWith('image/')) {
+        return { configured: true, ok: true, code: 200, detail: '✅ Hugging Face devolvió una imagen en la prueba.' };
+      }
+      return { configured: true, ok: false, code: 200, detail: '⚠️ Router HF respondió, pero no devolvió una imagen.' };
     }
     if (infResp.status === 403) {
       return {
@@ -293,15 +297,15 @@ export async function POST(req: NextRequest) {
       hfStatus.ok ? 'FLUX.1-schnell HD Directo' : '',
       openaiStatus.ok ? 'OpenAI GPT-Image' : '',
     ].filter(Boolean);
-    summary = `Motor listo sin clave ni marca de agua: ${activeNames.join(' + ')}.`;
-    recommendation = 'Ya puedes pulsar "Generar" en Personajes, Portada 16:9 o Páginas 3:4.';
+    summary = `Conexión de proveedor verificada: ${activeNames.join(' + ')}.`;
+    recommendation = 'Comprueba la cuota antes de generar. Una clave válida no garantiza crédito o acceso al modelo.';
   } else if (geminiImageStatus.code === 429) {
-    summary = 'Google está en Plan Gratis (HTTP 429) y el nodo directo estuvo temporalmente ocupado.';
+    summary = 'Google devolvió HTTP 429 y el Space gratuito FLUX no garantiza disponibilidad de GPU.';
     recommendation =
-      'Vuelve a intentar en 10 segundos o pega una llave válida de Gemini Tier 1 / HuggingFace / OpenAI.';
+      'Consulta la cuota y facturación de Google AI Studio o configura Hugging Face / OpenAI con permisos y saldo activos.';
   } else {
     summary = 'Ningún motor HD respondió en este momento.';
-    recommendation = 'Vuelve a probar en unos segundos o agrega una llave propia válida.';
+    recommendation = 'Configura un proveedor con cuota activa; el Space gratuito no garantiza capacidad de generación.';
   }
 
   const result: HealthDiagnosticsResponse = {
