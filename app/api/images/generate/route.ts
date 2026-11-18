@@ -323,6 +323,104 @@ async function generateWithGemini(opts: {
   return { compiledPrompt: null, diagnostics };
 }
 
+function isValidCustomKey(key: string) {
+  return (
+    key.length >= 24 &&
+    !key.includes('...') &&
+    !key.includes('••') &&
+    (key.startsWith('AIza') || key.startsWith('sk-') || key.startsWith('hf_'))
+  );
+}
+
+async function generateWithGradioFluxSpace(opts: {
+  prompt: string;
+  aspectRatio: string;
+  hfToken?: string;
+}): Promise<{ image: string; model: string } | { diagnostic: string }> {
+  const dims = aspectToFluxDimensions(opts.aspectRatio);
+  const baseUrl = 'https://black-forest-labs-flux-1-schnell.hf.space';
+  const authHeader: Record<string, string> = opts.hfToken ? { Authorization: `Bearer ${opts.hfToken}` } : {};
+
+  try {
+    const postResp = await fetch(`${baseUrl}/gradio_api/call/infer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeader,
+      },
+      body: JSON.stringify({
+        data: [opts.prompt, 0, true, dims.width, dims.height, 4],
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!postResp.ok) {
+      return { diagnostic: `flux-space-init:HTTP_${postResp.status}` };
+    }
+    const { event_id } = (await postResp.json()) as { event_id?: string };
+    if (!event_id) {
+      return { diagnostic: 'flux-space:NO_EVENT_ID' };
+    }
+
+    const sseResp = await fetch(`${baseUrl}/gradio_api/call/infer/${encodeURIComponent(event_id)}`, {
+      headers: authHeader,
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!sseResp.ok) {
+      return { diagnostic: `flux-space-sse:HTTP_${sseResp.status}` };
+    }
+
+    const sseText = await sseResp.text();
+    const lines = sseText.split(/\r?\n/);
+    let imageUrl = '';
+    let isCompleteEvent = false;
+
+    for (const line of lines) {
+      if (line.startsWith('event:')) {
+        isCompleteEvent = line.includes('complete');
+        if (line.includes('error')) {
+          return { diagnostic: 'flux-space:SSE_ERROR' };
+        }
+      } else if (isCompleteEvent && line.startsWith('data:')) {
+        try {
+          const parsed = JSON.parse(line.slice(5).trim()) as Array<{ url?: string }>;
+          if (Array.isArray(parsed) && parsed[0]?.url) {
+            imageUrl = parsed[0].url;
+            break;
+          }
+        } catch {
+          // Ignore malformed line and keep scanning.
+        }
+      }
+    }
+
+    if (!imageUrl) {
+      return { diagnostic: 'flux-space:NO_IMAGE_URL' };
+    }
+
+    const imgResp = await fetch(imageUrl, {
+      headers: authHeader,
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!imgResp.ok) {
+      return { diagnostic: `flux-space-file:HTTP_${imgResp.status}` };
+    }
+
+    const rawMime = (imgResp.headers.get('content-type') ?? 'image/webp').split(';')[0].trim();
+    const mime = rawMime.startsWith('image/') ? rawMime : 'image/webp';
+    const arr = await imgResp.arrayBuffer();
+    if (arr.byteLength < 2000) {
+      return { diagnostic: 'flux-space-file:EMPTY' };
+    }
+
+    return {
+      image: `data:${mime};base64,${Buffer.from(arr).toString('base64')}`,
+      model: 'flux.1-schnell-hd (Directo Sin Clave)',
+    };
+  } catch {
+    return { diagnostic: 'flux-space:TIMEOUT' };
+  }
+}
+
 async function generateWithHuggingFace(opts: {
   token: string;
   prompt: string;
@@ -382,16 +480,27 @@ export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();
 
-    const customApiKey = read(form, 'customApiKey', 260);
+    const rawCustomKey = read(form, 'customApiKey', 260);
+    const customApiKey = isValidCustomKey(rawCustomKey) ? rawCustomKey : '';
+    const preferredModel = read(form, 'preferredModel', 80);
+
     const activeGeminiKey = customApiKey.startsWith('AIza') ? customApiKey : process.env.GEMINI_API_KEY || '';
     const activeOpenaiKey = customApiKey.startsWith('sk-') ? customApiKey : process.env.OPENAI_API_KEY || '';
     const activeHfKey = customApiKey.startsWith('hf_') ? customApiKey : process.env.HF_API_TOKEN || '';
 
-    // Localhost -> Vercel Bridge: if running locally without env keys or custom key, reuse Vercel's live keys cleanly
+    // Localhost -> Vercel Bridge: only when no local/custom keys exist and user didn't pick keyless direct FLUX
     const isLocalHost =
       req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
     const alreadyForwarded = req.headers.get('x-mangai-forwarded') === '1';
-    if (isLocalHost && !alreadyForwarded && !customApiKey && !process.env.OPENAI_API_KEY && !process.env.GEMINI_API_KEY && !process.env.HF_API_TOKEN) {
+    if (
+      isLocalHost &&
+      !alreadyForwarded &&
+      preferredModel !== 'flux-schnell-hf' &&
+      !customApiKey &&
+      !process.env.OPENAI_API_KEY &&
+      !process.env.GEMINI_API_KEY &&
+      !process.env.HF_API_TOKEN
+    ) {
       try {
         const relayResp = await fetch('https://kai-manga-flow-studio.vercel.app/api/images/generate', {
           method: 'POST',
@@ -426,7 +535,6 @@ export async function POST(req: NextRequest) {
     const canon = read(form, 'canon', 1800);
     const notes = read(form, 'notes', 2600);
     const mode = read(form, 'mode', 50);
-    const preferredModel = read(form, 'preferredModel', 80);
     const rawAspect = read(form, 'aspectRatio', 16);
     const aspectRatio = VALID_ASPECTS.has(rawAspect)
       ? rawAspect
@@ -507,18 +615,36 @@ export async function POST(req: NextRequest) {
 
     const diagnostics: string[] = [];
 
-    // Fast-path Branch B2 if user explicitly selected HuggingFace or pasted an hf_ token
-    if (activeHfKey && (preferredModel === 'flux-schnell-hf' || customApiKey.startsWith('hf_'))) {
-      const hfRes = await generateWithHuggingFace({ token: activeHfKey, prompt: compactPrompt, aspectRatio });
-      if ('image' in hfRes) {
+    // Fast-path Branch B2 if user explicitly selected FLUX.1 Schnell HD or pasted an hf_ token
+    if (preferredModel === 'flux-schnell-hf' || customApiKey.startsWith('hf_')) {
+      if (activeHfKey) {
+        const hfRes = await generateWithHuggingFace({ token: activeHfKey, prompt: compactPrompt, aspectRatio });
+        if ('image' in hfRes) {
+          return NextResponse.json({
+            image: hfRes.image,
+            mode: modeData.id,
+            model: hfRes.model,
+            providerStatus: 'official-ai',
+          });
+        }
+        diagnostics.push(hfRes.diagnostic);
+      }
+
+      const directFlux = await generateWithGradioFluxSpace({
+        prompt: compactPrompt,
+        aspectRatio,
+        hfToken: activeHfKey || undefined,
+      });
+      if ('image' in directFlux) {
         return NextResponse.json({
-          image: hfRes.image,
+          image: directFlux.image,
           mode: modeData.id,
-          model: hfRes.model,
+          model: directFlux.model,
           providerStatus: 'official-ai',
+          note: diagnostics.length > 0 ? diagnostics.slice(0, 2).join(', ') : undefined,
         });
       }
-      diagnostics.push(hfRes.diagnostic);
+      diagnostics.push(directFlux.diagnostic);
     }
 
     // Branch B: Google Gemini Models with Auto-Discovery & Reference Sheets
@@ -560,18 +686,34 @@ export async function POST(req: NextRequest) {
       diagnostics.push(hfRes.diagnostic);
     }
 
+    // Branch B3: Direct Watermark-Free FLUX.1-schnell Space (keyless upgrade over Pollinations when Google Tier is 429)
+    if (preferredModel !== 'flux-schnell-hf') {
+      const directFlux = await generateWithGradioFluxSpace({
+        prompt: compactPrompt,
+        aspectRatio,
+        hfToken: activeHfKey || undefined,
+      });
+      if ('image' in directFlux) {
+        return NextResponse.json({
+          image: directFlux.image,
+          mode: modeData.id,
+          model: compiledWithGemini ? 'gemini-prompt + flux.1-schnell-hd' : directFlux.model,
+          providerStatus: 'official-ai',
+          note: diagnostics.length > 0 ? diagnostics.slice(0, 2).join(', ') : undefined,
+        });
+      }
+      diagnostics.push(directFlux.diagnostic);
+    }
+
     const hasGemini429 = diagnostics.some((d) => d.includes('HTTP_429'));
     let diagnosticReason = '';
     if (hasGemini429) {
       diagnosticReason =
-        'Tu GEMINI_API_KEY en Google AI Studio está en Plan Gratis (cuota 0 para imágenes, HTTP 429). Activa Tier 1 en Google AI Studio o pega un token gratuito hf_... de HuggingFace.';
-    } else if (preferredModel === 'flux-schnell-hf' && !activeHfKey) {
-      diagnosticReason =
-        'Seleccionaste FLUX.1 Schnell HD (HuggingFace), pero falta un token gratuito hf_... en 🔑 Conectar / Probar Llave o en HF_API_TOKEN.';
+        'Google está en Plan Gratis (HTTP 429) y el nodo directo estuvo ocupado; se usó respaldo temporal.';
     } else if (diagnostics.length > 0) {
-      diagnosticReason = `Motor oficial no devolvió imagen (${diagnostics.slice(0, 2).join(', ')}).`;
-    } else if (!activeGeminiKey && !activeOpenaiKey && !activeHfKey) {
-      diagnosticReason = 'No hay ninguna clave de IA de imagen configurada.';
+      diagnosticReason = `Motor directo temporalmente ocupado (${diagnostics.slice(0, 2).join(', ')}).`;
+    } else {
+      diagnosticReason = 'Usando motor de respaldo.';
     }
 
     // Branch C: Server-side Flux proxy with exact aspect ratio dimensions

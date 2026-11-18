@@ -1,28 +1,28 @@
 export const AI_MODELS = [
   {
+    id: 'flux-schnell-hf',
+    label: '⚡ FLUX.1 Schnell HD (Directo · Gratis sin clave ni marca)',
+    provider: 'huggingface',
+  },
+  {
     id: 'gemini-3-pro-image',
-    label: '🍌 Nano Banana Pro (Calidad Estudio / Video)',
+    label: '🍌 Nano Banana Pro (Google Tier 1 / Video)',
     provider: 'google',
   },
   {
     id: 'gemini-nano-banana-2.1',
-    label: '🍌 Nano Banana 2.1 (Consistencia Multi-Vista)',
+    label: '🍌 Nano Banana 2.1 (Google Tier 1 · Multi-Vista)',
     provider: 'google',
   },
   {
     id: 'gemini-3.1-flash-lite-image',
-    label: '⚡ Nano Banana 2 Lite (Boceto Rápido)',
+    label: '⚡ Nano Banana 2 Lite (Boceto Rápido Google)',
     provider: 'google',
   },
   {
     id: 'imagen-3.0-generate-002',
     label: '🎨 Google Imagen 3.0 HD',
     provider: 'google',
-  },
-  {
-    id: 'flux-schnell-hf',
-    label: '⚡ FLUX.1 Schnell HD (HuggingFace · Gratis sin marca)',
-    provider: 'huggingface',
   },
   {
     id: 'gpt-image-2.5-flare',

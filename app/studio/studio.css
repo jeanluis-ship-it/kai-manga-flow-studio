@@ -151,8 +151,21 @@ body {
 .manga-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 256px minmax(0, 1fr) 340px;
+  grid-template-columns: 256px minmax(0, 1fr) 348px;
   min-height: calc(100vh - 64px);
+}
+
+@media (min-width: 1061px) {
+  .manga-grid {
+    height: calc(100vh - 64px);
+    overflow: hidden;
+  }
+  .left-rail,
+  .center-stage,
+  .right-inspector {
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
 .left-rail {
@@ -176,11 +189,45 @@ body {
 .right-inspector {
   background: var(--card);
   border-left: 1px solid var(--line);
-  padding: 20px 18px;
+  padding: 18px 16px 32px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   overflow-y: auto;
+}
+
+.stage-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  background: var(--cream);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.step-pill {
+  border: 0;
+  background: transparent;
+  color: var(--sub);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 7px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-pill:hover {
+  color: var(--ink);
+  background: rgba(23, 20, 27, 0.05);
+}
+
+.step-pill.active {
+  background: var(--ink);
+  color: #fff;
 }
 
 .section-label {
@@ -739,6 +786,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 185px;
+  overflow-y: auto;
 }
 
 .diag-box {
@@ -749,6 +798,8 @@ body {
   flex-direction: column;
   gap: 5px;
   line-height: 1.35;
+  max-height: 185px;
+  overflow-y: auto;
 }
 
 .diag-box.diag-ok {

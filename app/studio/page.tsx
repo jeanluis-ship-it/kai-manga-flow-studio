@@ -60,6 +60,16 @@ interface EngineDiagnosticsState {
   openaiStatus: EngineStatusItem;
 }
 
+function isLikelyRealApiKey(key: string) {
+  const clean = key.trim();
+  return (
+    clean.length >= 24 &&
+    !clean.includes('...') &&
+    !clean.includes('••') &&
+    (clean.startsWith('hf_') || clean.startsWith('AIza') || clean.startsWith('sk-'))
+  );
+}
+
 async function dataUrlToFile(dataUrl: string, filename: string): Promise<File | null> {
   try {
     const resp = await fetch(dataUrl);
@@ -109,8 +119,10 @@ export default function StudioPage() {
       if (Number.isFinite(parsed) && parsed >= 0) setTrialCredits(parsed);
     }
     const savedCustomKey = window.localStorage.getItem('mangai-custom-key-v1');
-    if (savedCustomKey) {
-      setCustomApiKey(savedCustomKey);
+    if (savedCustomKey && isLikelyRealApiKey(savedCustomKey)) {
+      setCustomApiKey(savedCustomKey.trim());
+    } else if (savedCustomKey) {
+      window.localStorage.removeItem('mangai-custom-key-v1');
     }
     setHydrated(true);
   }, []);
@@ -168,12 +180,14 @@ export default function StudioPage() {
   async function runConnectionProbe(keyOverride?: string, modelOverride?: string) {
     setIsTestingEngines(true);
     setError('');
+    const candidateKey = (keyOverride ?? customApiKey).trim();
+    const validKey = isLikelyRealApiKey(candidateKey) ? candidateKey : '';
     try {
       const resp = await fetch('/api/health', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customApiKey: (keyOverride ?? customApiKey).trim(),
+          customApiKey: validKey,
           preferredModel: modelOverride ?? selectedModel,
         }),
       });
@@ -182,7 +196,7 @@ export default function StudioPage() {
       }
       const data = (await resp.json()) as EngineDiagnosticsState;
       setEngineDiagnostics(data);
-      setToast(data.ok ? '✅ Motor oficial de imagen verificado.' : '⚠️ Diagnóstico completado: revisa el estado.');
+      setToast(data.ok ? '✅ Motor HD listo para generar sin marca de agua.' : '⚠️ Diagnóstico completado: revisa el estado.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error probando la conexión de motores.');
     } finally {
@@ -193,7 +207,7 @@ export default function StudioPage() {
   function handleSaveCustomKey(nextKeyRaw: string) {
     const clean = nextKeyRaw.trim();
     setCustomApiKey(nextKeyRaw);
-    if (clean) {
+    if (isLikelyRealApiKey(clean)) {
       window.localStorage.setItem('mangai-custom-key-v1', clean);
       if (clean.startsWith('hf_') && selectedModel !== 'flux-schnell-hf') {
         setSelectedModel('flux-schnell-hf');
@@ -205,6 +219,8 @@ export default function StudioPage() {
         setSelectedModel('gemini-3-pro-image');
         updateProject({ selectedModel: 'gemini-3-pro-image' });
       }
+    } else if (!clean) {
+      window.localStorage.removeItem('mangai-custom-key-v1');
     } else {
       window.localStorage.removeItem('mangai-custom-key-v1');
     }
@@ -227,7 +243,7 @@ export default function StudioPage() {
     fd.set('mode', opts.mode);
     fd.set('aspectRatio', opts.aspectRatio);
     fd.set('preferredModel', selectedModel);
-    if (customApiKey.trim()) {
+    if (isLikelyRealApiKey(customApiKey)) {
       fd.set('customApiKey', customApiKey.trim());
     }
     fd.set('name', opts.name);
@@ -929,174 +945,82 @@ export default function StudioPage() {
           )}
         </main>
 
-        {/* COLUMN 3: RIGHT CONTEXTUAL INSPECTOR WITH MODEL PICKER & 1-CLICK EXAMPLES */}
+        {/* COLUMN 3: RIGHT CONTEXTUAL INSPECTOR (PRIMARY ACTIONS FIRST, ENGINE AT BOTTOM) */}
         <aside className="right-inspector">
-          <div className="inspector-card">
-            <span className="section-label" style={{ padding: 0 }}>
-              Motor de Imagen IA (Elegible)
-            </span>
-            <div className="field-group">
-              <label>Modelo activo</label>
-              <select
-                className="field-select"
-                value={selectedModel}
-                onChange={(e) => {
-                  setSelectedModel(e.target.value);
-                  updateProject({ selectedModel: e.target.value });
-                  setToast(`Modelo seleccionado: ${e.target.options[e.target.selectedIndex].text}`);
-                }}
-              >
-                {AI_MODELS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <small style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.4 }}>
-              Usa tu motor conectado en la nube o prueba al instante con una llave propia (sin marca de agua).
-            </small>
-
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="pill-btn pill-outline"
-                style={{ padding: '7px 11px', fontSize: 11, flex: 1 }}
-                disabled={isTestingEngines}
-                onClick={() => runConnectionProbe()}
-              >
-                {isTestingEngines ? (
-                  <>
-                    <RefreshCw size={12} className="spin" /> Probando...
-                  </>
-                ) : (
-                  <>
-                    <Activity size={12} /> 🩺 Hacer Prueba de Conexión Ahora
-                  </>
-                )}
-              </button>
-              <button
-                type="button"
-                className="pill-btn pill-outline"
-                style={{ padding: '7px 10px', fontSize: 11 }}
-                onClick={() => setShowKeyDrawer((v) => !v)}
-              >
-                <KeyRound size={12} /> {customApiKey.trim() ? 'Llave Activa' : '🔑 Llave'}
-              </button>
-            </div>
-
-            {showKeyDrawer && (
-              <div className="key-drawer">
-                <label style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em' }}>
-                  🔑 Pegar llave propia (Gemini Tier 1 / HuggingFace Gratis hf_ / OpenAI sk-)
-                </label>
-                <input
-                  type="password"
-                  className="field-input"
-                  style={{ fontSize: 11, padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace' }}
-                  placeholder="hf_... o AIza... o sk-..."
-                  value={customApiKey}
-                  onChange={(e) => handleSaveCustomKey(e.target.value)}
-                />
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    className="pill-btn pill-solid"
-                    style={{ padding: '6px 12px', fontSize: 11 }}
-                    disabled={isTestingEngines}
-                    onClick={() => {
-                      const nextModel = customApiKey.trim().startsWith('hf_')
-                        ? 'flux-schnell-hf'
-                        : customApiKey.trim().startsWith('sk-')
-                        ? 'gpt-image-2.5-flare'
-                        : selectedModel;
-                      runConnectionProbe(customApiKey, nextModel);
-                    }}
-                  >
-                    Probar Llave
-                  </button>
-                  {customApiKey.trim() && (
-                    <button
-                      type="button"
-                      className="pill-btn pill-outline"
-                      style={{ padding: '6px 10px', fontSize: 11 }}
-                      onClick={() => {
-                        handleSaveCustomKey('');
-                        setToast('Llave temporal eliminada.');
-                      }}
-                    >
-                      Limpiar
-                    </button>
-                  )}
-                </div>
-                <small style={{ fontSize: 10, color: 'var(--sub)', lineHeight: 1.45 }}>
-                  Gratis sin tarjeta: crea un token en{' '}
-                  <strong>huggingface.co/settings/tokens</strong> con permiso{' '}
-                  <em>Make calls to Inference Providers</em> (`hf_...`). Se guarda solo en este navegador.
-                </small>
-              </div>
-            )}
-
-            {engineDiagnostics && (
-              <div className={`diag-box ${engineDiagnostics.ok ? 'diag-ok' : 'diag-warn'}`}>
-                <strong>{engineDiagnostics.summary}</strong>
-                <div className="diag-row">
-                  <span>Gemini Texto:</span>
-                  <span>{engineDiagnostics.geminiTextStatus.detail}</span>
-                </div>
-                <div className="diag-row">
-                  <span>Nano Banana Img:</span>
-                  <span>{engineDiagnostics.geminiImageStatus.detail}</span>
-                </div>
-                <div className="diag-row">
-                  <span>HF FLUX.1-schnell:</span>
-                  <span>{engineDiagnostics.hfStatus.detail}</span>
-                </div>
-                <div className="diag-row">
-                  <span>OpenAI Img:</span>
-                  <span>{engineDiagnostics.openaiStatus.detail}</span>
-                </div>
-                <p style={{ margin: '4px 0 0', fontSize: 10, lineHeight: 1.45 }}>
-                  {engineDiagnostics.recommendation}
-                </p>
-              </div>
-            )}
-
-            {lastModelReport && (
-              <div
-                style={{
-                  fontSize: 11,
-                  fontFamily: 'JetBrains Mono, monospace',
-                  color: lastProviderStatus === 'free-fallback' ? '#9a3412' : 'var(--violet)',
-                  fontWeight: 700,
-                }}
-              >
-                Último render: {lastModelReport}
-              </div>
-            )}
-            {lastProviderStatus === 'free-fallback' && lastDiagnosticReason && (
-              <div className="diag-warn-inline">
-                ⚠️ {lastDiagnosticReason}
-              </div>
-            )}
+          <div className="stage-stepper" aria-label="Avance rápido de etapas">
+            <button
+              type="button"
+              className={`step-pill ${view === 'project' ? 'active' : ''}`}
+              onClick={() => setView('project')}
+            >
+              1 Config
+            </button>
+            <button
+              type="button"
+              className={`step-pill ${view === 'characters' ? 'active' : ''}`}
+              onClick={() => setView('characters')}
+            >
+              2 Personajes
+            </button>
+            <button
+              type="button"
+              className={`step-pill ${view === 'cover' ? 'active' : ''}`}
+              onClick={() => setView('cover')}
+            >
+              3 Portada
+            </button>
+            <button
+              type="button"
+              className={`step-pill ${view === 'pages' ? 'active' : ''}`}
+              onClick={() => setView('pages')}
+            >
+              4 Páginas
+            </button>
           </div>
 
+          {error && (
+            <div className="error-banner" role="alert">
+              {error}
+            </div>
+          )}
+
           {view === 'characters' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span className="section-label" style={{ padding: 0 }}>
-                Consistencia Settei
+                Acción de Personaje &amp; Avance
               </span>
-              <p style={{ margin: 0, fontSize: 12, color: 'var(--sub)', lineHeight: 1.6 }}>
-                1. Crea o edita tu personaje con <strong>Visual Attributes</strong> y <strong>Default Wardrobe</strong>.<br />
-                2. Pulsa <strong>Lock Consistency</strong> en su tarjeta para generar la hoja de 4 vistas (1:1).<br />
-                3. Esa imagen viajará como referencia fija a la portada y a las páginas interiores.
-              </p>
+              {project.characters[0] ? (
+                <button
+                  type="button"
+                  className="pill-btn pill-accent"
+                  disabled={isGenerating}
+                  onClick={() => handleSaveAndLockCharacter(project.characters[0], true)}
+                >
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw size={15} className="spin" /> Generando hoja 1:1...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={15} /> Generar Hoja de {project.characters[0].name}
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="pill-btn pill-accent"
+                  onClick={() => setEditingChar(blankCharacter())}
+                >
+                  <Plus size={15} /> Crear Primer Personaje
+                </button>
+              )}
               <button
                 type="button"
-                className="pill-btn pill-outline"
+                className="pill-btn pill-solid"
                 onClick={() => setView('cover')}
               >
-                Ir a Paperback Cover →
+                Siguiente: Paperback Cover →
               </button>
               <button
                 type="button"
@@ -1105,11 +1029,16 @@ export default function StudioPage() {
               >
                 Ir a Interior Pages →
               </button>
+              <p style={{ margin: 0, fontSize: 11, color: 'var(--sub)', lineHeight: 1.5 }}>
+                1. Crea o edita con <strong>Visual Attributes</strong> y <strong>Default Wardrobe</strong>.<br />
+                2. Pulsa <strong>Generar Hoja</strong> para fijar la referencia 1:1.<br />
+                3. Avanza a <strong>Paperback Cover</strong> o <strong>Interior Pages</strong>.
+              </p>
             </div>
           )}
 
           {view === 'cover' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span className="section-label" style={{ padding: 0 }}>
                 Unified Cover Generation
               </span>
@@ -1126,7 +1055,7 @@ export default function StudioPage() {
               <div className="field-group">
                 <label>Descripción de Portada + Contraportada (16:9)</label>
                 <textarea
-                  rows={6}
+                  rows={5}
                   className="field-textarea"
                   value={project.coverPrompt || ''}
                   onChange={(e) => updateProject({ coverPrompt: e.target.value })}
@@ -1135,7 +1064,7 @@ export default function StudioPage() {
               </div>
               <button
                 type="button"
-                className="pill-btn pill-solid"
+                className="pill-btn pill-accent"
                 disabled={isGenerating}
                 onClick={handleGenerateFullWrap}
               >
@@ -1151,6 +1080,13 @@ export default function StudioPage() {
               </button>
               <button
                 type="button"
+                className="pill-btn pill-solid"
+                onClick={() => setView('pages')}
+              >
+                Siguiente: Interior Pages →
+              </button>
+              <button
+                type="button"
                 className="pill-btn pill-outline"
                 onClick={() => window.print()}
               >
@@ -1160,7 +1096,7 @@ export default function StudioPage() {
           )}
 
           {view === 'pages' && currentPage && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span className="section-label" style={{ padding: 0 }}>
                 Interior Settings
               </span>
@@ -1224,7 +1160,7 @@ export default function StudioPage() {
               <div className="field-group">
                 <label>Describe the action &amp; panels (Página {currentPage.pageNumber})</label>
                 <textarea
-                  rows={8}
+                  rows={6}
                   className="field-textarea"
                   value={currentPage.prompt}
                   onChange={(e) => updatePage(activePageIndex, { prompt: e.target.value })}
@@ -1259,16 +1195,164 @@ export default function StudioPage() {
               <p style={{ margin: 0, fontSize: 12, color: 'var(--sub)', lineHeight: 1.65 }}>
                 1. Ve a <strong>Character Library</strong> y bloquea tu personaje.<br />
                 2. Diseña tu portada 16:9 en <strong>Paperback Cover</strong>.<br />
-                3. Entinta las páginas completas en <strong>Interior Pages</strong> eligiendo el modelo arriba.
+                3. Entinta las páginas completas en <strong>Interior Pages</strong> eligiendo el modelo abajo.
               </p>
+              <button
+                type="button"
+                className="pill-btn pill-solid"
+                onClick={() => setView('characters')}
+              >
+                Siguiente: Character Library →
+              </button>
             </div>
           )}
 
-          {error && (
-            <div className="error-banner" role="alert">
-              {error}
+          <div className="inspector-card">
+            <span className="section-label" style={{ padding: 0 }}>
+              Motor de Imagen IA (Elegible)
+            </span>
+            <div className="field-group">
+              <label>Modelo activo</label>
+              <select
+                className="field-select"
+                value={selectedModel}
+                onChange={(e) => {
+                  setSelectedModel(e.target.value);
+                  updateProject({ selectedModel: e.target.value });
+                  setToast(`Modelo seleccionado: ${e.target.options[e.target.selectedIndex].text}`);
+                }}
+              >
+                {AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+            <small style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.4 }}>
+              Incluye FLUX.1 Schnell HD directo y gratis sin clave ni marca de agua.
+            </small>
+
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                style={{ padding: '7px 11px', fontSize: 11, flex: 1 }}
+                disabled={isTestingEngines}
+                onClick={() => runConnectionProbe()}
+              >
+                {isTestingEngines ? (
+                  <>
+                    <RefreshCw size={12} className="spin" /> Probando...
+                  </>
+                ) : (
+                  <>
+                    <Activity size={12} /> 🩺 Probar Conexión
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                style={{ padding: '7px 10px', fontSize: 11 }}
+                onClick={() => setShowKeyDrawer((v) => !v)}
+              >
+                <KeyRound size={12} /> {isLikelyRealApiKey(customApiKey) ? 'Llave Activa' : '🔑 Llave (Opcional)'}
+              </button>
+            </div>
+
+            {showKeyDrawer && (
+              <div className="key-drawer">
+                <label style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em' }}>
+                  🔑 Llave opcional (Gemini Tier 1 / HF hf_ / OpenAI sk-)
+                </label>
+                <input
+                  type="password"
+                  className="field-input"
+                  style={{ fontSize: 11, padding: '8px 10px', fontFamily: 'JetBrains Mono, monospace' }}
+                  placeholder="Opcional: pega tu token real aquí..."
+                  value={customApiKey}
+                  onChange={(e) => handleSaveCustomKey(e.target.value)}
+                />
+                {customApiKey.trim() && !isLikelyRealApiKey(customApiKey) && (
+                  <span style={{ fontSize: 10, color: '#9a3412', fontWeight: 700 }}>
+                    Texto muy corto para ser clave real: se usará el motor directo sin clave.
+                  </span>
+                )}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="pill-btn pill-solid"
+                    style={{ padding: '6px 12px', fontSize: 11 }}
+                    disabled={isTestingEngines}
+                    onClick={() => {
+                      const clean = customApiKey.trim();
+                      const nextModel = isLikelyRealApiKey(clean) && clean.startsWith('hf_')
+                        ? 'flux-schnell-hf'
+                        : isLikelyRealApiKey(clean) && clean.startsWith('sk-')
+                        ? 'gpt-image-2.5-flare'
+                        : selectedModel;
+                      runConnectionProbe(customApiKey, nextModel);
+                    }}
+                  >
+                    Probar
+                  </button>
+                  {customApiKey && (
+                    <button
+                      type="button"
+                      className="pill-btn pill-outline"
+                      style={{ padding: '6px 10px', fontSize: 11 }}
+                      onClick={() => {
+                        handleSaveCustomKey('');
+                        setToast('Llave eliminada.');
+                      }}
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {engineDiagnostics && (
+              <div className={`diag-box ${engineDiagnostics.ok ? 'diag-ok' : 'diag-warn'}`}>
+                <strong>{engineDiagnostics.summary}</strong>
+                <div className="diag-row">
+                  <span>HF FLUX.1-schnell:</span>
+                  <span>{engineDiagnostics.hfStatus.detail}</span>
+                </div>
+                <div className="diag-row">
+                  <span>Nano Banana Img:</span>
+                  <span>{engineDiagnostics.geminiImageStatus.detail}</span>
+                </div>
+                <div className="diag-row">
+                  <span>OpenAI Img:</span>
+                  <span>{engineDiagnostics.openaiStatus.detail}</span>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: 10, lineHeight: 1.45 }}>
+                  {engineDiagnostics.recommendation}
+                </p>
+              </div>
+            )}
+
+            {lastModelReport && (
+              <div
+                style={{
+                  fontSize: 11,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  color: lastProviderStatus === 'free-fallback' ? '#9a3412' : 'var(--violet)',
+                  fontWeight: 700,
+                }}
+              >
+                Último render: {lastModelReport}
+              </div>
+            )}
+            {lastProviderStatus === 'free-fallback' && lastDiagnosticReason && (
+              <div className="diag-warn-inline">
+                ⚠️ {lastDiagnosticReason}
+              </div>
+            )}
+          </div>
         </aside>
       </div>
 

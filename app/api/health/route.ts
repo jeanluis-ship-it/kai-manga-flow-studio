@@ -138,8 +138,47 @@ async function testGeminiImage(apiKey: string, preferredModel?: string): Promise
   }
 }
 
+function isValidCustomKey(key: string) {
+  return (
+    key.length >= 24 &&
+    !key.includes('...') &&
+    !key.includes('••') &&
+    (key.startsWith('AIza') || key.startsWith('sk-') || key.startsWith('hf_'))
+  );
+}
+
+async function probeDirectFluxSpace(): Promise<EngineCheckStatus> {
+  try {
+    const resp = await fetch('https://black-forest-labs-flux-1-schnell.hf.space/gradio_api/info', {
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (resp.ok) {
+      return {
+        configured: true,
+        ok: true,
+        code: 200,
+        detail: '✅ FLUX.1-schnell Directo activo (Gratis sin clave ni marca de agua)',
+      };
+    }
+    return {
+      configured: false,
+      ok: false,
+      code: resp.status,
+      detail: `⚠️ Nodo directo FLUX devolvió HTTP ${resp.status}`,
+    };
+  } catch {
+    return {
+      configured: false,
+      ok: false,
+      detail: '⚠️ Nodo directo FLUX temporalmente ocupado',
+    };
+  }
+}
+
 async function testHuggingFace(token: string): Promise<EngineCheckStatus> {
-  if (!token) return { configured: false, ok: false, detail: 'No configurado (Opcional 100% gratis en huggingface.co)' };
+  if (!token) {
+    return probeDirectFluxSpace();
+  }
   try {
     const whoResp = await fetch('https://huggingface.co/api/whoami-v2', {
       headers: { Authorization: `Bearer ${token}` },
@@ -201,7 +240,8 @@ export async function POST(req: NextRequest) {
     body = {};
   }
 
-  const customApiKey = String(body.customApiKey ?? '').trim().slice(0, 260);
+  const rawCustomKey = String(body.customApiKey ?? '').trim().slice(0, 260);
+  const customApiKey = isValidCustomKey(rawCustomKey) ? rawCustomKey : '';
   const preferredModel = String(body.preferredModel ?? '').trim().slice(0, 80);
 
   const isLocalHost = req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
@@ -250,19 +290,18 @@ export async function POST(req: NextRequest) {
   if (anyOfficialImageReady) {
     const activeNames = [
       geminiImageStatus.ok ? 'Google Nano Banana' : '',
-      hfStatus.ok ? 'HuggingFace FLUX.1-schnell' : '',
+      hfStatus.ok ? 'FLUX.1-schnell HD Directo' : '',
       openaiStatus.ok ? 'OpenAI GPT-Image' : '',
     ].filter(Boolean);
-    summary = `Motor oficial listo: ${activeNames.join(' + ')}. Ya no usará Pollinations.`;
-    recommendation = 'Ya puedes pulsar "Refresh Lock", "Generate Full Wrap" o "Generate High-Res Ink".';
+    summary = `Motor listo sin clave ni marca de agua: ${activeNames.join(' + ')}.`;
+    recommendation = 'Ya puedes pulsar "Generar" en Personajes, Portada 16:9 o Páginas 3:4.';
   } else if (geminiImageStatus.code === 429) {
-    summary = 'Por eso salió pollinations.ai: Google bloqueó las imágenes en el Plan Gratis (HTTP 429).';
+    summary = 'Google está en Plan Gratis (HTTP 429) y el nodo directo estuvo temporalmente ocupado.';
     recommendation =
-      'Elige una solución: (A) Crea un token 100% gratis (sin tarjeta) en huggingface.co/settings/tokens con permiso "Make calls to Inference Providers", pégalo abajo en 🔑 Pegar llave propia y selecciona FLUX.1 Schnell HD; o (B) Activa Facturación Tier 1 en aistudio.google.com/apikey para desbloquear Nano Banana Pro.';
+      'Vuelve a intentar en 10 segundos o pega una llave válida de Gemini Tier 1 / HuggingFace / OpenAI.';
   } else {
-    summary = 'Ningún motor oficial de imagen tiene cuota o clave válida todavía (usando respaldo Pollinations).';
-    recommendation =
-      'Pega un token gratuito hf_... de HuggingFace (sin tarjeta) o una clave Gemini Tier 1 / OpenAI sk-... abajo para probar al instante.';
+    summary = 'Ningún motor HD respondió en este momento.';
+    recommendation = 'Vuelve a probar en unos segundos o agrega una llave propia válida.';
   }
 
   const result: HealthDiagnosticsResponse = {
