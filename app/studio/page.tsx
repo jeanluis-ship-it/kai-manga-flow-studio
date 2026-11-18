@@ -196,7 +196,7 @@ export default function StudioPage() {
       }
       const data = (await resp.json()) as EngineDiagnosticsState;
       setEngineDiagnostics(data);
-      setToast(data.ok ? '✅ Motor HD listo para generar sin marca de agua.' : '⚠️ Diagnóstico completado: revisa el estado.');
+      setToast(data.ok ? '✅ Conexión verificada. Revisa la cuota del proveedor.' : '⚠️ Ningún motor de imágenes confirmado. Revisa el diagnóstico.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error probando la conexión de motores.');
     } finally {
@@ -271,7 +271,7 @@ export default function StudioPage() {
       diagnosticReason?: string;
     };
     if (!resp.ok || !data.image) {
-      throw new Error(data.error || `Error HTTP ${resp.status}`);
+      throw new Error([data.error || `Error HTTP ${resp.status}`, data.diagnosticReason].filter(Boolean).join(' · '));
     }
     consumeCredit();
     const report = data.note ? `${data.model || selectedModel} (${data.note})` : data.model || selectedModel;
