@@ -1209,7 +1209,7 @@ export default function StudioPage() {
 
           <div className="inspector-card">
             <span className="section-label" style={{ padding: 0 }}>
-              Motor de Imagen IA (Elegible)
+              Motor de Generación de Imágenes
             </span>
             <div className="field-group">
               <label>Modelo activo</label>
@@ -1230,7 +1230,7 @@ export default function StudioPage() {
               </select>
             </div>
             <small style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.4 }}>
-              Incluye FLUX.1 Schnell HD directo y gratis sin clave ni marca de agua.
+              FLUX.1 Schnell funciona en un Space compartido. Puede generar sin clave cuando hay GPU disponible; la capacidad no está garantizada.
             </small>
 
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1344,7 +1344,7 @@ export default function StudioPage() {
                   fontWeight: 700,
                 }}
               >
-                Último render: {lastModelReport}
+                Última generación exitosa: {lastModelReport}
               </div>
             )}
             {lastProviderStatus === 'free-fallback' && lastDiagnosticReason && (
