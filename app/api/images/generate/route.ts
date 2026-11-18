@@ -642,17 +642,6 @@ export async function POST(req: NextRequest) {
       diagnostics.push(directFlux.diagnostic);
     }
 
-    const hasGemini429 = diagnostics.some((d) => d.includes('HTTP_429'));
-    let diagnosticReason = '';
-    if (hasGemini429) {
-      diagnosticReason =
-        'Google está en Plan Gratis (HTTP 429) y el nodo directo estuvo ocupado; se usó respaldo temporal.';
-    } else if (diagnostics.length > 0) {
-      diagnosticReason = `Motor directo temporalmente ocupado (${diagnostics.slice(0, 2).join(', ')}).`;
-    } else {
-      diagnosticReason = 'Usando motor de respaldo.';
-    }
-
     // Branch C: Pollinations API (only with explicit secret key; legacy image.pollinations.ai is retired).
     const pollinationsKey = (process.env.POLLINATIONS_API_KEY || '').trim();
     if (pollinationsKey) {
