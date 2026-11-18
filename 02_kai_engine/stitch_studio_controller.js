@@ -266,8 +266,12 @@
     if (savedBadge) {
       savedBadge.style.borderColor = '#10B981';
       savedBadge.style.color = '#10B981';
+      savedBadge.style.cursor = 'pointer';
       savedBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full" style="background:#10B981"></span>Settei Sync';
-      savedBadge.title = 'Frame 0 Token: SUPABASE / ESTADO (#10B981)';
+      savedBadge.title = 'Haz clic para sincronizar/exportar las tablas Supabase (projects, settei_bibles, pages, komas)';
+      savedBadge.addEventListener('click', () => {
+        if (window.triggerSupabaseSync) window.triggerSupabaseSync();
+      });
     }
 
     const headerButtons = document.querySelectorAll('header button');
@@ -1743,8 +1747,12 @@
       const cfg = window.KAIMangaImageRouter.getConfig();
       const gInput = document.getElementById('cfg-gemini-key');
       const hfInput = document.getElementById('cfg-hf-token');
+      const sbUrlInput = document.getElementById('cfg-supabase-url');
+      const sbKeyInput = document.getElementById('cfg-supabase-key');
       if (gInput) gInput.value = cfg.geminiApiKey || '';
       if (hfInput) hfInput.value = cfg.hfToken || '';
+      if (sbUrlInput) sbUrlInput.value = cfg.supabaseUrl || '';
+      if (sbKeyInput) sbKeyInput.value = cfg.supabaseAnonKey || '';
     }
   };
 
@@ -1759,28 +1767,50 @@
   window.saveStudioApiSettings = function () {
     const gInput = document.getElementById('cfg-gemini-key');
     const hfInput = document.getElementById('cfg-hf-token');
+    const sbUrlInput = document.getElementById('cfg-supabase-url');
+    const sbKeyInput = document.getElementById('cfg-supabase-key');
     if (window.KAIMangaImageRouter) {
       window.KAIMangaImageRouter.saveConfig({
         engine: state.selectedEngine,
         geminiApiKey: gInput ? gInput.value.trim() : '',
-        hfToken: hfInput ? hfInput.value.trim() : ''
+        hfToken: hfInput ? hfInput.value.trim() : '',
+        supabaseUrl: sbUrlInput ? sbUrlInput.value.trim() : '',
+        supabaseAnonKey: sbKeyInput ? sbKeyInput.value.trim() : ''
       });
     }
     window.closeStudioModals();
-    window.showStudioToast('✓ Configuración de llaves y KAI Middleware guardada');
+    window.showStudioToast('✓ Configuración de llaves, Supabase y KAI Middleware guardada');
+  };
+
+  window.triggerSupabaseSync = async function () {
+    if (!window.KAISupabaseSync) return;
+    const sbUrlInput = document.getElementById('cfg-supabase-url');
+    const sbKeyInput = document.getElementById('cfg-supabase-key');
+    if (sbUrlInput && sbKeyInput && window.KAIMangaImageRouter) {
+      window.KAIMangaImageRouter.saveConfig({
+        supabaseUrl: sbUrlInput.value.trim(),
+        supabaseAnonKey: sbKeyInput.value.trim()
+      });
+    }
+    const res = await window.KAISupabaseSync.syncOrExportProject(state);
+    if (res && res.message) {
+      window.showStudioToast(res.message);
+    }
   };
 
   window.createNewSetteiCharacter = async function () {
     const nameInput = document.getElementById('new-char-name');
+    const entityTypeSelect = document.getElementById('new-char-entity-type');
     const roleInput = document.getElementById('new-char-role');
     const appInput = document.getElementById('new-char-appearance');
     const anchorsInput = document.getElementById('new-char-anchors');
     const saveBtn = document.getElementById('btn-save-new-char');
 
     const rawName = (nameInput?.value || '').trim() || 'Protagonista';
+    const entityType = (entityTypeSelect?.value || 'character').trim();
     const cleanName = rawName.replace(/^@/, '');
     const handle = '@' + cleanName;
-    const role = (roleInput?.value || '').trim() || 'Protagonista · Settei';
+    const role = (roleInput?.value || '').trim() || `Settei (${entityType})`;
     const appearance = (appInput?.value || '').trim() || 'Personaje manga seinen en tinta Sumi de alto contraste.';
     const anchors = (anchorsInput?.value || 'Trazo G-Pen, Rasgo Distintivo')
       .split(',')
@@ -1816,12 +1846,14 @@
       handle,
       name: cleanName,
       character_name: cleanName,
+      entity_type: entityType,
       role,
       seed,
       appearance,
       clothing: anchors.join(', '),
       anchors,
       visual_anchors: anchors,
+      base_prompt_token: `${cleanName} (${appearance}, ${anchors.join(', ')})`,
       turnaround_sheet_url: portraitUrl,
       style_preset: 'Taíno Ancestral Ink',
       portraitUrl

@@ -2731,9 +2731,19 @@
       </button>
     </div>
     <div class="space-y-3 font-label-md text-label-md">
-      <div>
-        <label class="block font-label-technical text-label-technical text-on-surface-variant uppercase mb-1">Nombre / Etiqueta (@Handle)</label>
-        <input id="new-char-name" type="text" placeholder="Ej: @Caonabo" class="w-full px-3 py-1.5 rounded bg-surface-container-low border border-surface-container-highest text-on-surface focus:outline-none focus:border-secondary"/>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-label-technical text-label-technical text-on-surface-variant uppercase mb-1">Nombre / Etiqueta (@Handle)</label>
+          <input id="new-char-name" type="text" placeholder="Ej: @Caonabo" class="w-full px-3 py-1.5 rounded bg-surface-container-low border border-surface-container-highest text-on-surface focus:outline-none focus:border-secondary"/>
+        </div>
+        <div>
+          <label class="block font-label-technical text-label-technical text-on-surface-variant uppercase mb-1">Tipo Entidad (entity_type)</label>
+          <select id="new-char-entity-type" class="w-full px-2.5 py-1.5 rounded bg-surface-container-low border border-surface-container-highest text-on-surface focus:outline-none focus:border-secondary">
+            <option value="character">character (Personaje)</option>
+            <option value="prop">prop (Objeto / Arma)</option>
+            <option value="environment">environment (Escenario)</option>
+          </select>
+        </div>
       </div>
       <div>
         <label class="block font-label-technical text-label-technical text-on-surface-variant uppercase mb-1">Rol Arquetípico</label>
@@ -2789,9 +2799,19 @@
         <label class="block font-label-technical text-label-technical text-on-surface-variant uppercase mb-1">HuggingFace Token (Opcional p/ FLUX.1-schnell sin espera)</label>
         <input id="cfg-hf-token" type="password" placeholder="hf_..." class="w-full px-3 py-1.5 rounded bg-surface-container-low border border-surface-container-highest text-on-surface font-mono text-xs"/>
       </div>
+      <div class="p-3 rounded-lg border border-[#10B981]/50 bg-[#10B981]/5 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-label-technical text-label-technical font-bold text-[#065F46]">🟢 SUPABASE POSTGRESQL SYNC (projects · settei_bibles · pages · komas)</span>
+          <button onclick="triggerSupabaseSync()" type="button" class="px-2.5 py-1 rounded text-white font-label-technical text-[10px] font-bold" style="background:#10B981">☁️ Sincronizar / Exportar JSONB</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="cfg-supabase-url" type="text" placeholder="https://xyz.supabase.co" class="w-full px-2.5 py-1 rounded bg-surface-container-lowest border border-surface-container-highest text-on-surface font-mono text-xs"/>
+          <input id="cfg-supabase-key" type="password" placeholder="SUPABASE_ANON_KEY (eyJ...)" class="w-full px-2.5 py-1 rounded bg-surface-container-lowest border border-surface-container-highest text-on-surface font-mono text-xs"/>
+        </div>
+      </div>
     </div>
     <div class="flex items-center justify-between pt-2 border-t border-surface-container-highest">
-      <span class="font-label-technical text-label-technical text-tertiary font-semibold">● Proxy Serverless /api/generate Activo</span>
+      <span class="font-label-technical text-label-technical text-tertiary font-semibold">● Proxy Serverless /api/generate + Esquema SQL Activos</span>
       <div class="flex items-center gap-2">
         <button onclick="closeStudioModals()" class="px-3 py-1.5 rounded bg-surface-container text-on-surface font-label-md text-label-md" type="button">Cerrar</button>
         <button onclick="saveStudioApiSettings()" class="px-4 py-1.5 rounded bg-primary-container hover:bg-primary text-on-primary-container font-label-lg text-label-lg font-semibold" type="button">Guardar Cambios</button>
@@ -2804,4 +2824,5 @@
   <span id="studio-toast-text">Listo</span>
 </div>
 <script src="02_kai_engine/manga_image_router.js"></script>
+<script src="02_kai_engine/supabase_studio_sync.js"></script>
 <script src="02_kai_engine/stitch_studio_controller.js"></script></div><footer class="fixed bottom-0 left-0 right-0 h-[32px] bg-surface-container-lowest border-t border-surface-container-highest z-50 px-margin flex items-center justify-between font-label-technical text-label-technical text-on-surface-variant"><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Formato:</strong> Tankōbon B6 (128x182mm)</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Sangrado:</strong> 3mm</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Resolución:</strong> 600 DPI Monocromo</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Zoom:</strong> 125%</span></div><div class="flex items-center gap-space-md"><span><strong class="text-on-surface font-semibold">Motor:</strong> Nano Banana 2 HD</span><span class="text-surface-dim">|</span><span><strong class="text-on-surface font-semibold">Coordenadas:</strong> X: 64.2mm Y: 91.0mm</span><span class="text-surface-dim">|</span><span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span><strong class="text-on-surface font-semibold">Memoria VRAM:</strong> 3.4 / 16 GB</span></div></footer></body></html>
