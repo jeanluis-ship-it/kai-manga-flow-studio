@@ -83,7 +83,7 @@ export function buildKdpBundleSnapshot(project: MangaProject) {
       synopsis: project.premise,
       world: project.world,
       world_rules: project.worldRules,
-      preferred_model: project.selectedModel || 'gemini-3-pro-image',
+      preferred_model: project.selectedModel || 'flux-schnell-hf',
       cover_prompt: project.coverPrompt || '',
       has_cover_wrap: Boolean(project.coverWrapImage),
     },

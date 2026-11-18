@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI, { toFile } from 'openai';
+import OpenAI from 'openai';
 import { timingSafeEqual } from 'node:crypto';
 import { CLOUDFLARE_IMAGE_MODEL, IMAGE_MODES } from '@/lib/prompts';
 import { cloudflareImageConfig, generateCloudflareImage } from '@/lib/cloudflare-images';
@@ -420,7 +420,7 @@ export async function POST(req: NextRequest) {
 
     // Respect the explicitly chosen provider: do not silently generate from another provider.
     if (preferredModel.startsWith('gpt-') && !activeOpenaiKey) {
-      return NextResponse.json({ error: 'OpenAI Images no está configurado. Agrega OPENAI_API_KEY a Vercel y comprueba la facturación de API.' }, { status: 503 });
+      return NextResponse.json({ error: 'Para generar con GPT Imágenes, agrega una clave de OpenAI con saldo en «Llave» o configura OPENAI_API_KEY en Vercel.' }, { status: 503 });
     }
     if ((preferredModel.startsWith('gemini-') || preferredModel.startsWith('imagen-')) && !activeGeminiKey) {
       return NextResponse.json({ error: 'Google Images no está configurado. Agrega GEMINI_API_KEY con cuota de imágenes habilitada.' }, { status: 503 });
@@ -540,7 +540,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const primaryRef = refs[0] ?? null;
+
 
     let compactPrompt = buildCompactPrompt({
       name: name || 'Protagonista',
@@ -553,32 +553,22 @@ export async function POST(req: NextRequest) {
     });
 
     // Branch A: OpenAI Images API (when OPENAI_API_KEY or sk-... key is configured and chosen or default)
-    if (activeOpenaiKey && (!preferredModel || preferredModel.startsWith('gpt-') || customApiKey.startsWith('sk-') || (!activeGeminiKey && !activeHfKey))) {
-      const client = new OpenAI({ apiKey: activeOpenaiKey, timeout: 110_000 });
-      // Fast for new drafts; precise edits can use OPENAI_IMAGE_MODEL=gpt-image-2.5-sunburst.
-      const model = (preferredModel.startsWith('gpt-') ? preferredModel : process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare';
-      const size =
-        aspectRatio === '16:9'
-          ? ('1536x1024' as const)
-          : aspectRatio === '1:1'
-          ? ('1024x1024' as const)
-          : ('1024x1536' as const);
-      const params = { model, prompt, size, quality: 'medium' as const, output_format: 'png' as const };
-      const result = primaryRef
-        ? await client.images.edit({
-            ...params,
-            image: await toFile(Buffer.from(await primaryRef.arrayBuffer()), primaryRef.name || 'reference.png', { type: primaryRef.type }),
-          })
+    if (activeOpenaiKey && (!preferredModel || preferredModel.startsWith('gpt-'))) {
+      const client = new OpenAI({ apiKey: activeOpenaiKey, timeout: 105_000, maxRetries: 0 });
+      const model = preferredModel || process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare';
+      const sizes: Record<string, string> = {
+        '1:1': '1024x1024', '3:4': '864x1152', '4:3': '1152x864',
+        '16:9': '1536x864', '9:16': '864x1536',
+      };
+      const params = { model, prompt, size: sizes[aspectRatio], quality: 'medium' as const, output_format: 'webp' as const };
+      const result = refs.length
+        ? await client.images.edit({ ...params, image: refs })
         : await client.images.generate(params);
-      const b64 = result.data?.[0]?.b64_json;
-      if (b64) {
-        return NextResponse.json({
-          image: `data:image/png;base64,${b64}`,
-          mode: modeData.id,
-          model,
-          providerStatus: 'official-ai',
-        });
-      }
+      const image = result.data?.[0]?.b64_json;
+      if (!image) return NextResponse.json({ error: 'OpenAI respondió sin imagen. Prueba con otra descripción.' }, { status: 502 });
+      return NextResponse.json({
+        image: `data:image/webp;base64,${image}`, mode: modeData.id, model, providerStatus: 'official-ai',
+      });
     }
 
     const diagnostics: string[] = [];
@@ -722,6 +712,14 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     // Do not expose upstream request objects, keys or internal error contents to browsers.
     const status = typeof err === 'object' && err !== null && 'status' in err ? Number((err as { status?: number }).status) : 500;
+    if (err instanceof OpenAI.APIError) {
+      if (err.code === 'insufficient_quota' || err.code === 'billing_hard_limit_reached') {
+        return NextResponse.json({ error: 'El proyecto de OpenAI requiere saldo disponible para generar imágenes.' }, { status: 402 });
+      }
+      if (status === 401 || status === 403 || status === 404) {
+        return NextResponse.json({ error: 'Revisa la clave, el acceso al modelo y la verificación de tu organización en OpenAI.' }, { status });
+      }
+    }
     if (status === 429) return NextResponse.json({ error: 'Se alcanzó un límite temporal de la API. Prueba más tarde.' }, { status: 429 });
     if (status === 400) return NextResponse.json({ error: 'La API rechazó el prompt o la imagen de referencia.' }, { status: 400 });
     console.error('MANGAI image generation failed', err instanceof Error ? err.message : 'Unknown error');

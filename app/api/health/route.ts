@@ -222,15 +222,15 @@ async function testHuggingFace(token: string): Promise<EngineCheckStatus> {
   }
 }
 
-async function testOpenAI(apiKey: string): Promise<EngineCheckStatus> {
+async function testOpenAI(apiKey: string, model = 'gpt-image-2.5-flare'): Promise<EngineCheckStatus> {
   if (!apiKey) return { configured: false, ok: false, detail: 'No configurado.' };
   try {
-    const resp = await fetch('https://api.openai.com/v1/models', {
+    const resp = await fetch(`https://api.openai.com/v1/models/${encodeURIComponent(model)}`, {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(6_000),
     });
     if (resp.ok) {
-      return { configured: true, ok: true, code: 200, detail: '✅ Clave OpenAI válida y conectada' };
+      return { configured: true, ok: true, code: 200, detail: `Acceso al modelo ${model} confirmado. La generación usa saldo de API.` };
     }
     if (resp.status === 401) {
       return { configured: true, ok: false, code: 401, detail: '❌ Clave OpenAI inválida (HTTP 401)' };
@@ -254,6 +254,17 @@ export async function POST(req: NextRequest) {
   const preferredModel = String(body.preferredModel ?? '').trim().slice(0, 80);
 
   const isLocalHost = req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
+  if (preferredModel.startsWith('gpt-')) {
+    const key = customApiKey.startsWith('sk-') ? customApiKey : process.env.OPENAI_API_KEY || '';
+    const openaiStatus = await testOpenAI(key, preferredModel);
+    const skipped = { configured: false, ok: false, detail: 'Sin comprobar para este modelo.' };
+    return NextResponse.json({
+      ok: openaiStatus.ok, source: isLocalHost ? 'local' : 'vercel',
+      summary: openaiStatus.ok ? 'Modelo de OpenAI accesible.' : 'GPT Imágenes requiere una clave con acceso al modelo.',
+      recommendation: key ? openaiStatus.detail : 'Usa una clave personal con saldo en «Llave» o configura OPENAI_API_KEY en el servidor.',
+      openaiStatus, geminiTextStatus: skipped, geminiImageStatus: skipped, hfStatus: skipped,
+    } satisfies HealthDiagnosticsResponse);
+  }
   if (preferredModel === CLOUDFLARE_IMAGE_MODEL) {
     const configured = Boolean(cloudflareImageConfig());
     const unchecked = { configured: false, ok: false, detail: 'Sin comprobar para el modelo seleccionado.' };

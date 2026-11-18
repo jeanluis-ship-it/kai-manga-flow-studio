@@ -86,7 +86,7 @@ export const exampleProject: MangaProject = {
   paperThicknessMm: 0.12,
   coverPrompt: ANACAONA_COVER_PROMPT_PRESET,
   coverWrapImage: '',
-  selectedModel: 'gemini-3-pro-image',
+  selectedModel: 'flux-schnell-hf',
   characters: [
     {
       id: 'anacaona',

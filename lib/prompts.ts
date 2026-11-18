@@ -33,7 +33,12 @@ export const AI_MODELS = [
   },
   {
     id: 'gpt-image-2.5-flare',
-    label: '✨ OpenAI GPT-Image 2.5 Flare',
+    label: 'GPT Imágenes · Flare (bocetos)',
+    provider: 'openai',
+  },
+  {
+    id: 'gpt-image-2.5-sunburst',
+    label: 'GPT Imágenes · Sunburst (edición con referencias)',
     provider: 'openai',
   },
 ] as const;
