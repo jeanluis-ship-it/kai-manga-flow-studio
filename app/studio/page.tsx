@@ -3,116 +3,84 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
-  ArrowRight,
   BookOpen,
   Check,
-  CircleHelp,
-  Database,
   Download,
-  ExternalLink,
   FileJson,
-  FileText,
-  Globe2,
-  ImagePlus,
-  Layers,
-  LayoutGrid,
+  Grid,
   Lock,
-  LockOpen,
-  Menu,
   Plus,
+  Printer,
   RefreshCw,
-  Ruler,
-  Save,
-  Send,
-  ShieldCheck,
+  Settings2,
   Sparkles,
+  Trash2,
   Upload,
+  UserCheck,
   Users,
-  WandSparkles,
   X,
 } from 'lucide-react';
 import {
+  AI_MODELS,
+  ANACAONA_CHARACTER_PRESET,
+  ANACAONA_COVER_PROMPT_PRESET,
+  ANACAONA_PAGE_1_SCRIPT_PRESET,
+  MANGA_STYLES,
+} from '@/lib/prompts';
+import {
   blankCharacter,
-  defaultKomas,
+  defaultPages,
   exampleProject,
-  KOMA_STATES,
-  type KomaPanel,
-  type KomaState,
   type MangaCharacter,
+  type MangaPage,
   type MangaProject,
-  type ProductionRoute,
 } from '@/lib/schema';
-import { exportProject, exportSupabaseSnapshot, loadProject, saveProject } from '@/lib/storage';
-import { IMAGE_MODES, MANGA_STYLES } from '@/lib/prompts';
+import { exportKdpBundleSnapshot, exportProject, loadProject, saveProject } from '@/lib/storage';
 import './studio.css';
 
-type Tab = 'start' | 'settei' | 'characters' | 'image' | 'genko' | 'project';
+type StudioView = 'project' | 'characters' | 'cover' | 'pages';
 
-const nav: { id: Tab; label: string; subtitle: string; Icon: typeof BookOpen }[] = [
-  { id: 'settei', label: 'Settei Hub', subtitle: 'Universo y lore', Icon: Globe2 },
-  { id: 'characters', label: 'Personajes', subtitle: 'Fichas y canon', Icon: Users },
-  { id: 'image', label: 'Generar imágenes', subtitle: 'Motor visual híbrido', Icon: WandSparkles },
-  { id: 'genko', label: 'Genkō & Tankōbon', subtitle: 'Viñetas S0-S5 y Lomo', Icon: Layers },
-  { id: 'project', label: 'Mi proyecto', subtitle: 'Estado y exportación', Icon: LayoutGrid },
-];
-
-const SCREENTONE_OPTIONS = [
-  { id: 'none', label: 'Sin trama (blanco puro)' },
-  { id: '60L_suave', label: '60L Trama suave (atmósfera)' },
-  { id: '60L_dramatico', label: '60L Contraste dramático' },
-  { id: 'trama_velocidad', label: 'Líneas cinéticas / beta' },
-];
-
-const freshProject = (): MangaProject => ({
-  id: crypto.randomUUID(),
-  version: 1,
-  updatedAt: new Date().toISOString(),
-  title: 'Sin título',
-  premise: '',
-  genre: 'Fantasía',
-  world: '',
-  worldRules: '',
-  worldLocked: false,
-  characters: [],
-  komas: defaultKomas(),
-  totalPages: 192,
-  paperThicknessMm: 0.12,
-});
+async function dataUrlToFile(dataUrl: string, filename: string): Promise<File | null> {
+  try {
+    const resp = await fetch(dataUrl);
+    const blob = await resp.blob();
+    const mime = ['image/png', 'image/jpeg', 'image/webp'].includes(blob.type) ? blob.type : 'image/png';
+    return new File([blob], filename, { type: mime });
+  } catch {
+    return null;
+  }
+}
 
 export default function StudioPage() {
   const [project, setProject] = useState<MangaProject>(exampleProject);
-  const [tab, setTab] = useState<Tab>('start');
-  const [selectedId, setSelectedId] = useState('mira');
-  const [selectedKomaIndex, setSelectedKomaIndex] = useState(1);
+  const [view, setView] = useState<StudioView>('characters');
+  const [activePageIndex, setActivePageIndex] = useState(0);
   const [hydrated, setHydrated] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [toast, setToast] = useState('');
-  const [imageMode, setImageMode] = useState('portrait');
-  const [visualStyle, setVisualStyle] = useState<string>(MANGA_STYLES[0]);
-  const [notes, setNotes] = useState('');
-  const [reference, setReference] = useState<File | null>(null);
-  const [useGeneratedAsReference, setUseGeneratedAsReference] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatedModel, setGeneratedModel] = useState('');
+
+  // Selected generation model & UI toggles
+  const [selectedModel, setSelectedModel] = useState<string>(AI_MODELS[0].id);
+  const [showGuides, setShowGuides] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [lockingCharId, setLockingCharId] = useState<string | null>(null);
+  const [lastModelReport, setLastModelReport] = useState('');
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
   const [trialCredits, setTrialCredits] = useState(5);
+
+  // Modal Character Identity (matching video_2.mp4)
+  const [editingChar, setEditingChar] = useState<MangaCharacter | null>(null);
   const [importError, setImportError] = useState('');
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('mangai-project-v1');
-    if (saved) {
-      const p = loadProject();
-      setProject(p);
-      setSelectedId(p.characters[0]?.id ?? '');
-      setTab('settei');
+    const loaded = loadProject();
+    setProject(loaded);
+    if (loaded.selectedModel) {
+      setSelectedModel(loaded.selectedModel);
     }
     const savedCredits = window.localStorage.getItem('mangai-trial-credits-v1');
     if (savedCredits !== null) {
       const parsed = Number(savedCredits);
-      if (Number.isFinite(parsed) && parsed >= 0) {
-        setTrialCredits(parsed);
-      }
+      if (Number.isFinite(parsed) && parsed >= 0) setTrialCredits(parsed);
     }
     setHydrated(true);
   }, []);
@@ -123,115 +91,253 @@ export default function StudioPage() {
 
   useEffect(() => {
     if (!toast) return;
-    const id = window.setTimeout(() => setToast(''), 4200);
+    const id = window.setTimeout(() => setToast(''), 4400);
     return () => clearTimeout(id);
   }, [toast]);
 
-  const selected = useMemo(
-    () => project.characters.find((c) => c.id === selectedId) ?? project.characters[0] ?? null,
-    [project, selectedId],
-  );
+  const pages = useMemo<MangaPage[]>(() => {
+    if (project.pages && project.pages.length > 0) return project.pages;
+    return defaultPages(project.characters[0] ? [project.characters[0].id] : []);
+  }, [project.pages, project.characters]);
 
-  const komas = useMemo(
-    () => (project.komas && project.komas.length > 0 ? project.komas : defaultKomas()),
-    [project.komas],
-  );
-
-  const activeKoma = useMemo(
-    () => komas.find((k) => k.panelIndex === selectedKomaIndex) ?? komas[0],
-    [komas, selectedKomaIndex],
-  );
-
-  const totalPages = project.totalPages ?? 192;
-  const paperThicknessMm = project.paperThicknessMm ?? 0.12;
-  const spineWidthMm = ((totalPages / 2) * paperThicknessMm).toFixed(2);
-  const lockedKomasCount = komas.filter((k) => k.state === 'LOCKED').length;
+  const currentPage = pages[activePageIndex] ?? pages[0];
+  const totalPages = Math.max(24, Number(project.totalPages) || 100);
+  const paperType = project.paperType === 'white' ? 'white' : 'cream';
+  const spineInches = Math.max(0.1, totalPages * (paperType === 'white' ? 0.002252 : 0.0025));
+  const spineMm = ((totalPages / 2) * (Number(project.paperThicknessMm) || 0.12)).toFixed(2);
 
   function updateProject(patch: Partial<MangaProject>) {
-    setProject((old) => ({ ...old, ...patch, updatedAt: new Date().toISOString() }));
-  }
-
-  function updateChar(patch: Partial<MangaCharacter>) {
-    if (!selected || selected.canonLocked) return;
     setProject((old) => ({
       ...old,
+      ...patch,
       updatedAt: new Date().toISOString(),
-      characters: old.characters.map((c) => (c.id === selected.id ? { ...c, ...patch } : c)),
     }));
   }
 
-  function updateKoma(panelIndex: number, patch: Partial<KomaPanel>) {
-    setProject((old) => {
-      const current = old.komas && old.komas.length > 0 ? old.komas : defaultKomas();
-      return {
-        ...old,
-        updatedAt: new Date().toISOString(),
-        komas: current.map((k) => (k.panelIndex === panelIndex ? { ...k, ...patch } : k)),
-      };
-    });
+  function updatePage(idx: number, patch: Partial<MangaPage>) {
+    const nextPages = [...pages];
+    nextPages[idx] = { ...nextPages[idx], ...patch };
+    updateProject({ pages: nextPages });
   }
 
-  function sendKomaToImageTab(koma: KomaPanel) {
-    const promptLines = [
-      `Koma #${koma.panelIndex} · Plano: ${koma.cameraAngle || 'Plano medio'}.`,
-      koma.actionPrompt.trim() ? `Escena: ${koma.actionPrompt.trim()}` : '',
-      koma.screentoneL1 && koma.screentoneL1 !== 'none' ? `Trama sugerida: ${koma.screentoneL1}.` : '',
-      koma.dialogueL5.trim() ? `Reserva espacio superior para globo de diálogo ("${koma.dialogueL5.trim()}").` : '',
-      koma.sfxL4.trim() ? `Acción cinética / SFX referencia: ${koma.sfxL4.trim()}.` : '',
-    ].filter(Boolean);
-    setNotes(promptLines.join('\n'));
-    setImageMode('panel');
-    setTab('image');
-    setToast(`Koma #${koma.panelIndex} enviado al motor visual en modo Viñeta.`);
-  }
-
-  function toggleCharLock() {
-    if (!selected) return;
-    setProject((old) => ({
-      ...old,
-      characters: old.characters.map((c) =>
-        c.id === selected.id ? { ...c, canonLocked: !c.canonLocked, status: !c.canonLocked ? 'approved' : 'draft' } : c,
-      ),
-    }));
-    setToast(selected.canonLocked ? 'Canon desbloqueado para editar.' : 'Identidad aprobada y bloqueada como canon.');
-  }
-
-  function addCharacter() {
-    const ch = blankCharacter();
-    setProject((old) => ({ ...old, characters: [...old.characters, ch] }));
-    setSelectedId(ch.id);
-    setTab('characters');
-    setToast('Nueva ficha creada.');
-  }
-
-  function startNewProject() {
-    const p = freshProject();
-    setProject(p);
-    setSelectedId('');
-    setSelectedKomaIndex(1);
-    setTab('settei');
-    setGeneratedImage(null);
-    setToast('Proyecto nuevo creado. Tus datos están en este navegador.');
-  }
-
-  function chooseExample() {
-    setProject(exampleProject);
-    setSelectedId('mira');
-    setSelectedKomaIndex(1);
-    setTab('settei');
-    setToast('Ejemplo cargado. Ahora puedes editarlo.');
-  }
-
-  function changeTab(next: Tab) {
-    setTab(next);
-    setMenuOpen(false);
-  }
-
-  function rechargeTrialCredits() {
+  function rechargeCredits() {
     setTrialCredits(5);
     window.localStorage.setItem('mangai-trial-credits-v1', '5');
     setError('');
-    setToast('🎨 Créditos recargados: tienes 5 pruebas disponibles.');
+    setToast('🎨 Créditos recargados: 5 generaciones disponibles.');
+  }
+
+  function consumeCredit() {
+    setTrialCredits((old) => {
+      const next = Math.max(0, old - 1);
+      window.localStorage.setItem('mangai-trial-credits-v1', String(next));
+      return next;
+    });
+  }
+
+  async function callImageEndpoint(opts: {
+    mode: 'sheet' | 'cover_wrap' | 'panel';
+    aspectRatio: '1:1' | '16:9' | '3:4';
+    name: string;
+    details: string;
+    style: string;
+    notes: string;
+    referenceDataUrls?: string[];
+  }) {
+    if (trialCredits <= 0) {
+      throw new Error('Agotaste tus 5 créditos de prueba. Pulsa "+ Recargar" arriba o en el inspector.');
+    }
+
+    const fd = new FormData();
+    fd.set('mode', opts.mode);
+    fd.set('aspectRatio', opts.aspectRatio);
+    fd.set('preferredModel', selectedModel);
+    fd.set('name', opts.name);
+    fd.set('details', opts.details);
+    fd.set('style', opts.style);
+    fd.set('canon', `Obra: ${project.title}. Género: ${project.genre}. Universo: ${project.world}. Reglas: ${project.worldRules}`);
+    fd.set('notes', opts.notes);
+
+    const refList = (opts.referenceDataUrls ?? []).filter((u) => u && u.startsWith('data:image/'));
+    for (let i = 0; i < refList.length; i++) {
+      const file = await dataUrlToFile(refList[i], `ref-${i + 1}.png`);
+      if (file) fd.append('references', file);
+    }
+
+    const resp = await fetch('/api/images/generate', {
+      method: 'POST',
+      body: fd,
+    });
+    const data = (await resp.json()) as { image?: string; error?: string; model?: string; note?: string };
+    if (!resp.ok || !data.image) {
+      throw new Error(data.error || `Error HTTP ${resp.status}`);
+    }
+    consumeCredit();
+    const report = data.note ? `${data.model || selectedModel} (${data.note})` : data.model || selectedModel;
+    setLastModelReport(report);
+    return { image: data.image, model: data.model || selectedModel };
+  }
+
+  // Action 1: Lock Consistency & Generate 4-View Turnaround Sheet on Character Card
+  async function handleSaveAndLockCharacter(charToLock: MangaCharacter, generateSheet: boolean) {
+    if (!charToLock.name.trim() || !charToLock.appearance.trim()) {
+      setError('Escribe al menos el Name y Visual Attributes antes de fijar el personaje.');
+      return;
+    }
+    setError('');
+
+    const exists = project.characters.some((c) => c.id === charToLock.id);
+    const savedChars = exists
+      ? project.characters.map((c) => (c.id === charToLock.id ? charToLock : c))
+      : [...project.characters, charToLock];
+    updateProject({ characters: savedChars });
+    setEditingChar(null);
+
+    if (!generateSheet) {
+      setToast(`Ficha de ${charToLock.name} guardada.`);
+      return;
+    }
+
+    setLockingCharId(charToLock.id);
+    setIsGenerating(true);
+    try {
+      const res = await callImageEndpoint({
+        mode: 'sheet',
+        aspectRatio: '1:1',
+        name: charToLock.name,
+        details: `${charToLock.appearance}. Vestimenta: ${charToLock.wardrobe}`,
+        style: charToLock.visualStyle || 'Dark Seinen',
+        notes: 'Generate a clean 4-view character turnaround reference sheet (front view, side profile, back view, facial close-up) on plain background.',
+      });
+      setProject((old) => ({
+        ...old,
+        updatedAt: new Date().toISOString(),
+        characters: old.characters.map((c) =>
+          c.id === charToLock.id
+            ? { ...c, canonLocked: true, status: 'approved', referenceImage: res.image }
+            : c,
+        ),
+      }));
+      setToast(`🔒 ${charToLock.name} bloqueado con hoja de referencia (${res.model}).`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo generar la hoja del personaje.');
+    } finally {
+      setLockingCharId(null);
+      setIsGenerating(false);
+    }
+  }
+
+  // Action 2: Generate Unified 16:9 Paperback Wrap (Back Cover + Spine + Front Cover)
+  async function handleGenerateFullWrap() {
+    const promptText = (project.coverPrompt || '').trim() || ANACAONA_COVER_PROMPT_PRESET;
+    setError('');
+    setIsGenerating(true);
+    try {
+      const castDetails = project.characters.map((c) => `${c.name}: ${c.appearance}. Vestimenta: ${c.wardrobe}`).join(' | ');
+      const refImages = project.characters.map((c) => c.referenceImage || '').filter(Boolean);
+      const res = await callImageEndpoint({
+        mode: 'cover_wrap',
+        aspectRatio: '16:9',
+        name: project.characters[0]?.name || project.title,
+        details: castDetails || project.premise,
+        style: 'Concept art a color para portada de tankōbon',
+        notes: promptText,
+        referenceDataUrls: refImages,
+      });
+      updateProject({ coverWrapImage: res.image, coverPrompt: promptText });
+      setToast(`✓ Cubierta 16:9 generada con ${res.model}.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo generar la cubierta.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  // Action 3: Generate High-Res 3:4 Interior Manga Page with Active Cast
+  async function handleGenerateInteriorPage() {
+    if (!currentPage) return;
+    const promptText = (currentPage.prompt || '').trim();
+    if (!promptText) {
+      setError('Describe la escena y viñetas de la página o carga el guion de ejemplo con 1 clic.');
+      return;
+    }
+    setError('');
+    setIsGenerating(true);
+    try {
+      const cast = project.characters.filter((c) => currentPage.castIds.includes(c.id));
+      const castDetails = cast.map((c) => `${c.name}: ${c.appearance}. Ropa: ${c.wardrobe}`).join(' | ');
+      const refImages = cast.map((c) => c.referenceImage || '').filter(Boolean);
+      const res = await callImageEndpoint({
+        mode: 'panel',
+        aspectRatio: '3:4',
+        name: cast.map((c) => c.name).join(', ') || project.title,
+        details: castDetails || project.premise,
+        style: currentPage.artStyle || 'Dark Seinen',
+        notes: promptText,
+        referenceDataUrls: refImages,
+      });
+      updatePage(activePageIndex, { image: res.image, modelUsed: res.model });
+      setToast(`✓ Página ${currentPage.pageNumber} entintada con ${res.model}.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo generar la página.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  function addInteriorPage() {
+    const nextNum = pages.length + 1;
+    const nextPages: MangaPage[] = [
+      ...pages,
+      {
+        id: crypto.randomUUID(),
+        pageNumber: nextNum,
+        artStyle: currentPage?.artStyle || 'Dark Seinen',
+        prompt: '',
+        castIds: currentPage?.castIds ?? project.characters.slice(0, 1).map((c) => c.id),
+        image: '',
+        modelUsed: '',
+      },
+    ];
+    updateProject({ pages: nextPages });
+    setActivePageIndex(nextPages.length - 1);
+    setToast(`Página ${nextNum} añadida al manuscrito.`);
+  }
+
+  function startBlankProject() {
+    const blank: MangaProject = {
+      id: crypto.randomUUID(),
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      title: 'Mi Nuevo Manga',
+      author: 'Autor',
+      premise: '',
+      genre: 'Seinen / Aventura',
+      world: '',
+      worldRules: '',
+      worldLocked: false,
+      paperType: 'cream',
+      totalPages: 100,
+      paperThicknessMm: 0.12,
+      coverPrompt: '',
+      coverWrapImage: '',
+      selectedModel,
+      characters: [],
+      pages: [
+        {
+          id: 'page-1',
+          pageNumber: 1,
+          artStyle: 'Dark Seinen',
+          prompt: '',
+          castIds: [],
+          image: '',
+        },
+      ],
+    };
+    setProject(blank);
+    setActivePageIndex(0);
+    setView('characters');
+    setToast('Proyecto en blanco listo. Crea tu primer personaje.');
   }
 
   async function importJSON(evt: ChangeEvent<HTMLInputElement>) {
@@ -253,943 +359,817 @@ export default function StudioPage() {
       }
       const imported = obj as MangaProject;
       setProject(imported);
-      setSelectedId(imported.characters[0]?.id ?? '');
-      setSelectedKomaIndex(1);
+      setActivePageIndex(0);
       setImportError('');
-      setTab('settei');
-      setToast('Proyecto importado.');
+      setToast('Proyecto JSON importado.');
     } catch {
-      setImportError('No se pudo importar. Debe ser un proyecto JSON de MANGAI v1.');
+      setImportError('No se pudo importar. Debe ser un JSON de MANGAI v1.');
     }
     evt.target.value = '';
   }
 
-  async function generateImage() {
-    if (!selected || isGenerating) return;
-    if (trialCredits <= 0) {
-      setError('Agotaste tus 5 créditos de prueba. Pulsa "+ Recargar 5 créditos gratis" para seguir probando.');
-      return;
-    }
-    setError('');
-    setIsGenerating(true);
-    try {
-      const fd = new FormData();
-      fd.set('name', selected.name);
-      fd.set(
-        'details',
-        `Edad: ${selected.age}. Apariencia: ${selected.appearance}. Personalidad: ${selected.personality}. Ropa: ${selected.wardrobe}. Motivación: ${selected.motivation}`,
-      );
-      fd.set('style', visualStyle || selected.visualStyle);
-      fd.set('canon', `Proyecto ${project.title}. Género ${project.genre}. Universo: ${project.world}. Reglas: ${project.worldRules}`);
-      fd.set('mode', imageMode);
-      fd.set('notes', notes);
-      if (reference) {
-        fd.set('reference', reference);
-      } else if (useGeneratedAsReference && generatedImage) {
-        const blob = await (await fetch(generatedImage)).blob();
-        const refType = ['image/png', 'image/jpeg', 'image/webp'].includes(blob.type) ? blob.type : 'image/png';
-        fd.set('reference', new File([blob], 'approved-character.png', { type: refType }));
-      }
-      const res = await fetch('/api/images/generate', {
-        method: 'POST',
-        body: fd,
-      });
-      const data = (await res.json()) as { image?: string; error?: string; model?: string };
-      if (!res.ok || !data.image) throw Error(data.error ?? `Error ${res.status}`);
-      setGeneratedImage(data.image);
-      setGeneratedModel(data.model ?? '');
-      setTrialCredits((old) => {
-        const next = Math.max(0, old - 1);
-        window.localStorage.setItem('mangai-trial-credits-v1', String(next));
-        return next;
-      });
-      setToast(
-        data.model
-          ? `Imagen generada (${data.model}). Descárgala o úsala como referencia.`
-          : 'Imagen generada. Descárgala o úsala como referencia para una variación.',
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo generar la imagen.');
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  function downloadImage() {
-    if (!generatedImage) return;
+  function downloadDataUrl(url: string, filename: string) {
+    if (!url) return;
     const a = document.createElement('a');
-    a.href = generatedImage;
-    a.download = `mangai-${selected?.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') || 'personaje'}-${imageMode}.png`;
+    a.href = url;
+    a.download = filename;
     a.click();
   }
 
-  const canonPct = selected
-    ? Math.round(
-        ([selected.appearance, selected.personality, selected.motivation, selected.wardrobe, selected.age].filter((v) => v.trim()).length /
-          5) *
-          100,
-      )
-    : 0;
-
-  if (!hydrated) return <div className="studio-loading">MANGAI <span>STUDIO</span></div>;
+  if (!hydrated) {
+    return <div className="studio-loading">MANGAI STUDIO</div>;
+  }
 
   return (
-    <div className="studio-app">
-      <aside className={`studio-sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-top">
-          <a className="brand" href="/">
-            <span className="brand-logo">✦</span>
+    <div className="studio-shell">
+      {/* TOP BAR CONNECTED WITH HOME */}
+      <header className="studio-topbar">
+        <div className="topbar-left">
+          <a className="home-brand" href="/">
+            <span className="home-brandmark">✦</span>
             <span>
-              MANGAI <small>CREATOR STUDIO</small>
+              MANGAI<span style={{ color: '#8c5fb7' }}>.</span>
             </span>
           </a>
-          <button className="close-mobile" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)}>
-            <X size={19} />
-          </button>
-        </div>
-        <div className="sidebar-label">MI TALLER</div>
-        <nav aria-label="Módulos del estudio">
-          {nav.map((n) => (
-            <button key={n.id} className={`nav-item ${tab === n.id ? 'active' : ''}`} onClick={() => changeTab(n.id)}>
-              <n.Icon size={18} />
-              <span>
-                <strong>{n.label}</strong>
-                <small>{n.subtitle}</small>
-              </span>
-              {tab === n.id && <span className="nav-active-dot" />}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="project-card">
-            <span>PROYECTO ACTIVO</span>
+          <div className="topbar-sep" />
+          <a className="back-home-pill" href="/">
+            <ArrowLeft size={14} /> Volver al Home
+          </a>
+          <div className="project-badge">
+            <span>Proyecto:</span>
             <strong>{project.title}</strong>
-            <small>{project.characters.length} personajes · Guardado local</small>
           </div>
-          <a href="/" className="return-link">
-            <ArrowLeft size={16} /> Volver a MANGAI
-          </a>
         </div>
-      </aside>
-      {menuOpen && <button className="menu-overlay" onClick={() => setMenuOpen(false)} aria-label="Cerrar menú" />}
-      <main className="studio-main">
-        <header className="studio-header">
-          <div className="header-start">
-            <button className="mobile-menu" aria-label="Abrir menú" onClick={() => setMenuOpen(true)}>
-              <Menu size={21} />
-            </button>
-            <span className="crumb">MANGAI STUDIO</span>
-            <span className="sep">/</span>
-            <strong>{tab === 'start' ? 'Comenzar' : nav.find((n) => n.id === tab)?.label}</strong>
-          </div>
-          <div className="header-end">
-            <span className="saved">
-              <Save size={14} /> LOCAL
-            </span>
-            <button
-              className="icon-circle"
-              title="Ayuda"
-              onClick={() => setToast('Tus fichas se guardan en este navegador. Exporta un JSON como respaldo.')}
-            >
-              <CircleHelp size={17} />
+        <div className="topbar-right">
+          <div className="credits-pill">
+            <span>🎨 Créditos: {trialCredits} / 5</span>
+            <button type="button" onClick={rechargeCredits}>
+              + Recargar
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {tab === 'start' && (
-          <section className="start-view">
-            <div className="start-orb">
-              <Sparkles size={34} />
-            </div>
-            <span className="eyebrow accent">BIENVENIDO AL TALLER</span>
-            <h1>
-              El siguiente universo
-              <br />
-              comienza contigo.
-            </h1>
-            <p>
-              Empieza con una idea. Desarrolla tu lore, diseña personajes, organiza tus viñetas Genkō y crea ilustraciones con el motor visual del estudio.
-            </p>
-            <div className="start-actions">
-              <button className="primary" onClick={startNewProject}>
-                <Plus size={18} /> Crear mi manga
+      {/* 3-COLUMN STUDIO WORKSPACE (VIDEO WORKFLOW ON PAPEL CARTÓN THEME) */}
+      <div className="manga-grid">
+        {/* COLUMN 1: LEFT NAVIGATION RAIL */}
+        <aside className="left-rail">
+          <div className="field-group">
+            <span className="section-label">KDP &amp; Manga Production</span>
+            <nav className="nav-stack" aria-label="Etapas de Producción">
+              <button
+                type="button"
+                className={`nav-btn ${view === 'project' ? 'active' : ''}`}
+                onClick={() => setView('project')}
+              >
+                <Settings2 size={17} /> Print Setup
               </button>
-              <button className="secondary" onClick={chooseExample}>
-                <BookOpen size={18} /> Explorar proyecto de ejemplo
+              <button
+                type="button"
+                className={`nav-btn ${view === 'characters' ? 'active' : ''}`}
+                onClick={() => setView('characters')}
+              >
+                <Users size={17} /> Character Library
               </button>
-            </div>
-            <div className="start-steps">
-              <span>01 IDEA</span>
-              <ArrowRight size={17} />
-              <span>02 LORE</span>
-              <ArrowRight size={17} />
-              <span>03 PERSONAJES</span>
-              <ArrowRight size={17} />
-              <span>04 GENKŌ & ILUSTRAR</span>
-            </div>
-          </section>
-        )}
+              <button
+                type="button"
+                className={`nav-btn ${view === 'cover' ? 'active' : ''}`}
+                onClick={() => setView('cover')}
+              >
+                <BookOpen size={17} /> Paperback Cover
+              </button>
+              <button
+                type="button"
+                className={`nav-btn ${view === 'pages' ? 'active' : ''}`}
+                onClick={() => setView('pages')}
+              >
+                <Grid size={17} /> Interior Pages
+              </button>
+            </nav>
+          </div>
 
-        {tab === 'settei' && (
-          <section className="view">
-            <div className="view-head">
-              <div>
-                <span className="eyebrow accent">01 / SETTEI HUB</span>
-                <h1>Tu universo, tus reglas.</h1>
-                <p>Construye la biblia de tu mundo. KAI te ayuda a ordenar las ideas; tú decides qué es canon.</p>
-              </div>
-              <div className={`canon-state ${project.worldLocked ? 'locked' : ''}`}>
-                {project.worldLocked ? <Lock size={16} /> : <LockOpen size={16} />}{' '}
-                {project.worldLocked ? 'CANON APROBADO' : 'EN DESARROLLO'}
-              </div>
-            </div>
-            <div className="two-col">
-              <div className="panel">
-                <div className="panel-heading">
-                  <Globe2 size={20} />
-                  <strong>Biblia del universo</strong>
-                </div>
-                <label>
-                  Título del manga
-                  <input
-                    disabled={project.worldLocked}
-                    value={project.title}
-                    onChange={(e) => updateProject({ title: e.target.value })}
-                    placeholder="Mi primer manga"
-                  />
-                </label>
-                <label>
-                  Género
-                  <input
-                    disabled={project.worldLocked}
-                    value={project.genre}
-                    onChange={(e) => updateProject({ genre: e.target.value })}
-                    placeholder="Fantasía, sci-fi..."
-                  />
-                </label>
-                <label>
-                  Premisa
-                  <textarea
-                    disabled={project.worldLocked}
-                    rows={4}
-                    value={project.premise}
-                    onChange={(e) => updateProject({ premise: e.target.value })}
-                    placeholder="Una historia sobre..."
-                  />
-                </label>
-                <label>
-                  Descripción del universo
-                  <textarea
-                    disabled={project.worldLocked}
-                    rows={4}
-                    value={project.world}
-                    onChange={(e) => updateProject({ world: e.target.value })}
-                    placeholder="¿Cómo se ve y funciona el mundo?"
-                  />
-                </label>
-                <label>
-                  Reglas inquebrantables
-                  <textarea
-                    disabled={project.worldLocked}
-                    rows={4}
-                    value={project.worldRules}
-                    onChange={(e) => updateProject({ worldRules: e.target.value })}
-                    placeholder="Define los límites, poderes y contradicciones prohibidas."
-                  />
-                </label>
-                <button
-                  className={project.worldLocked ? 'secondary' : 'primary'}
-                  onClick={() => {
-                    updateProject({ worldLocked: !project.worldLocked });
-                    setToast(project.worldLocked ? 'Universo desbloqueado.' : 'Universo aprobado como canon.');
-                  }}
-                >
-                  {project.worldLocked ? <LockOpen size={16} /> : <ShieldCheck size={16} />}{' '}
-                  {project.worldLocked ? 'Desbloquear para editar' : 'Aprobar canon del universo'}
-                </button>
-              </div>
-              <div className="right-stack">
-                <div className="kai-panel">
-                  <div className="kai-label">
-                    <span className="kai-star">✦</span> KAI / NARRATIVE GUIDE
-                  </div>
-                  <h3>Hagamos que este mundo tenga sentido.</h3>
-                  <p>
-                    Una regla fuerte genera historias más interesantes. Identifica qué es posible, qué está prohibido y qué precio pagan los personajes.
-                  </p>
+          {view === 'pages' && (
+            <div className="field-group">
+              <span className="section-label">Manuscript</span>
+              <div className="manuscript-list">
+                {pages.map((p, idx) => (
                   <button
-                    onClick={() =>
-                      !project.worldLocked &&
-                      updateProject({
-                        worldRules: project.worldRules
-                          ? project.worldRules + '\nCada poder tiene una consecuencia física o emocional verificable.'
-                          : 'Cada poder tiene una consecuencia física o emocional verificable.',
-                      })
-                    }
-                    disabled={project.worldLocked}
+                    key={p.id}
+                    type="button"
+                    className={`page-row-btn ${activePageIndex === idx ? 'active' : ''}`}
+                    onClick={() => setActivePageIndex(idx)}
                   >
-                    + Agregar regla sugerida
-                  </button>
-                  <span className="kai-note">Sugerencia guiada. La IA narrativa conversacional se conectará en otra fase.</span>
-                </div>
-                <div className="mini-panel">
-                  <span className="eyebrow">CHECKLIST DEL UNIVERSO</span>
-                  {[
-                    ['Premisa definida', Boolean(project.premise.trim())],
-                    ['Mundo descrito', Boolean(project.world.trim())],
-                    ['Reglas de continuidad', Boolean(project.worldRules.trim())],
-                    ['Canon aprobado', project.worldLocked],
-                  ].map(([label, done]) => (
-                    <div className="check-row" key={String(label)}>
-                      <span className={done ? 'check-done' : 'check-empty'}>{done ? <Check size={12} /> : null}</span>
-                      {label}
-                    </div>
-                  ))}
-                </div>
-                <button className="text-action" onClick={() => changeTab('characters')}>
-                  Continuar a Personajes <ArrowRight size={17} />
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {tab === 'characters' && (
-          <section className="view">
-            <div className="view-head">
-              <div>
-                <span className="eyebrow accent">02 / CHARACTER STUDIO</span>
-                <h1>Personajes con identidad.</h1>
-                <p>Construye fichas de continuidad. Una vez aprobadas, sus rasgos viajan al motor visual.</p>
-              </div>
-              <button className="primary" onClick={addCharacter}>
-                <Plus size={17} /> Nuevo personaje
-              </button>
-            </div>
-            <div className="character-layout">
-              <div className="character-list">
-                {project.characters.map((c) => (
-                  <button
-                    key={c.id}
-                    className={`character-item ${selected?.id === c.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedId(c.id)}
-                  >
-                    <div className="ch-avatar">{c.name.slice(0, 1).toUpperCase()}</div>
-                    <div>
-                      <strong>{c.name}</strong>
-                      <small>{c.role}</small>
-                    </div>
-                    {c.canonLocked ? <Lock size={13} /> : null}
+                    <span>
+                      <span className="page-row-num">{String(idx + 1).padStart(2, '0')}</span>
+                      Page {p.pageNumber}
+                    </span>
+                    <span style={{ fontSize: 11, color: p.image ? '#059669' : '#57515e' }}>
+                      {p.image ? '✓' : '○'}
+                    </span>
                   </button>
                 ))}
-                {project.characters.length === 0 && (
-                  <div className="empty-note">
-                    Aún no tienes personajes.
-                    <button className="subtle-action" onClick={addCharacter}>
-                      Crear el primero
-                    </button>
-                  </div>
-                )}
               </div>
-              <div className="panel character-edit">
-                {selected ? (
-                  <>
-                    <div className="panel-heading">
-                      <Users size={19} />
-                      <strong>Ficha de identidad</strong>
-                      <span className={`status-dot ${selected.canonLocked ? 'approved' : ''}`}>
-                        {selected.canonLocked ? 'Aprobado' : 'Borrador'}
-                      </span>
-                    </div>
-                    {selected.canonLocked && (
-                      <div className="locked-notice">
-                        <Lock size={15} /> Identidad bloqueada: desbloquea para cambiar los atributos.
-                      </div>
-                    )}
-                    <div className="fields-2">
-                      <label>
-                        Nombre
-                        <input value={selected.name} disabled={selected.canonLocked} onChange={(e) => updateChar({ name: e.target.value })} />
-                      </label>
-                      <label>
-                        Rol
-                        <input value={selected.role} disabled={selected.canonLocked} onChange={(e) => updateChar({ role: e.target.value })} />
-                      </label>
-                    </div>
-                    <label>
-                      Edad
-                      <input value={selected.age} disabled={selected.canonLocked} onChange={(e) => updateChar({ age: e.target.value })} />
-                    </label>
-                    <label>
-                      Apariencia física
-                      <textarea
-                        rows={3}
-                        value={selected.appearance}
-                        disabled={selected.canonLocked}
-                        onChange={(e) => updateChar({ appearance: e.target.value })}
-                        placeholder="Cabello, rostro, ojos, cicatrices, complexión..."
-                      />
-                    </label>
-                    <label>
-                      Vestuario / rasgos únicos
-                      <textarea
-                        rows={2}
-                        value={selected.wardrobe}
-                        disabled={selected.canonLocked}
-                        onChange={(e) => updateChar({ wardrobe: e.target.value })}
-                      />
-                    </label>
-                    <div className="fields-2">
-                      <label>
-                        Personalidad
-                        <textarea
-                          rows={3}
-                          value={selected.personality}
-                          disabled={selected.canonLocked}
-                          onChange={(e) => updateChar({ personality: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        Motivación
-                        <textarea
-                          rows={3}
-                          value={selected.motivation}
-                          disabled={selected.canonLocked}
-                          onChange={(e) => updateChar({ motivation: e.target.value })}
-                        />
-                      </label>
-                    </div>
-                    <label>
-                      Estilo visual preferido
-                      <textarea
-                        rows={2}
-                        value={selected.visualStyle}
-                        disabled={selected.canonLocked}
-                        onChange={(e) => updateChar({ visualStyle: e.target.value })}
-                      />
-                    </label>
-                    <div className="form-actions">
-                      <button className={selected.canonLocked ? 'secondary' : 'primary'} onClick={toggleCharLock}>
-                        {selected.canonLocked ? <LockOpen size={16} /> : <ShieldCheck size={16} />}{' '}
-                        {selected.canonLocked ? 'Desbloquear ficha' : 'Aprobar y bloquear identidad'}
-                      </button>
-                      <button className="secondary" onClick={() => changeTab('image')}>
-                        <ImagePlus size={16} /> Ilustrar personaje
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="empty-note">Selecciona o crea un personaje.</div>
-                )}
-              </div>
-              <div className="right-stack">
-                <div className="mini-panel">
-                  <span className="eyebrow">CANON INSPECTOR</span>
-                  <div className="score">{canonPct}%</div>
-                  <div className="progress-track">
-                    <span style={{ width: `${canonPct}%` }} />
-                  </div>
-                  <p>Campos esenciales de identidad completados.</p>
-                  <span className="helper">
-                    Una ficha completa mejora las instrucciones, pero no garantiza fidelidad visual perfecta. Usa siempre imágenes de referencia aprobadas.
-                  </span>
-                </div>
-                <div className="kai-panel">
-                  <div className="kai-label">
-                    <span className="kai-star">✦</span> KAI / CHARACTER GUIDE
-                  </div>
-                  <p>
-                    Para mejorar la continuidad, define los rasgos que nunca deben variar: color y corte del pelo, forma del rostro, marcas, accesorios y ropa característica.
-                  </p>
-                  <button
-                    onClick={() => {
-                      if (selected && !selected.canonLocked)
-                        updateChar({
-                          appearance: selected.appearance + '\nRasgos fijos: proporciones faciales, peinado y marcas distintivas.',
-                        });
-                    }}
-                    disabled={!selected || selected.canonLocked}
-                  >
-                    + Añadir recordatorio de identidad
-                  </button>
-                </div>
-              </div>
+              <button type="button" className="pill-btn pill-outline" onClick={addInteriorPage}>
+                <Plus size={15} /> Add Page
+              </button>
             </div>
-          </section>
-        )}
+          )}
 
-        {tab === 'image' && (
-          <section className="view">
-            <div className="view-head">
-              <div>
-                <span className="eyebrow accent">03 / VISUAL ENGINE</span>
-                <h1>De la ficha a la imagen.</h1>
-                <p>Genera ilustraciones originales con OpenAI, Gemini o proxy visual del servidor y utiliza referencias para mantener la identidad de tus personajes.</p>
-              </div>
-              <div className="api-marker">
-                <span /> MOTOR VISUAL HÍBRIDO
-              </div>
-            </div>
-            <div className="image-layout">
-              <div className="panel">
-                <div className="panel-heading">
-                  <WandSparkles size={19} />
-                  <strong>Generador visual</strong>
+          <div className="rail-bottom">
+            <span className="section-label">Submission</span>
+            <button
+              type="button"
+              className="pill-btn pill-solid"
+              onClick={() => {
+                exportKdpBundleSnapshot(project);
+                setToast('📦 Paquete KDP Bundle JSON descargado.');
+              }}
+            >
+              <Download size={15} /> Build KDP Bundle
+            </button>
+          </div>
+        </aside>
+
+        {/* COLUMN 2: CENTER CANVAS */}
+        <main className="center-stage">
+          {view === 'characters' && (
+            <div className="stage-container">
+              <div className="stage-header">
+                <div>
+                  <h1>Character Roster</h1>
+                  <p>Fija la identidad visual de tus personajes para mantener consistencia en portada y páginas.</p>
                 </div>
-                <label>
-                  Personaje
-                  <select
-                    value={selected?.id || ''}
-                    onChange={(e) => {
-                      setSelectedId(e.target.value);
-                      setGeneratedImage(null);
-                      setReference(null);
-                    }}
-                  >
-                    {project.characters.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Tipo de imagen
-                  <select value={imageMode} onChange={(e) => setImageMode(e.target.value)}>
-                    {IMAGE_MODES.map((m) => (
-                      <option value={m.id} key={m.id}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Estilo artístico
-                  <select value={visualStyle} onChange={(e) => setVisualStyle(e.target.value)}>
-                    {MANGA_STYLES.map((s) => (
-                      <option key={s}>{s}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Ajustes que quieres hacer
-                  <textarea
-                    rows={3}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Ejemplo: Iluminación nocturna, postura de combate, ángulo tres cuartos..."
-                  />
-                </label>
-                <div className="file-box">
-                  <label className="file-label">
-                    <Upload size={18} /> Subir imagen de referencia
-                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setReference(e.target.files?.[0] ?? null)} />
-                  </label>
-                  <small>{reference ? `Referencia: ${reference.name}` : 'Opcional · PNG / JPG / WebP · Máx. 6 MB'}</small>
-                  {reference && (
-                    <button className="ref-clear" onClick={() => setReference(null)}>
-                      Quitar referencia
-                    </button>
-                  )}
-                </div>
-                {generatedImage && (
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={useGeneratedAsReference}
-                      onChange={(e) => setUseGeneratedAsReference(e.target.checked)}
-                    />{' '}
-                    Usar la última imagen como referencia para la próxima generación
-                  </label>
-                )}
-                <div className="access-box">
-                  <div className="access-title">
-                    <Sparkles size={15} /> 🎨 Créditos de Prueba: <strong>{trialCredits} / 5 disponibles</strong>
-                  </div>
-                  <small style={{ display: 'block', marginBottom: 10 }}>
-                    Genera ilustraciones en 1 clic sin configurar claves técnicas ni contraseñas.
-                  </small>
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={rechargeTrialCredits}
-                    style={{ width: '100%' }}
-                  >
-                    + Recargar 5 créditos gratis
-                  </button>
-                </div>
-                {error && (
-                  <div className="error" role="alert">
-                    {error}
-                  </div>
-                )}
                 <button
-                  className="primary wide"
-                  onClick={generateImage}
-                  disabled={isGenerating || !selected || !selected.appearance.trim() || trialCredits <= 0}
+                  type="button"
+                  className="pill-btn pill-solid"
+                  onClick={() => setEditingChar(blankCharacter())}
                 >
-                  {isGenerating ? (
-                    <>
-                      <RefreshCw className="spin" size={18} /> Generando ilustración...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={18} /> {reference ? 'Editar con referencia' : 'Generar imagen'}
-                    </>
-                  )}
+                  <Plus size={16} /> New Character
                 </button>
-                <p className="microcopy">Motor en nube listo. Revisa la ilustración antes de enviarla a tu página.</p>
-              </div>
-              <div className="image-result">
-                <div className="preview-head">
-                  <strong>Vista previa</strong>
-                  <span>{generatedModel ? `Motor: ${generatedModel}` : '768×1152 / 1024×1536 px'}</span>
-                </div>
-                <div className="image-canvas">
-                  {generatedImage ? (
-                    <img src={generatedImage} alt={`Ilustración generada de ${selected?.name || 'personaje'}`} />
-                  ) : (
-                    <div className="placeholder-canvas">
-                      <div className="placeholder-emblem">✦</div>
-                      <h3>Tu personaje cobrará vida aquí.</h3>
-                      <p>Selecciona un personaje, define el estilo y genera su primera ilustración.</p>
-                    </div>
-                  )}
-                </div>
-                <div className="preview-actions">
-                  <button className="secondary" disabled={!generatedImage} onClick={downloadImage}>
-                    <Download size={16} /> Descargar PNG
-                  </button>
-                  <button
-                    className="secondary"
-                    disabled={!generatedImage}
-                    onClick={() => {
-                      setGeneratedImage(null);
-                      setUseGeneratedAsReference(false);
-                    }}
-                  >
-                    <RefreshCw size={16} /> Limpiar
-                  </button>
-                </div>
-                <p className="microcopy">Las imágenes no se guardan permanentemente en esta versión. Descárgalas cuando termines.</p>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {tab === 'genko' && (
-          <section className="view">
-            <div className="view-head">
-              <div>
-                <span className="eyebrow accent">04 / GENKŌ &amp; TANKŌBON</span>
-                <h1>Viñetas S0–S5 y Preprensa.</h1>
-                <p>
-                  Controla la máquina de estados de tus 4 Komas, calcula el lomo editorial de tu tomo y exporta el snapshot relacional compatible con Supabase.
-                </p>
-              </div>
-              <div className={`canon-state ${lockedKomasCount === komas.length ? 'locked' : ''}`}>
-                {lockedKomasCount === komas.length ? <Lock size={16} /> : <Layers size={16} />}{' '}
-                {lockedKomasCount}/{komas.length} KOMAS LOCKED
-              </div>
-            </div>
-
-            <div className="genko-layout">
-              <div className="panel">
-                <div className="panel-heading">
-                  <Layers size={19} />
-                  <strong>Koma State Machine (Página activa)</strong>
-                  <span className={`status-dot ${activeKoma.state === 'LOCKED' ? 'approved' : ''}`}>{activeKoma.state}</span>
-                </div>
-
-                <div className="koma-tabs" role="tablist" aria-label="Selector de viñetas">
-                  {komas.map((k) => (
-                    <button
-                      key={k.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeKoma.panelIndex === k.panelIndex}
-                      className={`koma-tab ${activeKoma.panelIndex === k.panelIndex ? 'active' : ''}`}
-                      onClick={() => setSelectedKomaIndex(k.panelIndex)}
-                    >
-                      <span className="koma-tab-top">
-                        <strong>Koma #{k.panelIndex}</strong>
-                        {k.state === 'LOCKED' && <Lock size={12} />}
-                      </span>
-                      <small>
-                        {k.state} · {k.route.toUpperCase()}
-                      </small>
-                    </button>
-                  ))}
-                </div>
-
-                {activeKoma.state === 'LOCKED' && (
-                  <div className="locked-notice">
-                    <Lock size={15} /> Viñeta bloqueada para preprensa (S5 LOCKED). Cambia el estado si necesitas reabrir edición.
-                  </div>
-                )}
-
-                <div className="fields-2">
-                  <label>
-                    Estado Koma (S0–S5)
-                    <select
-                      value={activeKoma.state}
-                      onChange={(e) => updateKoma(activeKoma.panelIndex, { state: e.target.value as KomaState })}
-                    >
-                      {KOMA_STATES.map((st) => (
-                        <option key={st.id} value={st.id}>
-                          {st.step} · {st.id} ({st.label})
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label>
-                    Ruta de producción
-                    <select
-                      value={activeKoma.route}
-                      disabled={activeKoma.state === 'LOCKED'}
-                      onChange={(e) => updateKoma(activeKoma.panelIndex, { route: e.target.value as ProductionRoute })}
-                    >
-                      <option value="ia">IA (@Personaje + KAI)</option>
-                      <option value="manual">Manual (G-Pen / Maru-Pen)</option>
-                    </select>
-                  </label>
-                </div>
-
-                <div className="koma-state-bar" aria-label="Progreso de estados del koma">
-                  {KOMA_STATES.map((st) => (
-                    <button
-                      key={st.id}
-                      type="button"
-                      className={`koma-pill ${activeKoma.state === st.id ? 'active' : ''}`}
-                      onClick={() => updateKoma(activeKoma.panelIndex, { state: st.id })}
-                    >
-                      {st.step} {st.id}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="fields-2">
-                  <label>
-                    Plano / Ángulo de cámara
-                    <input
-                      value={activeKoma.cameraAngle}
-                      disabled={activeKoma.state === 'LOCKED'}
-                      onChange={(e) => updateKoma(activeKoma.panelIndex, { cameraAngle: e.target.value })}
-                      placeholder="Plano medio contrapicado, tres cuartos..."
-                    />
-                  </label>
-                  <label>
-                    Trama L1 (Screentone)
-                    <select
-                      value={activeKoma.screentoneL1}
-                      disabled={activeKoma.state === 'LOCKED'}
-                      onChange={(e) => updateKoma(activeKoma.panelIndex, { screentoneL1: e.target.value })}
-                    >
-                      {SCREENTONE_OPTIONS.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <label>
-                  Acción y composición (Prompt de viñeta)
-                  <textarea
-                    rows={3}
-                    value={activeKoma.actionPrompt}
-                    disabled={activeKoma.state === 'LOCKED'}
-                    onChange={(e) => updateKoma(activeKoma.panelIndex, { actionPrompt: e.target.value })}
-                    placeholder="Describe la acción del personaje, encuadre e iluminación..."
-                  />
-                </label>
-
-                <div className="fields-2">
-                  <label>
-                    Diálogo L5 (Globo dentro de Naiwaku)
-                    <input
-                      value={activeKoma.dialogueL5}
-                      disabled={activeKoma.state === 'LOCKED'}
-                      onChange={(e) => updateKoma(activeKoma.panelIndex, { dialogueL5: e.target.value })}
-                      placeholder="Texto del globo principal..."
-                    />
-                  </label>
-                  <label>
-                    SFX / Kakimoji L4
-                    <input
-                      value={activeKoma.sfxL4}
-                      disabled={activeKoma.state === 'LOCKED'}
-                      onChange={(e) => updateKoma(activeKoma.panelIndex, { sfxL4: e.target.value })}
-                      placeholder="ゴゴゴ, バッ, ドキッ..."
-                    />
-                  </label>
-                </div>
-
-                <div className="form-actions">
-                  <button type="button" className="primary" onClick={() => sendKomaToImageTab(activeKoma)}>
-                    <Send size={16} /> Enviar viñeta a Generar imágenes
-                  </button>
-                  <button
-                    type="button"
-                    className="secondary"
-                    onClick={() =>
-                      updateKoma(activeKoma.panelIndex, { state: activeKoma.state === 'LOCKED' ? 'SHIAGE' : 'LOCKED' })
-                    }
-                  >
-                    {activeKoma.state === 'LOCKED' ? <LockOpen size={16} /> : <Lock size={16} />}
-                    {activeKoma.state === 'LOCKED' ? 'Desbloquear Koma' : 'Marcar Koma LOCKED'}
-                  </button>
-                </div>
               </div>
 
-              <div className="right-stack">
-                <div className="panel">
-                  <div className="panel-heading">
-                    <Ruler size={19} />
-                    <strong>Calculadora de Lomo y Preprensa Tankōbon</strong>
-                  </div>
-                  <div className="spine-readout">
-                    <span>ANCHO DE LOMO CALCULADO</span>
-                    <strong>{spineWidthMm} mm</strong>
-                    <small>Fórmula: (páginas / 2) × grosor papel</small>
-                  </div>
-                  <div className="fields-2">
-                    <label>
-                      Páginas del tomo
-                      <input
-                        type="number"
-                        min={2}
-                        step={2}
-                        value={totalPages}
-                        onChange={(e) => {
-                          const v = Number(e.target.value);
-                          updateProject({ totalPages: Number.isFinite(v) && v >= 0 ? v : 0 });
-                        }}
-                      />
-                    </label>
-                    <label>
-                      Grosor de papel (mm)
-                      <input
-                        type="number"
-                        min={0.05}
-                        max={0.5}
-                        step={0.01}
-                        value={paperThicknessMm}
-                        onChange={(e) => {
-                          const v = Number(e.target.value);
-                          updateProject({ paperThicknessMm: Number.isFinite(v) && v >= 0 ? v : 0 });
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div className="prepress-grid">
-                    <div className="prepress-chip">
-                      <span>SANGRADO</span>
-                      <strong>3.5 mm</strong>
-                    </div>
-                    <div className="prepress-chip">
-                      <span>RESOLUCIÓN</span>
-                      <strong>600 DPI</strong>
-                    </div>
-                    <div className="prepress-chip">
-                      <span>KOMAS LOCKED</span>
-                      <strong>
-                        {lockedKomasCount} / {komas.length}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mini-panel genko-export-card">
-                  <span className="eyebrow">SYNC &amp; CABINA HTML</span>
-                  <h3>Snapshot Supabase JSONB</h3>
-                  <p>
-                    Descarga el paquete relacional exacto para <code>profiles</code>, <code>projects</code>, <code>settei_bibles</code>,{' '}
-                    <code>pages</code> y <code>komas</code> con sus 7 capas <code>L0..L6</code>.
+              {project.characters.length === 0 ? (
+                <div className="editorial-card" style={{ textAlign: 'center', padding: 48 }}>
+                  <p style={{ marginBottom: 16, color: 'var(--sub)' }}>
+                    Aún no tienes personajes en este proyecto. Crea uno desde cero o carga el ejemplo real de Anacaona.
                   </p>
-                  <div className="genko-actions">
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button
                       type="button"
-                      className="primary wide"
+                      className="pill-btn pill-solid"
+                      onClick={() => setEditingChar(blankCharacter())}
+                    >
+                      <Plus size={16} /> Crear Primer Personaje
+                    </button>
+                    <button
+                      type="button"
+                      className="pill-btn pill-outline"
                       onClick={() => {
-                        exportSupabaseSnapshot(project);
-                        setToast('Snapshot Supabase JSONB (L0–L6) exportado.');
+                        setProject(exampleProject);
+                        setToast('Ejemplo Anacaona cargado.');
                       }}
                     >
-                      <Database size={16} /> Exportar Snapshot Supabase JSONB
+                      ✨ Cargar Ejemplo Anacaona
                     </button>
-                    <a href="/stitch-studio/index.html" className="secondary wide">
-                      <ExternalLink size={16} /> Abrir Cabina Genkō HTML completa
-                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="roster-grid">
+                  {project.characters.map((char) => (
+                    <article key={char.id} className="char-card">
+                      <div className="char-thumb">
+                        {char.referenceImage ? (
+                          <img src={char.referenceImage} alt={`Hoja de referencia de ${char.name}`} />
+                        ) : (
+                          <div style={{ textAlign: 'center', color: 'var(--sub)', padding: 16 }}>
+                            <Users size={34} style={{ opacity: 0.3, marginBottom: 6 }} />
+                            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>
+                              SIN REFERENCIA AÚN
+                            </div>
+                          </div>
+                        )}
+                        {char.canonLocked && (
+                          <span className="locked-badge">
+                            <Lock size={10} /> LOCKED
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="char-lock-btn"
+                          disabled={isGenerating}
+                          onClick={() => handleSaveAndLockCharacter(char, true)}
+                        >
+                          {lockingCharId === char.id ? (
+                            <>
+                              <RefreshCw size={11} className="spin" /> Locking...
+                            </>
+                          ) : char.referenceImage ? (
+                            <>
+                              <RefreshCw size={11} /> Refresh Lock
+                            </>
+                          ) : (
+                            <>
+                              <Lock size={11} /> Lock Consistency
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="char-body">
+                        <div className="char-body-top">
+                          <strong>{char.name || 'Sin nombre'}</strong>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button
+                              type="button"
+                              className="pill-outline"
+                              style={{ padding: '4px 9px', borderRadius: 8, fontSize: 11 }}
+                              onClick={() => setEditingChar(char)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className="pill-outline"
+                              style={{ padding: '4px 7px', borderRadius: 8, color: '#bf3f47' }}
+                              aria-label="Eliminar personaje"
+                              onClick={() => {
+                                updateProject({
+                                  characters: project.characters.filter((c) => c.id !== char.id),
+                                });
+                              }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                        <p>{char.appearance}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {view === 'cover' && (
+            <div className="stage-container">
+              <div className="stage-header">
+                <div>
+                  <h1>Paperback Wrap Designer</h1>
+                  <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
+                    Matched Front &amp; Back · 6×9&quot; Standard Format · Auto-spine: {spineInches.toFixed(3)}&quot; ({spineMm} mm)
+                  </p>
+                </div>
+                {project.coverWrapImage && (
+                  <button
+                    type="button"
+                    className="pill-btn pill-outline"
+                    onClick={() =>
+                      downloadDataUrl(
+                        project.coverWrapImage!,
+                        `${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-full-wrap.png`,
+                      )
+                    }
+                  >
+                    <Download size={15} /> Descargar Wrap
+                  </button>
+                )}
+              </div>
+
+              <div className="wrap-frame">
+                {project.coverWrapImage ? (
+                  <img src={project.coverWrapImage} alt="Cubierta completa 16:9 de manga" />
+                ) : (
+                  <div className="sheet-placeholder">
+                    <BookOpen size={44} />
+                    <strong style={{ fontSize: 13, letterSpacing: '0.16em' }}>
+                      GENERATE UNIFIED WRAP IN RIGHT INSPECTOR
+                    </strong>
+                    <span style={{ fontSize: 12 }}>
+                      Portada frontal (derecha), lomo central y contraportada continua (izquierda) en 16:9.
+                    </span>
+                  </div>
+                )}
+
+                <div className="wrap-guides">
+                  <div className="wrap-half">
+                    <span className="wrap-half-label">Back Cover (Contraportada)</span>
+                    <div className="barcode-box">
+                      <div className="barcode-bars" />
+                      <span>ISBN 978-4-08</span>
+                    </div>
+                  </div>
+                  <div className="wrap-spine">
+                    <span>SPINE ({spineInches.toFixed(2)}&quot;)</span>
+                  </div>
+                  <div className="wrap-half">
+                    <span className="wrap-half-label">Front Cover (Portada)</span>
+                    <span />
                   </div>
                 </div>
               </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {tab === 'project' && (
-          <section className="view">
-            <div className="view-head">
-              <div>
-                <span className="eyebrow accent">05 / PROJECT CONTROL</span>
-                <h1>Tu historia tiene estructura.</h1>
-                <p>Revisa el estado del proyecto y guarda una copia de tus datos antes de continuar.</p>
+          {view === 'pages' && currentPage && (
+            <div className="stage-container">
+              <div className="manga-sheet-wrap">
+                <div className="stage-header">
+                  <div>
+                    <h1 style={{ fontSize: 22 }}>Interior View</h1>
+                    <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
+                      PAGE {currentPage.pageNumber} / {pages.length} · B/N MANGA 3:4
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      className="pill-btn pill-outline"
+                      onClick={() => setShowGuides((s) => !s)}
+                    >
+                      <Grid size={14} /> {showGuides ? 'HIDE GUIDES' : 'SHOW GUIDES'}
+                    </button>
+                    {currentPage.image && (
+                      <button
+                        type="button"
+                        className="pill-btn pill-outline"
+                        onClick={() =>
+                          downloadDataUrl(
+                            currentPage.image!,
+                            `${project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-page-${currentPage.pageNumber}.png`,
+                          )
+                        }
+                      >
+                        <Download size={14} /> PNG
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="manga-sheet">
+                  {showGuides && <div className="sheet-bleed-guide" />}
+                  {currentPage.image ? (
+                    <img src={currentPage.image} alt={`Página ${currentPage.pageNumber} generada`} />
+                  ) : (
+                    <div className="sheet-placeholder">
+                      <Sparkles size={36} />
+                      <strong style={{ fontSize: 13, letterSpacing: '0.2em' }}>INK AWAITING</strong>
+                      <span style={{ fontSize: 12 }}>
+                        Activa el reparto en el panel derecho, elige el modelo y pulsa &quot;Generate High-Res Ink&quot;.
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="project-grid">
-              <div className="stat-card">
-                <Globe2 />
-                <span>UNIVERSO</span>
-                <strong>{project.worldLocked ? 'Aprobado' : 'Borrador'}</strong>
+          )}
+
+          {view === 'project' && (
+            <div className="stage-container">
+              <div className="stage-header">
+                <div>
+                  <h1>Print Setup &amp; Universo</h1>
+                  <p>Configura el libro físico (lomo KDP/Tankōbon), el lore base y respaldos del proyecto.</p>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="pill-btn pill-outline" onClick={startBlankProject}>
+                    <Plus size={15} /> Nuevo Proyecto en Blanco
+                  </button>
+                  <button
+                    type="button"
+                    className="pill-btn pill-solid"
+                    onClick={() => {
+                      setProject(exampleProject);
+                      setActivePageIndex(0);
+                      setToast('Ejemplo real "Anacaona: Flor de Guerra" cargado.');
+                    }}
+                  >
+                    ✨ Cargar Ejemplo Anacaona
+                  </button>
+                </div>
               </div>
-              <div className="stat-card">
-                <Users />
-                <span>PERSONAJES</span>
-                <strong>{project.characters.length}</strong>
-              </div>
-              <div className="stat-card">
-                <ShieldCheck />
-                <span>IDENTIDADES BLOQUEADAS</span>
-                <strong>{project.characters.filter((c) => c.canonLocked).length}</strong>
+
+              <div className="editorial-card" style={{ display: 'grid', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div className="field-group">
+                    <label>Título de la obra</label>
+                    <input
+                      className="field-input"
+                      value={project.title}
+                      onChange={(e) => updateProject({ title: e.target.value })}
+                    />
+                  </div>
+                  <div className="field-group">
+                    <label>Autor / Estudio</label>
+                    <input
+                      className="field-input"
+                      value={project.author || ''}
+                      onChange={(e) => updateProject({ author: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                  <div className="field-group">
+                    <label>Total de páginas</label>
+                    <input
+                      type="number"
+                      min={24}
+                      max={600}
+                      className="field-input"
+                      value={totalPages}
+                      onChange={(e) => updateProject({ totalPages: Number(e.target.value) || 100 })}
+                    />
+                  </div>
+                  <div className="field-group">
+                    <label>Tipo de papel</label>
+                    <select
+                      className="field-select"
+                      value={paperType}
+                      onChange={(e) =>
+                        updateProject({
+                          paperType: e.target.value === 'white' ? 'white' : 'cream',
+                          paperThicknessMm: e.target.value === 'white' ? 0.1 : 0.12,
+                        })
+                      }
+                    >
+                      <option value="cream">Crema Manga (0.12 mm)</option>
+                      <option value="white">Blanco Nítido (0.10 mm)</option>
+                    </select>
+                  </div>
+                  <div className="field-group">
+                    <label>Lomo calculado</label>
+                    <div
+                      className="field-input"
+                      style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, background: 'var(--cream)' }}
+                    >
+                      {spineInches.toFixed(3)}&quot; / {spineMm} mm
+                    </div>
+                  </div>
+                </div>
+
+                <div className="field-group">
+                  <label>Premisa y Universo (Settei)</label>
+                  <textarea
+                    rows={3}
+                    className="field-textarea"
+                    value={project.world}
+                    onChange={(e) => updateProject({ world: e.target.value })}
+                    placeholder="Describe el mundo y tono visual de tu historia..."
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', paddingTop: 6 }}>
+                  <button
+                    type="button"
+                    className="pill-btn pill-outline"
+                    onClick={() => exportProject(project)}
+                  >
+                    <FileJson size={15} /> Exportar Proyecto JSON
+                  </button>
+                  <label className="pill-btn pill-outline" style={{ position: 'relative' }}>
+                    <Upload size={15} /> Importar Proyecto JSON
+                    <input
+                      type="file"
+                      accept=".json,application/json"
+                      style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
+                      onChange={importJSON}
+                    />
+                  </label>
+                </div>
+                {importError && <div className="error-banner">{importError}</div>}
               </div>
             </div>
-            <div className="panel project-export">
-              <div>
-                <h2>Respaldo del proyecto</h2>
-                <p>Exporta tu historia en JSON para conservar lore, personajes, viñetas Genkō y decisiones del canon. No incluye las ilustraciones descargadas.</p>
+          )}
+        </main>
+
+        {/* COLUMN 3: RIGHT CONTEXTUAL INSPECTOR WITH MODEL PICKER & 1-CLICK EXAMPLES */}
+        <aside className="right-inspector">
+          <div className="inspector-card">
+            <span className="section-label" style={{ padding: 0 }}>
+              Motor de Imagen IA (Elegible)
+            </span>
+            <div className="field-group">
+              <label>Modelo activo</label>
+              <select
+                className="field-select"
+                value={selectedModel}
+                onChange={(e) => {
+                  setSelectedModel(e.target.value);
+                  updateProject({ selectedModel: e.target.value });
+                  setToast(`Modelo seleccionado: ${e.target.options[e.target.selectedIndex].text}`);
+                }}
+              >
+                {AI_MODELS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <small style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.4 }}>
+              No necesitas pegar ninguna clave: usa automáticamente tu motor conectado en la nube.
+            </small>
+            {lastModelReport && (
+              <div
+                style={{
+                  fontSize: 11,
+                  fontFamily: 'JetBrains Mono, monospace',
+                  color: 'var(--violet)',
+                  fontWeight: 700,
+                }}
+              >
+                Último render: {lastModelReport}
               </div>
-              <button className="primary" onClick={() => exportProject(project)}>
-                <FileJson size={18} /> Exportar proyecto JSON
+            )}
+          </div>
+
+          {view === 'characters' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <span className="section-label" style={{ padding: 0 }}>
+                Consistencia Settei
+              </span>
+              <p style={{ margin: 0, fontSize: 12, color: 'var(--sub)', lineHeight: 1.6 }}>
+                1. Crea o edita tu personaje con <strong>Visual Attributes</strong> y <strong>Default Wardrobe</strong>.<br />
+                2. Pulsa <strong>Lock Consistency</strong> en su tarjeta para generar la hoja de 4 vistas (1:1).<br />
+                3. Esa imagen viajará como referencia fija a la portada y a las páginas interiores.
+              </p>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                onClick={() => setView('cover')}
+              >
+                Ir a Paperback Cover →
               </button>
-              <label className="import-button">
-                <Upload size={16} /> Importar proyecto JSON
-                <input type="file" accept=".json,application/json" onChange={importJSON} />
-              </label>
-              {importError && <div className="error">{importError}</div>}
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                onClick={() => setView('pages')}
+              >
+                Ir a Interior Pages →
+              </button>
             </div>
-            <div className="roadmap-note">
-              <FileText size={22} />
-              <div>
-                <h3>Próxima evolución</h3>
-                <p>
-                  Genkō &amp; Tankōbon ya están integrados en fase interactiva local. La sincronización directa con Auth/Storage en la nube, exportación PDF/KDP y KAI conversacional pertenecen al roadmap de producción.
-                </p>
+          )}
+
+          {view === 'cover' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <span className="section-label" style={{ padding: 0 }}>
+                Unified Cover Generation
+              </span>
+              <button
+                type="button"
+                className="pill-preset"
+                onClick={() => {
+                  updateProject({ coverPrompt: ANACAONA_COVER_PROMPT_PRESET });
+                  setToast('Ejemplo real de portada Anacaona cargado.');
+                }}
+              >
+                ✨ Cargar ejemplo real (Portada Anacaona)
+              </button>
+              <div className="field-group">
+                <label>Descripción de Portada + Contraportada (16:9)</label>
+                <textarea
+                  rows={6}
+                  className="field-textarea"
+                  value={project.coverPrompt || ''}
+                  onChange={(e) => updateProject({ coverPrompt: e.target.value })}
+                  placeholder="Describe el paisaje continuo entre contraportada, lomo y portada..."
+                />
               </div>
+              <button
+                type="button"
+                className="pill-btn pill-solid"
+                disabled={isGenerating}
+                onClick={handleGenerateFullWrap}
+              >
+                {isGenerating ? (
+                  <>
+                    <RefreshCw size={15} className="spin" /> Generating Wrap...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={15} /> Generate Full Wrap
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                onClick={() => window.print()}
+              >
+                <Printer size={15} /> Export KDP PDF-Ready
+              </button>
             </div>
-            <button className="secondary" onClick={() => setTab('start')}>
-              Crear otro proyecto <ArrowRight size={16} />
+          )}
+
+          {view === 'pages' && currentPage && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <span className="section-label" style={{ padding: 0 }}>
+                Interior Settings
+              </span>
+              <div className="field-group">
+                <label>Art Style</label>
+                <select
+                  className="field-select"
+                  value={currentPage.artStyle}
+                  onChange={(e) => updatePage(activePageIndex, { artStyle: e.target.value })}
+                >
+                  {MANGA_STYLES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field-group">
+                <label>Active Cast ({currentPage.castIds.length})</label>
+                <div className="cast-chips">
+                  {project.characters.length === 0 ? (
+                    <span style={{ fontSize: 11, color: 'var(--sub)' }}>Sin personajes aún</span>
+                  ) : (
+                    project.characters.map((c) => {
+                      const active = currentPage.castIds.includes(c.id);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={`cast-chip ${active ? 'active' : ''}`}
+                          onClick={() => {
+                            const next = active
+                              ? currentPage.castIds.filter((id) => id !== c.id)
+                              : [...currentPage.castIds, c.id];
+                            updatePage(activePageIndex, { castIds: next });
+                          }}
+                        >
+                          {active && <UserCheck size={12} />} {c.name || 'Personaje'}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="pill-preset"
+                onClick={() => {
+                  updatePage(activePageIndex, {
+                    artStyle: 'Dark Seinen',
+                    prompt: ANACAONA_PAGE_1_SCRIPT_PRESET,
+                  });
+                  setToast('Guion real de 5 viñetas (Anacaona Pág. 1) cargado.');
+                }}
+              >
+                ✨ Cargar guion real (5 viñetas Anacaona)
+              </button>
+
+              <div className="field-group">
+                <label>Describe the action &amp; panels (Página {currentPage.pageNumber})</label>
+                <textarea
+                  rows={8}
+                  className="field-textarea"
+                  value={currentPage.prompt}
+                  onChange={(e) => updatePage(activePageIndex, { prompt: e.target.value })}
+                  placeholder="Describe las viñetas de arriba hacia abajo y de derecha a izquierda..."
+                />
+              </div>
+
+              <button
+                type="button"
+                className="pill-btn pill-accent"
+                disabled={isGenerating}
+                onClick={handleGenerateInteriorPage}
+              >
+                {isGenerating ? (
+                  <>
+                    <RefreshCw size={15} className="spin" /> Drawing Page...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={15} /> Generate High-Res Ink
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {view === 'project' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <span className="section-label" style={{ padding: 0 }}>
+                Guía Rápida en 3 Pasos
+              </span>
+              <p style={{ margin: 0, fontSize: 12, color: 'var(--sub)', lineHeight: 1.65 }}>
+                1. Ve a <strong>Character Library</strong> y bloquea tu personaje.<br />
+                2. Diseña tu portada 16:9 en <strong>Paperback Cover</strong>.<br />
+                3. Entinta las páginas completas en <strong>Interior Pages</strong> eligiendo el modelo arriba.
+              </p>
+            </div>
+          )}
+
+          {error && (
+            <div className="error-banner" role="alert">
+              {error}
+            </div>
+          )}
+        </aside>
+      </div>
+
+      {/* MODAL: CHARACTER IDENTITY (MATCHING VIDEO_2.MP4) */}
+      {editingChar && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="char-modal-title">
+          <div className="modal-panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 id="char-modal-title" style={{ margin: 0, fontFamily: 'Space Grotesk, sans-serif', fontSize: 22 }}>
+                Character Identity
+              </h2>
+              <button
+                type="button"
+                className="pill-outline"
+                style={{ borderRadius: '50%', width: 32, height: 32, padding: 0, display: 'grid', placeItems: 'center' }}
+                onClick={() => setEditingChar(null)}
+                aria-label="Cerrar"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="pill-preset"
+              onClick={() =>
+                setEditingChar({
+                  ...editingChar,
+                  name: ANACAONA_CHARACTER_PRESET.name,
+                  role: ANACAONA_CHARACTER_PRESET.role,
+                  appearance: ANACAONA_CHARACTER_PRESET.appearance,
+                  wardrobe: ANACAONA_CHARACTER_PRESET.wardrobe,
+                  visualStyle: ANACAONA_CHARACTER_PRESET.visualStyle,
+                })
+              }
+            >
+              ✨ Rellenar con datos reales del video (Anacaona)
             </button>
-          </section>
-        )}
-      </main>
+
+            <div className="field-group">
+              <label>Name</label>
+              <input
+                className="field-input"
+                value={editingChar.name}
+                onChange={(e) => setEditingChar({ ...editingChar, name: e.target.value })}
+                placeholder="e.g. Anacaona"
+              />
+            </div>
+
+            <div className="field-group">
+              <label>Visual Attributes (Face, Hair, Features)</label>
+              <textarea
+                rows={4}
+                className="field-textarea"
+                value={editingChar.appearance}
+                onChange={(e) => setEditingChar({ ...editingChar, appearance: e.target.value })}
+                placeholder="Cabello, rostro, ojos, tono de piel, complexión física..."
+              />
+            </div>
+
+            <div className="field-group">
+              <label>Default Wardrobe</label>
+              <textarea
+                rows={4}
+                className="field-textarea"
+                value={editingChar.wardrobe}
+                onChange={(e) => setEditingChar({ ...editingChar, wardrobe: e.target.value })}
+                placeholder="Vestimenta característica, colores fijos, accesorios..."
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 6 }}>
+              <button type="button" className="pill-btn pill-outline" onClick={() => setEditingChar(null)}>
+                Discard
+              </button>
+              <button
+                type="button"
+                className="pill-btn pill-outline"
+                onClick={() => handleSaveAndLockCharacter(editingChar, false)}
+              >
+                Save Draft
+              </button>
+              <button
+                type="button"
+                className="pill-btn pill-solid"
+                onClick={() => handleSaveAndLockCharacter(editingChar, true)}
+              >
+                Update &amp; Lock Reference
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toast && (
         <div className="studio-toast" role="status">
-          <Check size={16} />
-          {toast}
-          <button onClick={() => setToast('')} aria-label="Cerrar aviso">
+          <Check size={15} />
+          <span>{toast}</span>
+          <button type="button" aria-label="Cerrar aviso" onClick={() => setToast('')}>
             <X size={14} />
           </button>
         </div>

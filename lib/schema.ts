@@ -1,27 +1,11 @@
+import {
+  ANACAONA_CHARACTER_PRESET,
+  ANACAONA_COVER_PROMPT_PRESET,
+  ANACAONA_PAGE_1_SCRIPT_PRESET,
+} from './prompts';
+
 export type CharacterStatus = 'draft' | 'approved';
-export type KomaState = 'VACIO' | 'NEMU' | 'PEN_IRE' | 'TONE_FX' | 'SHIAGE' | 'LOCKED';
-export type ProductionRoute = 'manual' | 'ia';
-
-export const KOMA_STATES: { id: KomaState; label: string; step: string }[] = [
-  { id: 'VACIO', label: 'Vacío', step: 'S0' },
-  { id: 'NEMU', label: 'Nemu (Borrador)', step: 'S1' },
-  { id: 'PEN_IRE', label: 'Pen-ire (Tinta)', step: 'S2' },
-  { id: 'TONE_FX', label: 'Tramas y FX', step: 'S3' },
-  { id: 'SHIAGE', label: 'Shiage (Rotulado)', step: 'S4' },
-  { id: 'LOCKED', label: 'Bloqueada', step: 'S5' },
-];
-
-export interface KomaPanel {
-  id: string;
-  panelIndex: number;
-  state: KomaState;
-  route: ProductionRoute;
-  cameraAngle: string;
-  actionPrompt: string;
-  dialogueL5: string;
-  sfxL4: string;
-  screentoneL1: string;
-}
+export type PaperType = 'cream' | 'white';
 
 export interface MangaCharacter {
   id: string;
@@ -35,88 +19,106 @@ export interface MangaCharacter {
   visualStyle: string;
   status: CharacterStatus;
   canonLocked: boolean;
+  referenceImage?: string;
 }
+
+export interface MangaPage {
+  id: string;
+  pageNumber: number;
+  artStyle: string;
+  prompt: string;
+  castIds: string[];
+  image?: string;
+  modelUsed?: string;
+}
+
 export interface MangaProject {
   id: string;
   title: string;
+  author?: string;
   premise: string;
   genre: string;
   world: string;
   worldRules: string;
   worldLocked: boolean;
-  characters: MangaCharacter[];
-  komas?: KomaPanel[];
+  paperType?: PaperType;
   totalPages?: number;
   paperThicknessMm?: number;
+  coverPrompt?: string;
+  coverWrapImage?: string;
+  selectedModel?: string;
+  characters: MangaCharacter[];
+  pages?: MangaPage[];
   version: 1;
   updatedAt: string;
 }
 
-export function defaultKomas(): KomaPanel[] {
+export function defaultPages(castIds: string[] = []): MangaPage[] {
   return [
     {
-      id: 'koma-1',
-      panelIndex: 1,
-      state: 'NEMU',
-      route: 'ia',
-      cameraAngle: 'Plano general cenital',
-      actionPrompt: 'Vista del puerto nocturno bajo la niebla; las linternas dibujan líneas sobre los mapas húmedos.',
-      dialogueL5: 'Cada noche, la costa cambia de lugar.',
-      sfxL4: 'ザワ… (Zawa…)',
-      screentoneL1: '60L_suave',
-    },
-    {
-      id: 'koma-2',
-      panelIndex: 2,
-      state: 'PEN_IRE',
-      route: 'ia',
-      cameraAngle: 'Plano medio contrapicado',
-      actionPrompt: 'Mira sostiene un pergamino iluminado; el viento agita su cabello corto y deja ver la cicatriz sobre su ceja.',
-      dialogueL5: 'Este trazado no existía ayer.',
-      sfxL4: 'バッ (Ba!)',
-      screentoneL1: '60L_dramatico',
-    },
-    {
-      id: 'koma-3',
-      panelIndex: 3,
-      state: 'VACIO',
-      route: 'manual',
-      cameraAngle: 'Primerísimo plano',
-      actionPrompt: 'Detalle de los ojos ámbar de Mira reflejando líneas doradas en el mapa.',
-      dialogueL5: '',
-      sfxL4: 'ドキッ (Doki!)',
-      screentoneL1: 'none',
-    },
-    {
-      id: 'koma-4',
-      panelIndex: 4,
-      state: 'VACIO',
-      route: 'ia',
-      cameraAngle: 'Plano americano tres cuartos',
-      actionPrompt: 'Ren aparece entre las sombras del muelle con su gabardina geométrica y guantes negros.',
-      dialogueL5: 'Guarda ese mapa antes de que la ciudad te cobre el precio.',
-      sfxL4: 'コツン (Kotsun)',
-      screentoneL1: '60L_dramatico',
+      id: 'page-1',
+      pageNumber: 1,
+      artStyle: 'Dark Seinen',
+      prompt: ANACAONA_PAGE_1_SCRIPT_PRESET,
+      castIds,
+      image: '',
+      modelUsed: '',
     },
   ];
 }
 
 export const exampleProject: MangaProject = {
-  id: 'demo-project', version: 1, updatedAt: '2026-11-13',
-  title: 'Los mapas del olvido',
-  premise: 'Una joven cartógrafa descubre que los mapas de su ciudad cambian cada noche.',
-  genre: 'Fantasía y misterio',
-  world: 'Una ciudad portuaria donde los mapas revelan territorios borrados de la memoria.',
-  worldRules: 'Solo los cartógrafos pueden leer los mapas cambiantes; cada territorio revelado exige un recuerdo a cambio.',
-  worldLocked: false,
-  totalPages: 192,
+  id: 'anacaona-vol-1',
+  version: 1,
+  updatedAt: '2026-11-17',
+  title: 'Anacaona: Flor de Guerra',
+  author: 'Studio MANGAI',
+  premise:
+    'En una isla caribeña ancestral, Anacaona percibe el silencio repentino de la selva antes de avistar las primeras velas en el horizonte.',
+  genre: 'Fantasía Histórica Caribeña',
+  world:
+    'Quisqueya en vísperas del choque de mundos: selvas densas, costas escarpadas, sabiduría taína y honor cacicazgo.',
+  worldRules:
+    'Estética seinen en blanco y negro de alto contraste para páginas interiores; color editorial cálido caribeño solo para la cubierta.',
+  worldLocked: true,
+  paperType: 'cream',
+  totalPages: 100,
   paperThicknessMm: 0.12,
-  komas: defaultKomas(),
+  coverPrompt: ANACAONA_COVER_PROMPT_PRESET,
+  coverWrapImage: '',
+  selectedModel: 'gemini-3-pro-image',
   characters: [
-    { id: 'mira', name: 'Mira', role: 'Protagonista', age: '19', appearance: 'Cabello negro corto y ondulado, ojos ámbar, pequeña cicatriz sobre la ceja izquierda.', personality: 'Curiosa, impulsiva, leal.', motivation: 'Encontrar a su hermano desaparecido.', wardrobe: 'Chaqueta azul oscuro, bolso de cuero lleno de mapas.', visualStyle: 'Manga en tinta blanco y negro, tramas finas y contraste dramático.', status: 'approved', canonLocked: true },
-    { id: 'ren', name: 'Ren', role: 'Rival', age: '22', appearance: 'Cabello blanco recogido, ojos grises, guantes negros.', personality: 'Meticuloso, reservado.', motivation: 'Proteger el secreto de los mapas.', wardrobe: 'Gabardina larga con símbolos geométricos.', visualStyle: 'Manga en tinta blanco y negro, tramas finas y contraste dramático.', status: 'draft', canonLocked: false },
+    {
+      id: 'anacaona',
+      name: ANACAONA_CHARACTER_PRESET.name,
+      role: ANACAONA_CHARACTER_PRESET.role,
+      age: ANACAONA_CHARACTER_PRESET.age,
+      appearance: ANACAONA_CHARACTER_PRESET.appearance,
+      personality: 'Serena, perspicaz, valiente y protectora de su pueblo.',
+      motivation: 'Advertir al poblado antes de la llegada de los navíos extranjeros.',
+      wardrobe: ANACAONA_CHARACTER_PRESET.wardrobe,
+      visualStyle: ANACAONA_CHARACTER_PRESET.visualStyle,
+      status: 'approved',
+      canonLocked: true,
+      referenceImage: '',
+    },
   ],
+  pages: defaultPages(['anacaona']),
 };
+
 export function blankCharacter(): MangaCharacter {
-  return { id: crypto.randomUUID(), name: 'Nuevo personaje', role:'Secundario', age:'', appearance:'', personality:'', motivation:'', wardrobe:'', visualStyle:'Manga blanco y negro, entintado profesional, sombreado con screentones.', status:'draft', canonLocked:false };
+  return {
+    id: crypto.randomUUID(),
+    name: '',
+    role: 'Protagonist',
+    age: '',
+    appearance: '',
+    personality: '',
+    motivation: '',
+    wardrobe: '',
+    visualStyle: 'Dark Seinen',
+    status: 'draft',
+    canonLocked: false,
+    referenceImage: '',
+  };
 }

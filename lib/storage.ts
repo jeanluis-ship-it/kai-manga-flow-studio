@@ -1,6 +1,6 @@
-import { defaultKomas, exampleProject, type MangaProject } from './schema';
+import { defaultPages, exampleProject, type MangaProject } from './schema';
 
-const KEY = 'mangai-project-v1';
+const KEY = 'mangai-project-v2';
 
 export function loadProject(): MangaProject {
   if (typeof window === 'undefined') return exampleProject;
@@ -10,8 +10,14 @@ export function loadProject(): MangaProject {
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return exampleProject;
     const p = parsed as Partial<MangaProject>;
-    if (p.version !== 1 || !Array.isArray(p.characters) || typeof p.title !== 'string') return exampleProject;
-    return p as MangaProject;
+    if (p.version !== 1 || !Array.isArray(p.characters) || typeof p.title !== 'string') {
+      return exampleProject;
+    }
+    return {
+      ...exampleProject,
+      ...p,
+      pages: p.pages && p.pages.length > 0 ? p.pages : defaultPages(p.characters[0] ? [p.characters[0].id] : []),
+    };
   } catch {
     return exampleProject;
   }
@@ -22,7 +28,18 @@ export function saveProject(project: MangaProject) {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(project));
   } catch {
-    /* Storage might be disabled; JSON export remains available. */
+    // If base64 images exceed localStorage quota (~5MB), persist metadata cleanly without failing.
+    try {
+      const lightweight: MangaProject = {
+        ...project,
+        coverWrapImage: '',
+        characters: project.characters.map((c) => ({ ...c, referenceImage: '' })),
+        pages: (project.pages ?? []).map((pg) => ({ ...pg, image: '' })),
+      };
+      window.localStorage.setItem(KEY, JSON.stringify(lightweight));
+    } catch {
+      /* Storage might be disabled; JSON export remains available. */
+    }
   }
 }
 
@@ -31,120 +48,74 @@ export function exportProject(project: MangaProject) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `mangai-${project.id}.json`;
+  a.download = `mangai-${(project.title || project.id).toLowerCase().replace(/[^a-z0-9-]+/g, '-')}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function buildSupabaseSnapshot(project: MangaProject) {
-  const userId = '00000000-0000-4000-8000-000000000001';
-  const pageId = `${project.id}-page-01`;
-  const komas = project.komas && project.komas.length > 0 ? project.komas : defaultKomas();
-  const totalPages = Number.isFinite(project.totalPages) && (project.totalPages ?? 0) > 0 ? Number(project.totalPages) : 192;
-  const paperThicknessMm =
-    Number.isFinite(project.paperThicknessMm) && (project.paperThicknessMm ?? 0) > 0
-      ? Number(project.paperThicknessMm)
-      : 0.12;
+export function buildKdpBundleSnapshot(project: MangaProject) {
+  const totalPages = Math.max(24, Number(project.totalPages) || 100);
+  const paperType = project.paperType === 'white' ? 'white' : 'cream';
+  const multi = paperType === 'white' ? 0.002252 : 0.0025;
+  const spineWidthInches = Number(Math.max(0.1, totalPages * multi).toFixed(3));
+  const paperThicknessMm = Number(project.paperThicknessMm) || (paperType === 'white' ? 0.1 : 0.12);
   const spineWidthMm = Number(((totalPages / 2) * paperThicknessMm).toFixed(2));
-  const lockedCount = komas.filter((k) => k.state === 'LOCKED').length;
-  const allLocked = komas.length > 0 && lockedCount === komas.length;
+  const pages = project.pages && project.pages.length > 0 ? project.pages : defaultPages();
 
   return {
     schema_version: '01_supabase_settei_schema.sql',
     exported_at: new Date().toISOString(),
-    profiles: [
-      {
-        id: userId,
-        display_name: 'Mangaka Studio',
-        tier: 'pro',
-        render_credits: 50,
-      },
-    ],
-    projects: [
-      {
-        id: project.id,
-        user_id: userId,
-        title: project.title,
-        synopsis: project.premise,
-        genre: project.genre,
-        reading_direction: 'rtl',
-        current_stage: allLocked ? '06_tankobon_print' : '04_shitagaki_pen_ire',
-        paper_thickness_mm: paperThicknessMm,
-        bleed_mm: 3.5,
-        target_dpi: 600,
-        cover_data: {
-          planned_pages: totalPages,
-          spine_width_mm: spineWidthMm,
-        },
-      },
-    ],
+    kdp_print_spec: {
+      trim_size: '6x9 in / B6 Tankobon',
+      bleed_in: 0.125,
+      bleed_mm: 3.5,
+      target_dpi: 600,
+      paper_type: paperType,
+      total_pages: totalPages,
+      spine_width_in: spineWidthInches,
+      spine_width_mm: spineWidthMm,
+    },
+    project: {
+      id: project.id,
+      title: project.title,
+      author: project.author || 'Studio MANGAI',
+      genre: project.genre,
+      synopsis: project.premise,
+      world: project.world,
+      world_rules: project.worldRules,
+      preferred_model: project.selectedModel || 'gemini-3-pro-image',
+      cover_prompt: project.coverPrompt || '',
+      has_cover_wrap: Boolean(project.coverWrapImage),
+    },
     settei_bibles: project.characters.map((c) => ({
       id: c.id,
-      project_id: project.id,
       character_name: c.name,
-      entity_type: 'character',
+      role: c.role,
       visual_anchors: c.appearance,
-      style_preset: {
-        visual_style: c.visualStyle,
-        canon_locked: c.canonLocked,
-        status: c.status,
-      },
-      base_prompt_token: `${c.name} (${c.role}, ${c.age}): ${c.appearance}. Vestuario: ${c.wardrobe}`,
+      wardrobe: c.wardrobe,
+      visual_style: c.visualStyle,
+      canon_locked: c.canonLocked,
+      has_reference_sheet: Boolean(c.referenceImage),
     })),
-    pages: [
-      {
-        id: pageId,
-        project_id: project.id,
-        page_number: 1,
-        is_double_spread: false,
-        script_data: {
-          title: project.title,
-          world: project.world,
-          world_rules: project.worldRules,
-        },
-        preflight_status: {
-          valid: komas.length >= 4 && komas.length <= 7,
-          locked_komas: lockedCount,
-          total_komas: komas.length,
-          spine_width_mm: spineWidthMm,
-          bleed_mm: 3.5,
-          target_dpi: 600,
-        },
-        is_approved: allLocked,
-      },
-    ],
-    komas: komas.map((k) => ({
-      id: k.id,
-      page_id: pageId,
-      panel_index: k.panelIndex,
-      state: k.state,
-      route: k.route,
-      camera_angle: k.cameraAngle,
-      action_prompt: k.actionPrompt,
-      layers: {
-        L0_nemu_draft: k.state !== 'VACIO' ? { state: k.state, active: true } : null,
-        L1_screentones_beta: k.screentoneL1 && k.screentoneL1 !== 'none' ? k.screentoneL1 : null,
-        L2_ink_art: ['PEN_IRE', 'TONE_FX', 'SHIAGE', 'LOCKED'].includes(k.state)
-          ? { route: k.route, inked: true }
-          : null,
-        L3_panel_borders_fx: { border_mm: 0.8, camera_angle: k.cameraAngle },
-        L4_sfx_kakimoji: k.sfxL4.trim() ? [{ text: k.sfxL4.trim(), style: 'headline-xl-sumi' }] : [],
-        L5_text_balloons: k.dialogueL5.trim()
-          ? [{ text: k.dialogueL5.trim(), zone: 'top_right_reserved', within_naiwaku: true }]
-          : [],
-        L6_ui_guides: { visible_on_screen: true, exclude_on_export: true },
-      },
+    pages: pages.map((pg) => ({
+      id: pg.id,
+      page_number: pg.pageNumber,
+      art_style: pg.artStyle,
+      cast_ids: pg.castIds,
+      prompt: pg.prompt,
+      model_used: pg.modelUsed || '',
+      ink_ready: Boolean(pg.image),
     })),
   };
 }
 
-export function exportSupabaseSnapshot(project: MangaProject) {
-  const snapshot = buildSupabaseSnapshot(project);
+export function exportKdpBundleSnapshot(project: MangaProject) {
+  const snapshot = buildKdpBundleSnapshot(project);
   const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `mangai-supabase-snapshot-${project.id}.json`;
+  a.download = `${(project.title || 'manga').replace(/\s+/g, '_')}_KDP_BUNDLE.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
