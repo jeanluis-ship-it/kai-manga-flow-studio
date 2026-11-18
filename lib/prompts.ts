@@ -1,7 +1,7 @@
 export const AI_MODELS = [
   {
     id: 'flux-schnell-hf',
-    label: '⚡ FLUX.1 Schnell HD (Directo · Gratis sin clave ni marca)',
+    label: '⚡ FLUX.1 Schnell (Space compartido · puede estar ocupado)',
     provider: 'huggingface',
   },
   {
