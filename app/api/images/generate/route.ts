@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI, { toFile } from 'openai';
+import OpenAI from 'openai';
 import { timingSafeEqual } from 'node:crypto';
-import { IMAGE_MODES } from '@/lib/prompts';
+import { CLOUDFLARE_IMAGE_MODEL, IMAGE_MODES } from '@/lib/prompts';
+import { cloudflareImageConfig, generateCloudflareImage } from '@/lib/cloudflare-images';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -28,14 +29,6 @@ const safeCompare = (received: string, expected: string) => {
 };
 
 const read = (form: FormData, name: string, max = 2600) => String(form.get(name) ?? '').trim().slice(0, max);
-
-const escapeXml = (str: string) =>
-  str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
 
 function aspectToFluxDimensions(aspectRatio: string) {
   if (aspectRatio === '16:9') return { width: 1280, height: 720 };
@@ -65,57 +58,6 @@ function buildCompactPrompt(opts: {
     opts.canon ? `Context: ${opts.canon}` : '',
   ].filter(Boolean);
   return parts.join('. ').replace(/\s+/g, ' ').trim().slice(0, 820);
-}
-
-function buildMangaSvgFallback(opts: {
-  name: string;
-  details: string;
-  style: string;
-  modeId: string;
-  aspectRatio: string;
-  notes: string;
-}) {
-  const dims = aspectToFluxDimensions(opts.aspectRatio);
-  const w = dims.width;
-  const h = dims.height;
-  const safeName = escapeXml((opts.name || 'Manga').slice(0, 36));
-  const safeStyle = escapeXml((opts.style || 'Dark Seinen').slice(0, 48));
-  const rawDesc = (opts.notes || opts.details || '').replace(/\s+/g, ' ');
-  const safeDetails = escapeXml(rawDesc.slice(0, 88));
-  const safeDetails2 = escapeXml(rawDesc.slice(88, 176));
-
-  const cx = w / 2;
-  const cy = Math.round(h * 0.42);
-  const rays: string[] = [];
-  for (let i = 0; i < 48; i++) {
-    const angle = (i / 48) * Math.PI * 2;
-    const x1 = Math.round(cx + Math.cos(angle) * 120);
-    const y1 = Math.round(cy + Math.sin(angle) * 120);
-    const x2 = Math.round(cx + Math.cos(angle) * Math.max(w, h));
-    const y2 = Math.round(cy + Math.sin(angle) * Math.max(w, h));
-    rays.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#17141b" stroke-opacity="0.14" stroke-width="${i % 3 === 0 ? 2 : 1}"/>`);
-  }
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-  <defs>
-    <pattern id="tone60L" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="4" cy="4" r="1.2" fill="#17141b" fill-opacity="0.18"/>
-    </pattern>
-  </defs>
-  <rect width="${w}" height="${h}" fill="#f4f0e7"/>
-  <rect x="28" y="28" width="${w - 56}" height="${h - 56}" fill="url(#tone60L)" stroke="#17141b" stroke-width="6"/>
-  ${rays.join('\n  ')}
-  <circle cx="${cx}" cy="${Math.round(h * 0.36)}" r="${Math.round(Math.min(w, h) * 0.11)}" fill="#17141b"/>
-  <path d="M${cx - 95} ${Math.round(h * 0.72)} L${cx - 58} ${Math.round(h * 0.48)} L${cx + 58} ${Math.round(h * 0.48)} L${cx + 95} ${Math.round(h * 0.72)} Z" fill="#17141b"/>
-  <rect x="48" y="${h - 165}" width="${w - 96}" height="122" rx="10" fill="#17141b"/>
-  <text x="72" y="${h - 128}" font-family="monospace" font-size="18" font-weight="700" fill="#d84e56">MANGAI STUDIO · COMPOSICIÓN (${escapeXml(opts.modeId.toUpperCase())} · ${escapeXml(opts.aspectRatio)})</text>
-  <text x="72" y="${h - 96}" font-family="sans-serif" font-size="24" font-weight="800" fill="#f4f0e7">${safeName} — ${safeStyle}</text>
-  <text x="72" y="${h - 68}" font-family="sans-serif" font-size="15" fill="#d9d3c8">${safeDetails}</text>
-  <text x="72" y="${h - 48}" font-family="sans-serif" font-size="15" fill="#d9d3c8">${safeDetails2}</text>
-</svg>`;
-
-  const b64 = Buffer.from(svg, 'utf8').toString('base64');
-  return `data:image/svg+xml;base64,${b64}`;
 }
 
 async function discoverGeminiModels(apiKey: string): Promise<{ imageModels: string[]; textModels: string[] }> {
@@ -337,6 +279,7 @@ async function generateWithGradioFluxSpace(opts: {
   aspectRatio: string;
   hfToken?: string;
 }): Promise<{ image: string; model: string } | { diagnostic: string }> {
+  // Shared Zero-GPU Space: its /info endpoint does NOT prove that inference is available.
   const dims = aspectToFluxDimensions(opts.aspectRatio);
   const baseUrl = 'https://black-forest-labs-flux-1-schnell.hf.space';
   const authHeader: Record<string, string> = opts.hfToken ? { Authorization: `Bearer ${opts.hfToken}` } : {};
@@ -344,43 +287,31 @@ async function generateWithGradioFluxSpace(opts: {
   try {
     const postResp = await fetch(`${baseUrl}/gradio_api/call/infer`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeader,
-      },
-      body: JSON.stringify({
-        data: [opts.prompt, 0, true, dims.width, dims.height, 4],
-      }),
+      headers: { 'Content-Type': 'application/json', ...authHeader },
+      body: JSON.stringify({ data: [opts.prompt, 0, true, dims.width, dims.height, 4] }),
       signal: AbortSignal.timeout(10_000),
     });
-    if (!postResp.ok) {
-      return { diagnostic: `flux-space-init:HTTP_${postResp.status}` };
-    }
+    if (!postResp.ok) return { diagnostic: `flux-space-init:HTTP_${postResp.status}` };
+
     const { event_id } = (await postResp.json()) as { event_id?: string };
-    if (!event_id) {
-      return { diagnostic: 'flux-space:NO_EVENT_ID' };
-    }
+    if (!event_id) return { diagnostic: 'flux-space:NO_EVENT_ID' };
 
     const sseResp = await fetch(`${baseUrl}/gradio_api/call/infer/${encodeURIComponent(event_id)}`, {
       headers: authHeader,
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(40_000),
     });
-    if (!sseResp.ok) {
-      return { diagnostic: `flux-space-sse:HTTP_${sseResp.status}` };
-    }
+    if (!sseResp.ok) return { diagnostic: `flux-space-sse:HTTP_${sseResp.status}` };
 
-    const sseText = await sseResp.text();
-    const lines = sseText.split(/\r?\n/);
+    // Gradio returns image information in a complete event, or an error event if its GPU fails.
+    const eventText = await sseResp.text();
+    let eventName = '';
     let imageUrl = '';
-    let isCompleteEvent = false;
-
-    for (const line of lines) {
+    for (const line of eventText.split(/\r?\n/)) {
       if (line.startsWith('event:')) {
-        isCompleteEvent = line.includes('complete');
-        if (line.includes('error')) {
-          return { diagnostic: 'flux-space:SSE_ERROR' };
-        }
-      } else if (isCompleteEvent && line.startsWith('data:')) {
+        eventName = line.slice(6).trim();
+      } else if (line.startsWith('data:')) {
+        if (eventName === 'error') return { diagnostic: 'flux-space:SSE_ERROR (GPU/cola no disponible)' };
+        if (eventName !== 'complete') continue;
         try {
           const parsed = JSON.parse(line.slice(5).trim()) as Array<{ url?: string }>;
           if (Array.isArray(parsed) && parsed[0]?.url) {
@@ -388,36 +319,35 @@ async function generateWithGradioFluxSpace(opts: {
             break;
           }
         } catch {
-          // Ignore malformed line and keep scanning.
+          return { diagnostic: 'flux-space:INVALID_EVENT' };
         }
       }
     }
+    if (!imageUrl) return { diagnostic: 'flux-space:NO_IMAGE_URL' };
 
-    if (!imageUrl) {
-      return { diagnostic: 'flux-space:NO_IMAGE_URL' };
+    // Never fetch arbitrary URLs returned by a third-party Gradio instance.
+    const outputUrl = new URL(imageUrl, baseUrl);
+    if (outputUrl.protocol !== 'https:' || outputUrl.hostname !== new URL(baseUrl).hostname) {
+      return { diagnostic: 'flux-space:UNTRUSTED_IMAGE_URL' };
     }
-
-    const imgResp = await fetch(imageUrl, {
+    const imgResp = await fetch(outputUrl, {
       headers: authHeader,
       signal: AbortSignal.timeout(12_000),
     });
-    if (!imgResp.ok) {
-      return { diagnostic: `flux-space-file:HTTP_${imgResp.status}` };
-    }
+    if (!imgResp.ok) return { diagnostic: `flux-space-file:HTTP_${imgResp.status}` };
 
-    const rawMime = (imgResp.headers.get('content-type') ?? 'image/webp').split(';')[0].trim();
-    const mime = rawMime.startsWith('image/') ? rawMime : 'image/webp';
+    const mime = (imgResp.headers.get('content-type') ?? '').split(';')[0].trim();
+    if (!mime.startsWith('image/')) return { diagnostic: 'flux-space-file:INVALID_CONTENT_TYPE' };
     const arr = await imgResp.arrayBuffer();
-    if (arr.byteLength < 2000) {
-      return { diagnostic: 'flux-space-file:EMPTY' };
+    if (arr.byteLength < 2000 || arr.byteLength > 12 * 1024 * 1024) {
+      return { diagnostic: 'flux-space-file:INVALID_SIZE' };
     }
-
     return {
       image: `data:${mime};base64,${Buffer.from(arr).toString('base64')}`,
-      model: 'flux.1-schnell-hd (Directo Sin Clave)',
+      model: 'flux.1-schnell (Hugging Face Space)',
     };
   } catch {
-    return { diagnostic: 'flux-space:TIMEOUT' };
+    return { diagnostic: 'flux-space:TIMEOUT_OR_UNAVAILABLE' };
   }
 }
 
@@ -446,10 +376,10 @@ async function generateWithHuggingFace(opts: {
     });
 
     if (resp.ok) {
-      const rawMime = (resp.headers.get('content-type') ?? 'image/jpeg').split(';')[0].trim();
-      const mime = rawMime.startsWith('image/') ? rawMime : 'image/jpeg';
+      const mime = (resp.headers.get('content-type') ?? '').split(';')[0].trim();
+      if (!mime.startsWith('image/')) return { diagnostic: 'hf-flux-schnell:INVALID_CONTENT_TYPE' };
       const arr = await resp.arrayBuffer();
-      if (arr.byteLength > 2000) {
+      if (arr.byteLength > 2000 && arr.byteLength < 12 * 1024 * 1024) {
         return {
           image: `data:${mime};base64,${Buffer.from(arr).toString('base64')}`,
           model: 'flux.1-schnell (HuggingFace HD)',
@@ -488,6 +418,14 @@ export async function POST(req: NextRequest) {
     const activeOpenaiKey = customApiKey.startsWith('sk-') ? customApiKey : process.env.OPENAI_API_KEY || '';
     const activeHfKey = customApiKey.startsWith('hf_') ? customApiKey : process.env.HF_API_TOKEN || '';
 
+    // Respect the explicitly chosen provider: do not silently generate from another provider.
+    if (preferredModel.startsWith('gpt-') && !activeOpenaiKey) {
+      return NextResponse.json({ error: 'Para generar con GPT Imágenes, agrega una clave de OpenAI con saldo en «Llave» o configura OPENAI_API_KEY en Vercel.' }, { status: 503 });
+    }
+    if ((preferredModel.startsWith('gemini-') || preferredModel.startsWith('imagen-')) && !activeGeminiKey) {
+      return NextResponse.json({ error: 'Google Images no está configurado. Agrega GEMINI_API_KEY con cuota de imágenes habilitada.' }, { status: 503 });
+    }
+
     // Localhost -> Vercel Bridge: only when no local/custom keys exist and user didn't pick keyless direct FLUX
     const isLocalHost =
       req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
@@ -496,6 +434,7 @@ export async function POST(req: NextRequest) {
       isLocalHost &&
       !alreadyForwarded &&
       preferredModel !== 'flux-schnell-hf' &&
+      preferredModel !== CLOUDFLARE_IMAGE_MODEL &&
       !customApiKey &&
       !process.env.OPENAI_API_KEY &&
       !process.env.GEMINI_API_KEY &&
@@ -572,7 +511,36 @@ export async function POST(req: NextRequest) {
         refs.push(item);
       }
     }
-    const primaryRef = refs[0] ?? null;
+    if (preferredModel === CLOUDFLARE_IMAGE_MODEL) {
+      const config = cloudflareImageConfig();
+      if (!config) {
+        return NextResponse.json({ error: 'Configura Cloudflare Workers AI en el servidor para activar FLUX.2 Klein.' }, { status: 503 });
+      }
+
+      try {
+        const result = await generateCloudflareImage(config, prompt, aspectRatio, refs);
+        if (result.image) {
+          return NextResponse.json({
+            image: result.image,
+            mode: modeData.id,
+            model: 'FLUX.2 Klein 4B (Cloudflare)',
+            providerStatus: 'official-ai',
+          });
+        }
+        const message =
+          result.status === 429 ? 'Cloudflare alcanzó un límite de solicitudes o de cuota. Prueba más tarde.'
+          : result.status === 401 || result.status === 403 ? 'Cloudflare rechazó el token. Revisa el permiso Workers AI y la cuenta.'
+          : 'Cloudflare no pudo generar una imagen para esta solicitud.';
+        return NextResponse.json({
+          error: message,
+          diagnosticReason: `Cloudflare HTTP ${result.status}`,
+        }, { status: result.status === 429 ? 429 : 502 });
+      } catch {
+        return NextResponse.json({ error: 'No se recibió una imagen de Cloudflare. Intenta nuevamente.' }, { status: 502 });
+      }
+    }
+
+
 
     let compactPrompt = buildCompactPrompt({
       name: name || 'Protagonista',
@@ -585,32 +553,22 @@ export async function POST(req: NextRequest) {
     });
 
     // Branch A: OpenAI Images API (when OPENAI_API_KEY or sk-... key is configured and chosen or default)
-    if (activeOpenaiKey && (!preferredModel || preferredModel.startsWith('gpt-') || customApiKey.startsWith('sk-') || (!activeGeminiKey && !activeHfKey))) {
-      const client = new OpenAI({ apiKey: activeOpenaiKey, timeout: 110_000 });
-      // Fast for new drafts; precise edits can use OPENAI_IMAGE_MODEL=gpt-image-2.5-sunburst.
-      const model = (preferredModel.startsWith('gpt-') ? preferredModel : process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare') as 'gpt-image-2.5-flare';
-      const size =
-        aspectRatio === '16:9'
-          ? ('1536x1024' as const)
-          : aspectRatio === '1:1'
-          ? ('1024x1024' as const)
-          : ('1024x1536' as const);
-      const params = { model, prompt, size, quality: 'medium' as const, output_format: 'png' as const };
-      const result = primaryRef
-        ? await client.images.edit({
-            ...params,
-            image: await toFile(Buffer.from(await primaryRef.arrayBuffer()), primaryRef.name || 'reference.png', { type: primaryRef.type }),
-          })
+    if (activeOpenaiKey && (!preferredModel || preferredModel.startsWith('gpt-'))) {
+      const client = new OpenAI({ apiKey: activeOpenaiKey, timeout: 105_000, maxRetries: 0 });
+      const model = preferredModel || process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare';
+      const sizes: Record<string, string> = {
+        '1:1': '1024x1024', '3:4': '864x1152', '4:3': '1152x864',
+        '16:9': '1536x864', '9:16': '864x1536',
+      };
+      const params = { model, prompt, size: sizes[aspectRatio], quality: 'medium' as const, output_format: 'webp' as const };
+      const result = refs.length
+        ? await client.images.edit({ ...params, image: refs })
         : await client.images.generate(params);
-      const b64 = result.data?.[0]?.b64_json;
-      if (b64) {
-        return NextResponse.json({
-          image: `data:image/png;base64,${b64}`,
-          mode: modeData.id,
-          model,
-          providerStatus: 'official-ai',
-        });
-      }
+      const image = result.data?.[0]?.b64_json;
+      if (!image) return NextResponse.json({ error: 'OpenAI respondió sin imagen. Prueba con otra descripción.' }, { status: 502 });
+      return NextResponse.json({
+        image: `data:image/webp;base64,${image}`, mode: modeData.id, model, providerStatus: 'official-ai',
+      });
     }
 
     const diagnostics: string[] = [];
@@ -705,64 +663,63 @@ export async function POST(req: NextRequest) {
       diagnostics.push(directFlux.diagnostic);
     }
 
-    const hasGemini429 = diagnostics.some((d) => d.includes('HTTP_429'));
-    let diagnosticReason = '';
-    if (hasGemini429) {
-      diagnosticReason =
-        'Google está en Plan Gratis (HTTP 429) y el nodo directo estuvo ocupado; se usó respaldo temporal.';
-    } else if (diagnostics.length > 0) {
-      diagnosticReason = `Motor directo temporalmente ocupado (${diagnostics.slice(0, 2).join(', ')}).`;
-    } else {
-      diagnosticReason = 'Usando motor de respaldo.';
-    }
-
-    // Branch C: Server-side Flux proxy with exact aspect ratio dimensions
-    try {
-      const dims = aspectToFluxDimensions(aspectRatio);
-      const seed = Math.floor(100 + Math.random() * 8999);
-      const fluxUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(compactPrompt)}?width=${dims.width}&height=${dims.height}&seed=${seed}&nologo=true&model=flux`;
-      const fluxResp = await fetch(fluxUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MANGAI-Studio/0.4' },
-        signal: AbortSignal.timeout(12_000),
-      });
-      const rawMime = (fluxResp.headers.get('content-type') ?? 'image/jpeg').split(';')[0].trim();
-      const mime = rawMime.startsWith('image/') ? rawMime : '';
-      const arrayBuffer = await fluxResp.arrayBuffer();
-      if (fluxResp.ok && mime && arrayBuffer.byteLength > 2500) {
-        const b64 = Buffer.from(arrayBuffer).toString('base64');
-        return NextResponse.json({
-          image: `data:${mime};base64,${b64}`,
-          mode: modeData.id,
-          model: compiledWithGemini ? 'gemini-prompt + flux-proxy' : 'flux-server-proxy',
-          providerStatus: 'free-fallback',
-          diagnosticReason: diagnosticReason || undefined,
-          note: diagnostics.length > 0 ? diagnostics.slice(0, 2).join(', ') : undefined,
+    // Branch C: Pollinations API (only with explicit secret key; legacy image.pollinations.ai is retired).
+    const pollinationsKey = (process.env.POLLINATIONS_API_KEY || '').trim();
+    if (pollinationsKey) {
+      try {
+        const dims = aspectToFluxDimensions(aspectRatio);
+        const url = new URL(`https://gen.pollinations.ai/image/${encodeURIComponent(compactPrompt)}`);
+        url.searchParams.set('width', String(dims.width));
+        url.searchParams.set('height', String(dims.height));
+        url.searchParams.set('seed', String(Math.floor(Math.random() * 999999)));
+        const imgResp = await fetch(url, {
+          headers: { Authorization: `Bearer ${pollinationsKey}` },
+          signal: AbortSignal.timeout(18_000),
         });
+        if (imgResp.ok) {
+          const mime = (imgResp.headers.get('content-type') ?? '').split(';')[0].trim();
+          if (mime.startsWith('image/')) {
+            const arr = await imgResp.arrayBuffer();
+            if (arr.byteLength > 2500 && arr.byteLength < 12 * 1024 * 1024) {
+              return NextResponse.json({
+                image: `data:${mime};base64,${Buffer.from(arr).toString('base64')}`,
+                mode: modeData.id,
+                model: 'pollinations-authenticated',
+                providerStatus: 'official-ai',
+                note: 'Motor secundario autenticado',
+              });
+            }
+          }
+          diagnostics.push('pollinations:INVALID_IMAGE');
+        } else {
+          diagnostics.push(`pollinations:HTTP_${imgResp.status}`);
+        }
+      } catch {
+        diagnostics.push('pollinations:TIMEOUT');
       }
-    } catch {
-      // Fall through cleanly to SVG composition draft.
     }
 
-    // Branch D: Built-in SVG Draft Composition
-    const fallbackSvg = buildMangaSvgFallback({
-      name: name || 'Manga',
-      details,
-      style,
-      modeId: modeData.id,
-      aspectRatio,
-      notes,
-    });
+    // Never report a placeholder SVG as a successful AI generation.
+    const quotaExceeded = diagnostics.some((d) => d.includes('HTTP_429'));
+    const diagnosticReason = diagnostics.slice(0, 4).join(', ');
     return NextResponse.json({
-      image: fallbackSvg,
-      mode: modeData.id,
-      model: 'mangai-draft-svg',
-      providerStatus: 'free-fallback',
-      diagnosticReason: diagnosticReason || undefined,
-      note: diagnostics.length > 0 ? diagnostics.join(', ') : undefined,
-    });
+      error: quotaExceeded
+        ? 'La cuota de generación de imágenes se agotó o no está habilitada. Revisa el nivel de facturación de Google o configura otro proveedor en Vercel.'
+        : 'No hay un motor de imágenes disponible en este momento. El Space gratuito FLUX puede fallar por falta de GPU. Configura un proveedor de imágenes con cuota activa.',
+      providerStatus: 'unavailable',
+      diagnosticReason,
+    }, { status: 503 });
   } catch (err: unknown) {
     // Do not expose upstream request objects, keys or internal error contents to browsers.
     const status = typeof err === 'object' && err !== null && 'status' in err ? Number((err as { status?: number }).status) : 500;
+    if (err instanceof OpenAI.APIError) {
+      if (err.code === 'insufficient_quota' || err.code === 'billing_hard_limit_reached') {
+        return NextResponse.json({ error: 'El proyecto de OpenAI requiere saldo disponible para generar imágenes.' }, { status: 402 });
+      }
+      if (status === 401 || status === 403 || status === 404) {
+        return NextResponse.json({ error: 'Revisa la clave, el acceso al modelo y la verificación de tu organización en OpenAI.' }, { status });
+      }
+    }
     if (status === 429) return NextResponse.json({ error: 'Se alcanzó un límite temporal de la API. Prueba más tarde.' }, { status: 429 });
     if (status === 400) return NextResponse.json({ error: 'La API rechazó el prompt o la imagen de referencia.' }, { status: 400 });
     console.error('MANGAI image generation failed', err instanceof Error ? err.message : 'Unknown error');

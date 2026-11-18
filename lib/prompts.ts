@@ -1,8 +1,15 @@
+export const CLOUDFLARE_IMAGE_MODEL = 'flux-2-klein-4b-cloudflare';
+
 export const AI_MODELS = [
   {
     id: 'flux-schnell-hf',
-    label: '⚡ FLUX.1 Schnell HD (Directo · Gratis sin clave ni marca)',
+    label: '⚡ FLUX.1 Schnell (Space compartido · puede estar ocupado)',
     provider: 'huggingface',
+  },
+  {
+    id: CLOUDFLARE_IMAGE_MODEL,
+    label: 'FLUX.2 Klein 4B (Cloudflare · cuota de prueba y referencias)',
+    provider: 'cloudflare',
   },
   {
     id: 'gemini-3-pro-image',
@@ -26,7 +33,12 @@ export const AI_MODELS = [
   },
   {
     id: 'gpt-image-2.5-flare',
-    label: '✨ OpenAI GPT-Image 2.5 Flare',
+    label: 'GPT Imágenes · Flare (bocetos)',
+    provider: 'openai',
+  },
+  {
+    id: 'gpt-image-2.5-sunburst',
+    label: 'GPT Imágenes · Sunburst (edición con referencias)',
     provider: 'openai',
   },
 ] as const;

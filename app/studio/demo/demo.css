@@ -1,0 +1,13 @@
+body:has(.demo-book) { margin: 0; background: #f6f1e7; color: #28251f; }
+.demo-book { width: min(1060px, 92%); margin: 0 auto; padding: 24px 0 50px; font-family: Arial, sans-serif; }
+.demo-book header, .demo-book figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.demo-book header { padding-bottom: 16px; border-bottom: 1px solid #b3a996; font-size: .85rem; }
+.demo-book a { color: inherit; }
+.demo-book h1 { margin: 40px 0 16px; font: 500 clamp(3rem, 8vw, 6rem)/.94 Georgia, serif; letter-spacing: -.05em; }
+.demo-book h1 span { display: block; color: #95482e; font: italic .52em/1.25 Georgia, serif; letter-spacing: -.025em; }
+.demo-intro { max-width: 58ch; font-size: 1.05rem; line-height: 1.55; }
+.demo-book figure { margin: 25px 0 38px; }
+.demo-book img { display: block; width: 100%; height: auto; }
+.demo-book figcaption { margin: 10px 0; font-size: .875rem; }
+.demo-book .demo-character { max-width: 630px; }
+.demo-book footer { border-top: 1px solid #b3a996; padding-top: 14px; font-size: .875rem; }

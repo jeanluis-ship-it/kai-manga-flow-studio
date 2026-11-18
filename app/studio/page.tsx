@@ -88,7 +88,7 @@ export default function StudioPage() {
   const [hydrated, setHydrated] = useState(false);
 
   // Selected generation model, diagnostics & live key tester
-  const [selectedModel, setSelectedModel] = useState<string>(AI_MODELS[0].id);
+  const selectedModel = AI_MODELS.find((m) => m.id === project.selectedModel)?.id ?? AI_MODELS[0].id;
   const [showGuides, setShowGuides] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lockingCharId, setLockingCharId] = useState<string | null>(null);
@@ -110,9 +110,6 @@ export default function StudioPage() {
   useEffect(() => {
     const loaded = loadProject();
     setProject(loaded);
-    if (loaded.selectedModel) {
-      setSelectedModel(loaded.selectedModel);
-    }
     const savedCredits = window.localStorage.getItem('mangai-trial-credits-v1');
     if (savedCredits !== null) {
       const parsed = Number(savedCredits);
@@ -121,9 +118,8 @@ export default function StudioPage() {
     const savedCustomKey = window.localStorage.getItem('mangai-custom-key-v1');
     if (savedCustomKey && isLikelyRealApiKey(savedCustomKey)) {
       setCustomApiKey(savedCustomKey.trim());
-    } else if (savedCustomKey) {
-      window.localStorage.removeItem('mangai-custom-key-v1');
     }
+    window.localStorage.removeItem('mangai-custom-key-v1');
     setHydrated(true);
   }, []);
 
@@ -196,7 +192,7 @@ export default function StudioPage() {
       }
       const data = (await resp.json()) as EngineDiagnosticsState;
       setEngineDiagnostics(data);
-      setToast(data.ok ? '✅ Motor HD listo para generar sin marca de agua.' : '⚠️ Diagnóstico completado: revisa el estado.');
+      setToast(data.ok ? '✅ Conexión verificada. Revisa la cuota del proveedor.' : '⚠️ Ningún motor de imágenes confirmado. Revisa el diagnóstico.');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error probando la conexión de motores.');
     } finally {
@@ -208,21 +204,13 @@ export default function StudioPage() {
     const clean = nextKeyRaw.trim();
     setCustomApiKey(nextKeyRaw);
     if (isLikelyRealApiKey(clean)) {
-      window.localStorage.setItem('mangai-custom-key-v1', clean);
       if (clean.startsWith('hf_') && selectedModel !== 'flux-schnell-hf') {
-        setSelectedModel('flux-schnell-hf');
         updateProject({ selectedModel: 'flux-schnell-hf' });
       } else if (clean.startsWith('sk-') && !selectedModel.startsWith('gpt-')) {
-        setSelectedModel('gpt-image-2.5-flare');
         updateProject({ selectedModel: 'gpt-image-2.5-flare' });
       } else if (clean.startsWith('AIza') && (selectedModel === 'flux-schnell-hf' || selectedModel.startsWith('gpt-'))) {
-        setSelectedModel('gemini-3-pro-image');
         updateProject({ selectedModel: 'gemini-3-pro-image' });
       }
-    } else if (!clean) {
-      window.localStorage.removeItem('mangai-custom-key-v1');
-    } else {
-      window.localStorage.removeItem('mangai-custom-key-v1');
     }
   }
 
@@ -271,7 +259,7 @@ export default function StudioPage() {
       diagnosticReason?: string;
     };
     if (!resp.ok || !data.image) {
-      throw new Error(data.error || `Error HTTP ${resp.status}`);
+      throw new Error([data.error || `Error HTTP ${resp.status}`, data.diagnosticReason].filter(Boolean).join(' · '));
     }
     consumeCredit();
     const report = data.note ? `${data.model || selectedModel} (${data.note})` : data.model || selectedModel;
@@ -520,6 +508,7 @@ export default function StudioPage() {
           <div className="field-group">
             <span className="section-label">KDP &amp; Manga Production</span>
             <nav className="nav-stack" aria-label="Etapas de Producción">
+              <a className="nav-btn" href="/studio/demo"><BookOpen size={17} /> Ver demo de Anacaona</a>
               <button
                 type="button"
                 className={`nav-btn ${view === 'project' ? 'active' : ''}`}
@@ -1209,15 +1198,15 @@ export default function StudioPage() {
 
           <div className="inspector-card">
             <span className="section-label" style={{ padding: 0 }}>
-              Motor de Imagen IA (Elegible)
+              Motor de Generación de Imágenes
             </span>
             <div className="field-group">
-              <label>Modelo activo</label>
+              <label htmlFor="image-model">Modelo activo</label>
               <select
                 className="field-select"
+                id="image-model"
                 value={selectedModel}
                 onChange={(e) => {
-                  setSelectedModel(e.target.value);
                   updateProject({ selectedModel: e.target.value });
                   setToast(`Modelo seleccionado: ${e.target.options[e.target.selectedIndex].text}`);
                 }}
@@ -1230,7 +1219,13 @@ export default function StudioPage() {
               </select>
             </div>
             <small style={{ fontSize: 11, color: 'var(--sub)', lineHeight: 1.4 }}>
-              Incluye FLUX.1 Schnell HD directo y gratis sin clave ni marca de agua.
+              {selectedModel.startsWith('gpt-')
+                ? 'GPT Imágenes usa la API de OpenAI. Puedes usar la clave del servidor o una clave personal con saldo desde «Llave».'
+                : selectedModel === 'flux-schnell-hf'
+                ? 'Generación gratuita desde texto. La disponibilidad depende de la GPU compartida.'
+                : selectedModel === 'flux-2-klein-4b-cloudflare'
+                ? 'Admite hasta cuatro referencias. Requiere una cuenta Workers AI configurada en el servidor.'
+                : 'La generación requiere cuota de imágenes en Google.'}
             </small>
 
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1264,7 +1259,7 @@ export default function StudioPage() {
             {showKeyDrawer && (
               <div className="key-drawer">
                 <label style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em' }}>
-                  🔑 Llave opcional (Gemini Tier 1 / HF hf_ / OpenAI sk-)
+                  Clave personal para esta sesión (Gemini, Hugging Face u OpenAI)
                 </label>
                 <input
                   type="password"
@@ -1276,7 +1271,7 @@ export default function StudioPage() {
                 />
                 {customApiKey.trim() && !isLikelyRealApiKey(customApiKey) && (
                   <span style={{ fontSize: 10, color: '#9a3412', fontWeight: 700 }}>
-                    Texto muy corto para ser clave real: se usará el motor directo sin clave.
+                    Revisa el formato de la clave.
                   </span>
                 )}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -1290,7 +1285,7 @@ export default function StudioPage() {
                       const nextModel = isLikelyRealApiKey(clean) && clean.startsWith('hf_')
                         ? 'flux-schnell-hf'
                         : isLikelyRealApiKey(clean) && clean.startsWith('sk-')
-                        ? 'gpt-image-2.5-flare'
+                        ? (selectedModel.startsWith('gpt-') ? selectedModel : 'gpt-image-2.5-flare')
                         : selectedModel;
                       runConnectionProbe(customApiKey, nextModel);
                     }}
@@ -1344,7 +1339,7 @@ export default function StudioPage() {
                   fontWeight: 700,
                 }}
               >
-                Último render: {lastModelReport}
+                Última generación exitosa: {lastModelReport}
               </div>
             )}
             {lastProviderStatus === 'free-fallback' && lastDiagnosticReason && (

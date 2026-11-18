@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { cloudflareImageConfig } from '@/lib/cloudflare-images';
+import { CLOUDFLARE_IMAGE_MODEL } from '@/lib/prompts';
+
 export const runtime = 'nodejs';
 export const maxDuration = 45;
 
@@ -24,19 +27,21 @@ export interface HealthDiagnosticsResponse {
 export async function GET() {
   const openaiConfigured = Boolean(process.env.OPENAI_API_KEY);
   const geminiConfigured = Boolean(process.env.GEMINI_API_KEY);
+  const cloudflareConfigured = Boolean(cloudflareImageConfig());
   const hfConfigured = Boolean(process.env.HF_API_TOKEN);
   const tokenEnforced = process.env.ENFORCE_STUDIO_TOKEN === 'true' && Boolean(process.env.STUDIO_ACCESS_TOKEN);
 
   return NextResponse.json({
     ok: true,
     service: 'mangai-studio',
-    imageApiConfigured: true,
+    imageApiConfigured: cloudflareConfigured || geminiConfigured || openaiConfigured || hfConfigured || Boolean(process.env.POLLINATIONS_API_KEY),
     requiresAccessToken: tokenEnforced,
     providers: {
       gemini: geminiConfigured,
+      cloudflare: cloudflareConfigured,
       openai: openaiConfigured,
       huggingface: hfConfigured,
-      builtInMangaEngine: true,
+      builtInMangaEngine: false, // SVG mockups are not AI-generated images
     },
   });
 }
@@ -119,7 +124,7 @@ async function testGeminiImage(apiKey: string, preferredModel?: string): Promise
         configured: true,
         ok: false,
         code: 429,
-        detail: '⚠️ Bloqueado por Plan Gratis de Google (HTTP 429 — cuota 0 para imágenes, requiere Tier 1)',
+        detail: '⚠️ Google rechazó la generación (HTTP 429): cuota agotada o no disponible para esta clave. Revisa uso y facturación en AI Studio.',
       };
     }
     if (resp.status === 404) {
@@ -154,10 +159,10 @@ async function probeDirectFluxSpace(): Promise<EngineCheckStatus> {
     });
     if (resp.ok) {
       return {
-        configured: true,
-        ok: true,
+        configured: false,
+        ok: false,
         code: 200,
-        detail: '✅ FLUX.1-schnell Directo activo (Gratis sin clave ni marca de agua)',
+        detail: 'ℹ️ FLUX Space responde, pero el chequeo /info NO verifica la GPU ni garantiza generar imágenes.',
       };
     }
     return {
@@ -197,7 +202,11 @@ async function testHuggingFace(token: string): Promise<EngineCheckStatus> {
       signal: AbortSignal.timeout(12_000),
     });
     if (infResp.ok) {
-      return { configured: true, ok: true, code: 200, detail: '✅ FLUX.1-schnell HD conectado y listo (sin marca de agua)' };
+      const mime = (infResp.headers.get('content-type') ?? '').split(';')[0].trim();
+      if (mime.startsWith('image/')) {
+        return { configured: true, ok: true, code: 200, detail: '✅ Hugging Face devolvió una imagen en la prueba.' };
+      }
+      return { configured: true, ok: false, code: 200, detail: '⚠️ Router HF respondió, pero no devolvió una imagen.' };
     }
     if (infResp.status === 403) {
       return {
@@ -213,15 +222,15 @@ async function testHuggingFace(token: string): Promise<EngineCheckStatus> {
   }
 }
 
-async function testOpenAI(apiKey: string): Promise<EngineCheckStatus> {
+async function testOpenAI(apiKey: string, model = 'gpt-image-2.5-flare'): Promise<EngineCheckStatus> {
   if (!apiKey) return { configured: false, ok: false, detail: 'No configurado.' };
   try {
-    const resp = await fetch('https://api.openai.com/v1/models', {
+    const resp = await fetch(`https://api.openai.com/v1/models/${encodeURIComponent(model)}`, {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(6_000),
     });
     if (resp.ok) {
-      return { configured: true, ok: true, code: 200, detail: '✅ Clave OpenAI válida y conectada' };
+      return { configured: true, ok: true, code: 200, detail: `Acceso al modelo ${model} confirmado. La generación usa saldo de API.` };
     }
     if (resp.status === 401) {
       return { configured: true, ok: false, code: 401, detail: '❌ Clave OpenAI inválida (HTTP 401)' };
@@ -245,6 +254,34 @@ export async function POST(req: NextRequest) {
   const preferredModel = String(body.preferredModel ?? '').trim().slice(0, 80);
 
   const isLocalHost = req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
+  if (preferredModel.startsWith('gpt-')) {
+    const key = customApiKey.startsWith('sk-') ? customApiKey : process.env.OPENAI_API_KEY || '';
+    const openaiStatus = await testOpenAI(key, preferredModel);
+    const skipped = { configured: false, ok: false, detail: 'Sin comprobar para este modelo.' };
+    return NextResponse.json({
+      ok: openaiStatus.ok, source: isLocalHost ? 'local' : 'vercel',
+      summary: openaiStatus.ok ? 'Modelo de OpenAI accesible.' : 'GPT Imágenes requiere una clave con acceso al modelo.',
+      recommendation: key ? openaiStatus.detail : 'Usa una clave personal con saldo en «Llave» o configura OPENAI_API_KEY en el servidor.',
+      openaiStatus, geminiTextStatus: skipped, geminiImageStatus: skipped, hfStatus: skipped,
+    } satisfies HealthDiagnosticsResponse);
+  }
+  if (preferredModel === CLOUDFLARE_IMAGE_MODEL) {
+    const configured = Boolean(cloudflareImageConfig());
+    const unchecked = { configured: false, ok: false, detail: 'Sin comprobar para el modelo seleccionado.' };
+    return NextResponse.json({
+      ok: false,
+      source: isLocalHost ? 'local' : 'vercel',
+      summary: configured ? 'Cloudflare Workers AI está configurado.' : 'Cloudflare Workers AI requiere configuración.',
+      recommendation: configured
+        ? 'Genera una imagen para confirmar el acceso y la cuota.'
+        : 'Configura CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_WORKERS_AI_TOKEN en el servidor.',
+      geminiTextStatus: unchecked,
+      geminiImageStatus: unchecked,
+      hfStatus: unchecked,
+      openaiStatus: unchecked,
+    } satisfies HealthDiagnosticsResponse);
+  }
+
   const alreadyForwarded = req.headers.get('x-mangai-forwarded') === '1';
 
   // Forward to Vercel if running locally with zero local env keys and no user-supplied key
@@ -293,15 +330,15 @@ export async function POST(req: NextRequest) {
       hfStatus.ok ? 'FLUX.1-schnell HD Directo' : '',
       openaiStatus.ok ? 'OpenAI GPT-Image' : '',
     ].filter(Boolean);
-    summary = `Motor listo sin clave ni marca de agua: ${activeNames.join(' + ')}.`;
-    recommendation = 'Ya puedes pulsar "Generar" en Personajes, Portada 16:9 o Páginas 3:4.';
+    summary = `Conexión de proveedor verificada: ${activeNames.join(' + ')}.`;
+    recommendation = 'Comprueba la cuota antes de generar. Una clave válida no garantiza crédito o acceso al modelo.';
   } else if (geminiImageStatus.code === 429) {
-    summary = 'Google está en Plan Gratis (HTTP 429) y el nodo directo estuvo temporalmente ocupado.';
+    summary = 'Google devolvió HTTP 429 y el Space gratuito FLUX no garantiza disponibilidad de GPU.';
     recommendation =
-      'Vuelve a intentar en 10 segundos o pega una llave válida de Gemini Tier 1 / HuggingFace / OpenAI.';
+      'Consulta la cuota y facturación de Google AI Studio o configura Hugging Face / OpenAI con permisos y saldo activos.';
   } else {
     summary = 'Ningún motor HD respondió en este momento.';
-    recommendation = 'Vuelve a probar en unos segundos o agrega una llave propia válida.';
+    recommendation = 'Configura un proveedor con cuota activa; el Space gratuito no garantiza capacidad de generación.';
   }
 
   const result: HealthDiagnosticsResponse = {
