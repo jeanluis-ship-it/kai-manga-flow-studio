@@ -44,8 +44,31 @@ export async function GET() {
 async function testGeminiText(apiKey: string): Promise<EngineCheckStatus> {
   if (!apiKey) return { configured: false, ok: false, detail: 'Sin GEMINI_API_KEY configurada.' };
   try {
+    const listResp = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+      headers: { 'x-goog-api-key': apiKey },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!listResp.ok) {
+      return {
+        configured: true,
+        ok: false,
+        code: listResp.status,
+        detail: listResp.status === 400 || listResp.status === 401 || listResp.status === 403
+          ? `❌ Clave rechazada (HTTP ${listResp.status})`
+          : `⚠️ Error listando modelos (HTTP ${listResp.status})`,
+      };
+    }
+    const listData = (await listResp.json()) as {
+      models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
+    };
+    const candidates = (listData.models ?? [])
+      .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
+      .map((m) => (m.name ?? '').replace(/^models\//, ''))
+      .filter((n) => n.includes('flash') && !n.includes('image') && !n.includes('tts') && !n.includes('audio'));
+    const textModel = candidates[0] || 'gemini-3.8-flash';
+
     const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
@@ -57,7 +80,7 @@ async function testGeminiText(apiKey: string): Promise<EngineCheckStatus> {
       },
     );
     if (resp.ok) {
-      return { configured: true, ok: true, code: resp.status, detail: '✅ Activo (traduce y optimiza prompts)' };
+      return { configured: true, ok: true, code: resp.status, detail: `✅ Activo (${textModel} optimiza prompts)` };
     }
     if (resp.status === 429) {
       return { configured: true, ok: false, code: 429, detail: '⚠️ Límite temporal alcanzado (HTTP 429)' };
@@ -65,7 +88,7 @@ async function testGeminiText(apiKey: string): Promise<EngineCheckStatus> {
     if (resp.status === 400 || resp.status === 401 || resp.status === 403) {
       return { configured: true, ok: false, code: resp.status, detail: `❌ Clave rechazada (HTTP ${resp.status})` };
     }
-    return { configured: true, ok: false, code: resp.status, detail: `⚠️ Respuesta HTTP ${resp.status}` };
+    return { configured: true, ok: false, code: resp.status, detail: `⚠️ Respuesta HTTP ${resp.status} (${textModel})` };
   } catch {
     return { configured: true, ok: false, detail: '⚠️ Tiempo de espera agotado' };
   }
