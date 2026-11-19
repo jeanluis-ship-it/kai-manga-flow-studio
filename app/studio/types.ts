@@ -1,5 +1,14 @@
 export type PaperType = 'white' | 'cream';
 
+export type StudioView = 'project' | 'characters' | 'cover' | 'pages';
+
+export type GeneratingState = {
+  cover: boolean;
+  bundle: boolean;
+  pages: Record<string, boolean>;
+  characters: Record<string, boolean>;
+};
+
 export interface Character {
   id: string;
   name: string;

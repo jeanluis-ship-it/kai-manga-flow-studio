@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDown, X } from 'lucide-react';
 
 export const SectionLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="gf-section-label-wrap">
@@ -53,13 +54,16 @@ export const FieldDropdown: React.FC<{
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="gf-field-box gf-dropdown-trigger"
+        aria-expanded={isOpen}
       >
         <p className="gf-field-label">{label}</p>
         <div className="gf-dropdown-value-row">
           <span className="gf-field-value">{value}</span>
-          <span className={`material-symbols-outlined gf-dropdown-arrow ${isOpen ? 'is-open' : ''}`}>
-            keyboard_arrow_down
-          </span>
+          <ChevronDown
+            size={16}
+            strokeWidth={1.75}
+            className={`gf-dropdown-arrow gf-icon-shrink ${isOpen ? 'is-open' : ''}`}
+          />
         </div>
       </button>
       {isOpen && (
@@ -225,17 +229,27 @@ export const PromptModal: React.FC<{
   return (
     <div className="gf-modal-backdrop" onClick={onCancel}>
       <div className="gf-modal-card" onClick={(e) => e.stopPropagation()}>
-        <h3 className="gf-modal-title">{title}</h3>
+        <div className="gf-modal-head">
+          <h3 className="gf-modal-title">{title}</h3>
+          <button
+            type="button"
+            className="gf-modal-close-btn"
+            onClick={onCancel}
+            aria-label="Cerrar ventana"
+          >
+            <X size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+          </button>
+        </div>
         <textarea
           autoFocus
           className="gf-modal-textarea"
-          placeholder="Type here..."
+          placeholder="Escribe aquí..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
         <div className="gf-modal-actions">
           <PillButton variant="outline" onClick={onCancel}>
-            Cancel
+            Cancelar
           </PillButton>
           <PillButton
             variant="solid"
@@ -244,7 +258,7 @@ export const PromptModal: React.FC<{
               setValue('');
             }}
           >
-            Add
+            Añadir
           </PillButton>
         </div>
       </div>

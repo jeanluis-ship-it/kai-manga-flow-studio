@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Lock, Plus, RefreshCw, Trash2, User, Users, X } from 'lucide-react';
 import { Flow } from '../flow-sdk';
 import { Project, Character, toDataImageSrc } from '../types';
 import { SectionLabel, PillButton } from './Primitives';
@@ -8,11 +9,10 @@ import { SectionLabel, PillButton } from './Primitives';
 export const CharacterLibrary: React.FC<{
   project: Project;
   updateProject: (updates: Partial<Project>) => void;
-  isGenerating: boolean;
-  setIsGenerating: (val: boolean) => void;
-}> = ({ project, updateProject, isGenerating, setIsGenerating }) => {
+  characterLoading: Record<string, boolean>;
+  setCharacterLoading: (charId: string, value: boolean) => void;
+}> = ({ project, updateProject, characterLoading, setCharacterLoading }) => {
   const [editingChar, setEditingChar] = useState<Character | null>(null);
-  const [lockingCharId, setLockingCharId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const createNewCharacter = () => {
@@ -21,7 +21,7 @@ export const CharacterLibrary: React.FC<{
       name: '',
       appearance: '',
       clothing: '',
-      role: 'Protagonist',
+      role: 'Protagonista',
     });
   };
 
@@ -29,7 +29,7 @@ export const CharacterLibrary: React.FC<{
     if (!editingChar) return;
     const trimmed: Character = {
       ...editingChar,
-      name: editingChar.name.trim() || 'Unnamed Character',
+      name: editingChar.name.trim() || 'Personaje sin nombre',
       appearance: editingChar.appearance.trim(),
       clothing: editingChar.clothing.trim(),
     };
@@ -53,10 +53,9 @@ export const CharacterLibrary: React.FC<{
 
   const lockConsistency = async (e: React.MouseEvent, char: Character) => {
     e.stopPropagation();
-    if (isGenerating) return;
+    if (characterLoading[char.id]) return;
     setError('');
-    setLockingCharId(char.id);
-    setIsGenerating(true);
+    setCharacterLoading(char.id, true);
 
     try {
       const details = [
@@ -85,15 +84,16 @@ export const CharacterLibrary: React.FC<{
               referenceBase64: res.dataUrl,
               referenceMediaId: res.mediaId,
             }
-          : c
+          : c,
       );
       updateProject({ characters: nextChars });
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Unable to lock character reference.');
+      setError(
+        err instanceof Error ? err.message : 'No se pudo generar la hoja de referencia del personaje.',
+      );
     } finally {
-      setLockingCharId(null);
-      setIsGenerating(false);
+      setCharacterLoading(char.id, false);
     }
   };
 
@@ -101,18 +101,18 @@ export const CharacterLibrary: React.FC<{
     <div className="gf-roster-wrap animate-slide-in-right">
       <div className="gf-roster-topbar">
         <div>
-          <h1 className="gf-page-title">Character Roster</h1>
+          <h1 className="gf-page-title">Settei y Personajes</h1>
           <p className="gf-page-subtitle">
-            Lock in character visuals to maintain consistency across every panel.
+            Fija la identidad visual de tu elenco para mantener consistencia en portada y viñetas.
           </p>
         </div>
         <div className="gf-roster-cta">
           <PillButton
             variant="solid"
-            icon={<span className="material-symbols-outlined">add</span>}
+            icon={<Plus size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
             onClick={createNewCharacter}
           >
-            New Character
+            Nuevo Personaje
           </PillButton>
         </div>
       </div>
@@ -121,15 +121,15 @@ export const CharacterLibrary: React.FC<{
 
       {project.characters.length === 0 ? (
         <div className="gf-roster-empty">
-          <span className="material-symbols-outlined gf-char-empty-icon">face</span>
-          <span>No characters in your roster yet. Click + New Character to create one.</span>
+          <Users size={34} strokeWidth={1.5} className="gf-char-empty-icon gf-icon-shrink" />
+          <span>Aún no tienes personajes en tu elenco. Pulsa «+ Nuevo Personaje» para crear el primero.</span>
         </div>
       ) : (
         <div className="gf-roster-grid">
           {project.characters.map((char) => {
             const imgSrc = toDataImageSrc(char.referenceBase64);
             const isLocked = Boolean(char.referenceMediaId || char.referenceBase64);
-            const isLocking = lockingCharId === char.id;
+            const isLocking = Boolean(characterLoading[char.id]);
 
             return (
               <div
@@ -138,14 +138,14 @@ export const CharacterLibrary: React.FC<{
                 className="gf-card gf-char-card"
               >
                 <div className="gf-char-header">
-                  <p className="gf-char-name">{char.name || 'Unnamed'}</p>
+                  <p className="gf-char-name">{char.name || 'Sin nombre'}</p>
                   <button
                     type="button"
                     className="gf-char-delete-btn"
                     onClick={(e) => handleDeleteCharacter(e, char.id)}
-                    aria-label={`Delete ${char.name || 'character'}`}
+                    aria-label={`Eliminar a ${char.name || 'personaje'}`}
                   >
-                    <span className="material-symbols-outlined">delete</span>
+                    <Trash2 size={15} strokeWidth={1.75} className="gf-icon-shrink" />
                   </button>
                 </div>
 
@@ -153,53 +153,57 @@ export const CharacterLibrary: React.FC<{
                   {imgSrc ? (
                     <img
                       src={imgSrc}
-                      alt={char.name || 'Character reference'}
+                      alt={char.name || 'Referencia de personaje'}
                       className="gf-char-img"
                     />
                   ) : (
                     <div className="gf-char-empty">
-                      <span className="material-symbols-outlined gf-char-empty-icon">person</span>
-                      <span className="gf-char-empty-label">NO REFERENCE</span>
+                      <User size={34} strokeWidth={1.5} className="gf-char-empty-icon gf-icon-shrink" />
+                      <span className="gf-char-empty-label">SIN REFERENCIA</span>
                     </div>
                   )}
 
                   {isLocked && (
                     <div className="gf-locked-badge">
-                      <span className="material-symbols-outlined gf-locked-icon">lock</span>
-                      <span>LOCKED</span>
+                      <Lock size={11} strokeWidth={2} className="gf-icon-shrink" />
+                      <span>FIJADO</span>
                     </div>
                   )}
 
                   <button
                     type="button"
                     className="gf-char-lock-btn"
-                    disabled={isGenerating}
+                    disabled={isLocking}
                     onClick={(e) => lockConsistency(e, char)}
                   >
-                    <span className="material-symbols-outlined gf-char-lock-icon">
-                      {isLocking ? 'refresh' : imgSrc ? 'sync' : 'lock'}
-                    </span>
+                    {isLocking ? (
+                      <RefreshCw size={13} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+                    ) : imgSrc ? (
+                      <RefreshCw size={13} strokeWidth={1.75} className="gf-icon-shrink" />
+                    ) : (
+                      <Lock size={13} strokeWidth={1.75} className="gf-icon-shrink" />
+                    )}
                     <span>
                       {isLocking
-                        ? 'Locking...'
+                        ? 'Fijando...'
                         : imgSrc
-                        ? 'Refresh Lock'
-                        : 'Lock Consistency'}
+                        ? 'Regenerar Hoja'
+                        : 'Fijar Consistencia'}
                     </span>
                   </button>
                 </div>
 
                 <div className="gf-char-footer">
                   <div className="gf-char-attr">
-                    <span className="gf-char-attr-key">FACE:</span>
+                    <span className="gf-char-attr-key">ROSTRO:</span>
                     <span className="gf-char-attr-val">
-                      {char.appearance || 'Click card to define facial traits'}
+                      {char.appearance || 'Haz clic para definir rasgos faciales'}
                     </span>
                   </div>
                   <div className="gf-char-attr">
-                    <span className="gf-char-attr-key">OUTFIT:</span>
+                    <span className="gf-char-attr-key">VESTUARIO:</span>
                     <span className="gf-char-attr-val">
-                      {char.clothing || 'Click card to define wardrobe'}
+                      {char.clothing || 'Haz clic para definir vestuario'}
                     </span>
                   </div>
                 </div>
@@ -212,48 +216,58 @@ export const CharacterLibrary: React.FC<{
       {editingChar && (
         <div className="gf-modal-backdrop" onClick={() => setEditingChar(null)}>
           <div className="gf-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3 className="gf-modal-title">Character Identity</h3>
+            <div className="gf-modal-head">
+              <h3 className="gf-modal-title">Identidad del Personaje</h3>
+              <button
+                type="button"
+                className="gf-modal-close-btn"
+                onClick={() => setEditingChar(null)}
+                aria-label="Cerrar ficha de personaje"
+              >
+                <X size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+              </button>
+            </div>
 
             <div className="gf-modal-fields">
               <div className="gf-modal-field-group">
-                <SectionLabel>Name</SectionLabel>
+                <SectionLabel>Nombre</SectionLabel>
                 <input
                   className="gf-modal-input"
                   value={editingChar.name}
                   onChange={(e) => setEditingChar({ ...editingChar, name: e.target.value })}
-                  placeholder="e.g. Kenji"
+                  placeholder="Ej. Anacaona o Kenji"
                 />
               </div>
 
               <div className="gf-modal-field-group">
-                <SectionLabel>Visual Attributes (Face, Hair, Features)</SectionLabel>
+                <SectionLabel>Atributos Visuales (Rostro, Cabello, Rasgos)</SectionLabel>
                 <textarea
                   className="gf-modal-field-textarea"
                   value={editingChar.appearance}
                   onChange={(e) =>
                     setEditingChar({ ...editingChar, appearance: e.target.value })
                   }
-                  placeholder="Lock these features: e.g. spiky blue hair, scar on left eye, intense yellow eyes"
+                  placeholder="Fija estos rasgos: cabello negro largo con trenzas, ojos ámbar, expresión decidida..."
                 />
               </div>
 
               <div className="gf-modal-field-group">
-                <SectionLabel>Default Wardrobe</SectionLabel>
+                <SectionLabel>Vestuario Principal</SectionLabel>
                 <textarea
                   className="gf-modal-field-textarea"
                   value={editingChar.clothing}
                   onChange={(e) => setEditingChar({ ...editingChar, clothing: e.target.value })}
-                  placeholder="e.g. high-collared techwear jacket, cargo pants"
+                  placeholder="Ej. túnica marfil con cinturón rojo terracota y collar verde jade..."
                 />
               </div>
             </div>
 
             <div className="gf-modal-actions">
               <PillButton variant="outline" onClick={() => setEditingChar(null)}>
-                Discard
+                Descartar
               </PillButton>
               <PillButton variant="solid" onClick={handleSaveProfile}>
-                Update Profile
+                Guardar Ficha
               </PillButton>
             </div>
           </div>

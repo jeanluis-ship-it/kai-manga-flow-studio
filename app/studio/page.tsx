@@ -1,6 +1,23 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import {
+  ArrowLeft,
+  BookMarked,
+  BookOpen,
+  CheckCircle2,
+  Info,
+  Moon,
+  PackageCheck,
+  PenTool,
+  Plus,
+  Printer,
+  RefreshCw,
+  Sparkles,
+  Sun,
+  Users,
+} from 'lucide-react';
 import JSZip from './jszip-lite';
 import { Flow } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
@@ -8,12 +25,17 @@ import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
 import { PageEditor } from './components/PageEditor';
 import { ProjectManager } from './components/ProjectManager';
-import { type Page, type Project, splitDataUrl } from './types';
+import {
+  type GeneratingState,
+  type Page,
+  type Project,
+  type StudioView,
+  splitDataUrl,
+} from './types';
 import './studio.css';
 
-type StudioView = 'cover' | 'pages' | 'characters' | 'project';
-
 const STUDIO_STORAGE_KEY = 'mangai-flow-studio-v1';
+const STUDIO_THEME_KEY = 'mangai-studio-theme-v1';
 
 const ART_STYLES = [
   'Classic Shonen',
@@ -22,6 +44,24 @@ const ART_STYLES = [
   'Retro Gekiga',
   'Cyberpunk Manga',
 ];
+
+function resolveTabParam(raw: string | null): StudioView | null {
+  if (!raw) return null;
+  const slug = raw.trim().toLowerCase();
+  if (slug === 'project' || slug === 'lore' || slug === 'setup' || slug === 'config') {
+    return 'project';
+  }
+  if (slug === 'characters' || slug === 'settei' || slug === 'personajes') {
+    return 'characters';
+  }
+  if (slug === 'cover' || slug === 'print' || slug === 'portada' || slug === 'tankobon') {
+    return 'cover';
+  }
+  if (slug === 'pages' || slug === 'panels' || slug === 'paginas' || slug === 'interiores') {
+    return 'pages';
+  }
+  return null;
+}
 
 function createPageId(): string {
   if (typeof globalThis !== 'undefined' && typeof globalThis.crypto?.randomUUID === 'function') {
@@ -32,8 +72,8 @@ function createPageId(): string {
 
 function createInitialProject(pageId = 'page-1'): Project {
   return {
-    name: 'Untitled Manga',
-    author: 'Author Name',
+    name: 'Manga sin título',
+    author: 'Autor',
     pageCount: 100,
     paperType: 'white',
     characters: [],
@@ -50,16 +90,58 @@ function createInitialProject(pageId = 'page-1'): Project {
 
 export default function StudioPage() {
   const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [view, setView] = useState<StudioView>('project');
   const [project, setProject] = useState<Project>(() => createInitialProject());
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [status, setStatus] = useState('');
+  const [generating, setGenerating] = useState<GeneratingState>({
+    cover: false,
+    bundle: false,
+    pages: {},
+    characters: {},
+  });
   const [bundleError, setBundleError] = useState('');
 
   const coverDesignerRef = useRef<CoverDesignerHandle>(null);
 
+  const setTaskLoading = useCallback((task: 'cover' | 'bundle', value: boolean) => {
+    setGenerating((prev) => ({ ...prev, [task]: value }));
+  }, []);
+
+  const setPageLoading = useCallback((pageId: string, value: boolean) => {
+    setGenerating((prev) => {
+      const nextPages = { ...prev.pages };
+      if (value) nextPages[pageId] = true;
+      else delete nextPages[pageId];
+      return { ...prev, pages: nextPages };
+    });
+  }, []);
+
+  const setCharacterLoading = useCallback((charId: string, value: boolean) => {
+    setGenerating((prev) => {
+      const nextCharacters = { ...prev.characters };
+      if (value) nextCharacters[charId] = true;
+      else delete nextCharacters[charId];
+      return { ...prev, characters: nextCharacters };
+    });
+  }, []);
+
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialTab = resolveTabParam(params.get('tab'));
+    if (initialTab) {
+      setView(initialTab);
+    }
+
+    try {
+      const savedTheme = window.localStorage.getItem(STUDIO_THEME_KEY);
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        setTheme(savedTheme);
+      }
+    } catch {
+      // Ignore storage access errors.
+    }
+
     try {
       const raw = window.localStorage.getItem(STUDIO_STORAGE_KEY);
       if (raw) {
@@ -75,8 +157,8 @@ export default function StudioPage() {
             typeof parsed.pageCount === 'number' && parsed.pageCount > 0 ? parsed.pageCount : 100;
           const multi = paperType === 'white' ? 0.002252 : 0.0025;
           setProject({
-            name: parsed.name || 'Untitled Manga',
-            author: typeof parsed.author === 'string' ? parsed.author : 'Author Name',
+            name: parsed.name || 'Manga sin título',
+            author: typeof parsed.author === 'string' ? parsed.author : 'Autor',
             pageCount,
             paperType,
             characters: Array.isArray(parsed.characters) ? parsed.characters : [],
@@ -134,7 +216,29 @@ export default function StudioPage() {
     }
   }, [project.pages.length, activePageIndex]);
 
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      try {
+        window.localStorage.setItem(STUDIO_THEME_KEY, next);
+      } catch {
+        // Ignore storage access errors.
+      }
+      return next;
+    });
+  };
+
+  const handleSelectView = (nextView: StudioView) => {
+    setView(nextView);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', nextView);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
   const safePageIndex = Math.min(activePageIndex, Math.max(0, project.pages.length - 1));
+  const activePage = project.pages[safePageIndex];
 
   const updateProject = (updates: Partial<Project>) => {
     setProject((prev) => {
@@ -170,7 +274,8 @@ export default function StudioPage() {
   };
 
   const handleDownloadAll = async () => {
-    setStatus('Preparing KDP Package...');
+    if (generating.bundle) return;
+    setTaskLoading('bundle', true);
     setBundleError('');
     try {
       const zip = new JSZip();
@@ -203,7 +308,7 @@ export default function StudioPage() {
         }
       });
       const base64 = await zip.generateAsync({ type: 'base64' });
-      const safeName = (project.name || 'Untitled_Manga').trim().replace(/\s+/g, '_') || 'Manga';
+      const safeName = (project.name || 'Manga_Sin_Titulo').trim().replace(/\s+/g, '_') || 'Manga';
       await Flow.download({
         base64,
         mimeType: 'application/zip',
@@ -211,9 +316,9 @@ export default function StudioPage() {
       });
     } catch (err) {
       console.error(err);
-      setBundleError(err instanceof Error ? err.message : 'Unable to build KDP bundle.');
+      setBundleError(err instanceof Error ? err.message : 'No se pudo generar el paquete ZIP.');
     } finally {
-      setStatus('');
+      setTaskLoading('bundle', false);
     }
   };
 
@@ -222,140 +327,210 @@ export default function StudioPage() {
   }
 
   return (
-    <div className="manga-grid">
-      <aside className="gf-sidebar-left no-scrollbar">
-        <div className="gf-sidebar-section">
-          <SectionLabel>KDP Production</SectionLabel>
-          <div className="gf-nav-list">
-            <NavItem
-              active={view === 'project'}
-              icon="settings_print"
-              label="Print Setup"
-              onClick={() => setView('project')}
-            />
-            <NavItem
-              active={view === 'characters'}
-              icon="face"
-              label="Character Library"
-              onClick={() => setView('characters')}
-            />
-            <NavItem
-              active={view === 'cover'}
-              icon="menu_book"
-              label="Paperback Cover"
-              onClick={() => setView('cover')}
-            />
-            <NavItem
-              active={view === 'pages'}
-              icon="auto_stories"
-              label="Interior Pages"
-              onClick={() => setView('pages')}
-            />
-          </div>
+    <div className="gf-studio-root" data-theme={theme}>
+      <header className="gf-topbar">
+        <div className="gf-topbar-left">
+          <Link
+            href="/"
+            prefetch={false}
+            title="Volver al inicio"
+            className="gf-brand-link"
+          >
+            <ArrowLeft size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+            <span>MANGAI STUDIO</span>
+          </Link>
+          <span className="gf-topbar-divider" aria-hidden="true" />
+          <span className="gf-topbar-project">{project.name || 'Manga sin título'}</span>
         </div>
 
-        {view === 'pages' && (
-          <div className="gf-sidebar-section animate-slide-in-right">
-            <SectionLabel>Manuscript</SectionLabel>
-            <div className="gf-manuscript-list dark-scrollbar">
-              {project.pages.map((p, i) => (
-                <button
-                  key={p.id || i}
-                  type="button"
-                  onClick={() => setActivePageIndex(i)}
-                  className={`gf-page-item ${safePageIndex === i ? 'is-active' : ''}`}
-                >
-                  <span className="gf-page-item-left">
-                    <span className="gf-page-item-num">{String(i + 1).padStart(2, '0')}</span>
-                    <span>Page {i + 1}</span>
-                  </span>
-                  <span className="material-symbols-outlined gf-page-item-icon">
-                    {p.base64 ? 'verified' : 'ink_high'}
-                  </span>
-                </button>
-              ))}
-              <PillButton
-                variant="outline"
-                icon={<span className="material-symbols-outlined">add</span>}
-                onClick={() => {
-                  const activeArtStyle = project.pages[safePageIndex]?.artStyle || 'Classic Shonen';
-                  const newPages: Page[] = [
-                    ...project.pages,
-                    {
-                      id: createPageId(),
-                      base64: '',
-                      prompt: '',
-                      artStyle: activeArtStyle,
-                      castIds: [],
-                    },
-                  ];
-                  updateProject({ pages: newPages });
-                  setActivePageIndex(newPages.length - 1);
-                }}
-              >
-                Add Page
-              </PillButton>
+        <div className="gf-topbar-right">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="gf-theme-toggle"
+            title={theme === 'light' ? 'Cambiar a Modo Estudio Oscuro' : 'Cambiar a Modo Papel Genkō'}
+            aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo Papel Genkō claro'}
+          >
+            {theme === 'light' ? (
+              <>
+                <Moon size={15} strokeWidth={1.75} className="gf-icon-shrink" />
+                <span>Modo Oscuro</span>
+              </>
+            ) : (
+              <>
+                <Sun size={15} strokeWidth={1.75} className="gf-icon-shrink" />
+                <span>Papel Genkō</span>
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      <div className="manga-grid">
+        <aside className="gf-sidebar-left no-scrollbar">
+          <div className="gf-sidebar-section">
+            <Link
+              href="/"
+              prefetch={false}
+              title="Volver al inicio"
+              className="gf-sidebar-brand"
+            >
+              <ArrowLeft size={14} strokeWidth={1.75} className="gf-icon-shrink" />
+              <span>MANGAI STUDIO</span>
+            </Link>
+            <div className="gf-nav-list">
+              <NavItem
+                active={view === 'project'}
+                icon={<Printer size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Configuración y Lomo"
+                onClick={() => handleSelectView('project')}
+              />
+              <NavItem
+                active={view === 'characters'}
+                icon={<Users size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Settei y Personajes"
+                onClick={() => handleSelectView('characters')}
+              />
+              <NavItem
+                active={view === 'cover'}
+                icon={<BookOpen size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Portada Tankōbon"
+                onClick={() => handleSelectView('cover')}
+              />
+              <NavItem
+                active={view === 'pages'}
+                icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Páginas e Interiores"
+                onClick={() => handleSelectView('pages')}
+              />
             </div>
           </div>
-        )}
 
-        <div className="gf-sidebar-bottom">
-          <SectionLabel>Submission</SectionLabel>
-          <PillButton
-            variant="solid"
-            icon={<span className="material-symbols-outlined">publish</span>}
-            onClick={handleDownloadAll}
-            disabled={Boolean(status)}
-          >
-            Build KDP Bundle
-          </PillButton>
-          {status && <div className="gf-status-text animate-pulse-slow">{status}</div>}
-          {bundleError && <div className="gf-inline-error">{bundleError}</div>}
-        </div>
-      </aside>
-
-      <main className="gf-canvas-shell">
-        <div className="gf-canvas-scroll dark-scrollbar">
           {view === 'pages' && (
-            <PageEditor
-              project={project}
-              pageIndex={safePageIndex}
-              updateProject={updateProject}
-            />
+            <div className="gf-sidebar-section animate-slide-in-right">
+              <SectionLabel>Manuscrito</SectionLabel>
+              <div className="gf-manuscript-list dark-scrollbar">
+                {project.pages.map((p, i) => {
+                  const isThisPageBusy = Boolean(generating.pages[p.id]);
+                  return (
+                    <button
+                      key={p.id || i}
+                      type="button"
+                      onClick={() => setActivePageIndex(i)}
+                      className={`gf-page-item ${safePageIndex === i ? 'is-active' : ''}`}
+                    >
+                      <span className="gf-page-item-left">
+                        <span className="gf-page-item-num">{String(i + 1).padStart(2, '0')}</span>
+                        <span>Página {i + 1}</span>
+                      </span>
+                      <span className="gf-page-item-icon">
+                        {isThisPageBusy ? (
+                          <RefreshCw size={14} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+                        ) : p.base64 ? (
+                          <CheckCircle2 size={14} strokeWidth={1.75} className="gf-icon-shrink" />
+                        ) : (
+                          <PenTool size={14} strokeWidth={1.75} className="gf-icon-shrink" />
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+                <PillButton
+                  variant="outline"
+                  icon={<Plus size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
+                  onClick={() => {
+                    const activeArtStyle = project.pages[safePageIndex]?.artStyle || 'Classic Shonen';
+                    const newPages: Page[] = [
+                      ...project.pages,
+                      {
+                        id: createPageId(),
+                        base64: '',
+                        prompt: '',
+                        artStyle: activeArtStyle,
+                        castIds: [],
+                      },
+                    ];
+                    updateProject({ pages: newPages });
+                    setActivePageIndex(newPages.length - 1);
+                  }}
+                >
+                  Añadir Página
+                </PillButton>
+              </div>
+            </div>
           )}
-          {view === 'characters' && (
-            <CharacterLibrary
-              project={project}
-              updateProject={updateProject}
-              isGenerating={isGenerating}
-              setIsGenerating={setIsGenerating}
-            />
-          )}
-          {view === 'cover' && (
-            <CoverDesigner
-              ref={coverDesignerRef}
-              project={project}
-              updateProject={updateProject}
-            />
-          )}
-          {view === 'project' && (
-            <ProjectManager project={project} updateProject={updateProject} />
-          )}
-        </div>
-      </main>
 
-      <aside className="gf-sidebar-right dark-scrollbar">
-        <ViewControls
-          view={view}
-          project={project}
-          pageIndex={safePageIndex}
-          isGenerating={isGenerating}
-          setIsGenerating={setIsGenerating}
-          updatePageById={updatePageById}
-          updateCover={updateCover}
-          onExportCover={() => coverDesignerRef.current?.exportCover()}
-        />
-      </aside>
+          <div className="gf-sidebar-bottom">
+            <SectionLabel>Entrega Final</SectionLabel>
+            <PillButton
+              variant="solid"
+              icon={
+                generating.bundle ? (
+                  <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+                ) : (
+                  <PackageCheck size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+                )
+              }
+              onClick={handleDownloadAll}
+              disabled={generating.bundle}
+            >
+              {generating.bundle ? 'Empaquetando ZIP...' : 'Exportar Paquete ZIP'}
+            </PillButton>
+            {generating.bundle && (
+              <div className="gf-status-text animate-pulse-slow">
+                Preparando archivos editoriales...
+              </div>
+            )}
+            {bundleError && <div className="gf-inline-error">{bundleError}</div>}
+          </div>
+        </aside>
+
+        <main className="gf-canvas-shell">
+          <div className="gf-canvas-scroll dark-scrollbar">
+            {view === 'pages' && (
+              <PageEditor
+                project={project}
+                pageIndex={safePageIndex}
+                updateProject={updateProject}
+                isGeneratingPage={Boolean(activePage && generating.pages[activePage.id])}
+              />
+            )}
+            {view === 'characters' && (
+              <CharacterLibrary
+                project={project}
+                updateProject={updateProject}
+                characterLoading={generating.characters}
+                setCharacterLoading={setCharacterLoading}
+              />
+            )}
+            {view === 'cover' && (
+              <CoverDesigner
+                ref={coverDesignerRef}
+                project={project}
+                updateProject={updateProject}
+                isGeneratingCover={generating.cover}
+              />
+            )}
+            {view === 'project' && (
+              <ProjectManager project={project} updateProject={updateProject} />
+            )}
+          </div>
+        </main>
+
+        <aside className="gf-sidebar-right dark-scrollbar">
+          <ViewControls
+            view={view}
+            project={project}
+            pageIndex={safePageIndex}
+            generating={generating}
+            setTaskLoading={setTaskLoading}
+            setPageLoading={setPageLoading}
+            updatePageById={updatePageById}
+            updateCover={updateCover}
+            onExportCover={() => coverDesignerRef.current?.exportCover()}
+          />
+        </aside>
+      </div>
     </div>
   );
 }
@@ -367,7 +542,7 @@ function NavItem({
   onClick,
 }: {
   active: boolean;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
 }) {
@@ -377,7 +552,7 @@ function NavItem({
       onClick={onClick}
       className={`gf-nav-item ${active ? 'is-active' : ''}`}
     >
-      <span className="material-symbols-outlined gf-nav-icon">{icon}</span>
+      <span className="gf-nav-icon">{icon}</span>
       <span className="gf-nav-label">{label}</span>
     </button>
   );
@@ -387,8 +562,9 @@ function ViewControls({
   view,
   project,
   pageIndex,
-  isGenerating,
-  setIsGenerating,
+  generating,
+  setTaskLoading,
+  setPageLoading,
   updatePageById,
   updateCover,
   onExportCover,
@@ -396,30 +572,34 @@ function ViewControls({
   view: StudioView;
   project: Project;
   pageIndex: number;
-  isGenerating: boolean;
-  setIsGenerating: (val: boolean) => void;
+  generating: GeneratingState;
+  setTaskLoading: (task: 'cover' | 'bundle', value: boolean) => void;
+  setPageLoading: (pageId: string, value: boolean) => void;
   updatePageById: (pageId: string, patch: Partial<Page>) => void;
   updateCover: (patch: Partial<Project['cover']>) => void;
   onExportCover: () => void;
 }) {
   const [style, setStyle] = useState<string>('Classic Shonen');
-  const [errorMsg, setErrorMsg] = useState<string>('');
+  const [coverError, setCoverError] = useState<string>('');
+  const [pageErrors, setPageErrors] = useState<Record<string, string>>({});
 
   const currentPage = project.pages[pageIndex];
-  const currentPageId = currentPage?.id;
+  const currentPageId = currentPage?.id ?? '';
   const pagePrompt = currentPage?.prompt ?? '';
   const pageStyle = currentPage?.artStyle || style;
   const coverPrompt = project.cover.prompt ?? '';
 
-  useEffect(() => {
-    setErrorMsg('');
-  }, [view, currentPageId]);
+  const isCurrentPageBusy = Boolean(currentPageId && generating.pages[currentPageId]);
+  const isCoverBusy = generating.cover;
+  const currentPageError = currentPageId ? pageErrors[currentPageId] ?? '' : '';
 
   const generatePage = async () => {
     if (!currentPage) return;
-    setErrorMsg('');
-    setIsGenerating(true);
     const targetPageId = currentPage.id;
+    if (generating.pages[targetPageId]) return;
+
+    setPageErrors((prev) => ({ ...prev, [targetPageId]: '' }));
+    setPageLoading(targetPageId, true);
     const promptSnapshot = pagePrompt;
     const styleSnapshot = pageStyle;
 
@@ -442,7 +622,7 @@ function ViewControls({
         modelDisplayName: '🍌 Nano Banana Pro',
         mode: 'panel',
         aspectRatio: '3:4',
-        name: cast.map((c) => c.name).filter(Boolean).join(', ') || project.name || 'Manga Page',
+        name: cast.map((c) => c.name).filter(Boolean).join(', ') || project.name || 'Página Manga',
         details: charVisuals || undefined,
         style: styleSnapshot,
         notes: promptSnapshot.trim() || `Interior manga page ${pageIndex + 1}`,
@@ -459,15 +639,20 @@ function ViewControls({
       });
     } catch (err) {
       console.error(err);
-      setErrorMsg(err instanceof Error ? err.message : 'Unable to generate page.');
+      setPageErrors((prev) => ({
+        ...prev,
+        [targetPageId]:
+          err instanceof Error ? err.message : 'No se pudo generar la página interior.',
+      }));
     } finally {
-      setIsGenerating(false);
+      setPageLoading(targetPageId, false);
     }
   };
 
   const generateUnifiedCover = async () => {
-    setErrorMsg('');
-    setIsGenerating(true);
+    if (generating.cover) return;
+    setCoverError('');
+    setTaskLoading('cover', true);
     const promptSnapshot = coverPrompt;
 
     try {
@@ -488,10 +673,10 @@ function ViewControls({
         modelDisplayName: '🍌 Nano Banana Pro',
         mode: 'cover_wrap',
         aspectRatio: '16:9',
-        name: project.name || 'Untitled Manga',
+        name: project.name || 'Manga sin título',
         details: charVisuals || undefined,
         style,
-        notes: promptSnapshot.trim() || `Wrap cover artwork for ${project.name || 'Untitled Manga'}`,
+        notes: promptSnapshot.trim() || `Wrap cover artwork for ${project.name || 'Manga'}`,
         referenceImageMediaIds:
           referenceImageMediaIds.length > 0 ? referenceImageMediaIds : undefined,
         referenceImagesBase64:
@@ -506,9 +691,11 @@ function ViewControls({
       });
     } catch (err) {
       console.error(err);
-      setErrorMsg(err instanceof Error ? err.message : 'Unable to generate cover wrap.');
+      setCoverError(
+        err instanceof Error ? err.message : 'No se pudo generar la cubierta envolvente.',
+      );
     } finally {
-      setIsGenerating(false);
+      setTaskLoading('cover', false);
     }
   };
 
@@ -516,9 +703,9 @@ function ViewControls({
     return (
       <div className="gf-controls-stack animate-slide-in-right">
         <div className="gf-controls-group">
-          <SectionLabel>Interior Settings</SectionLabel>
+          <SectionLabel>Ajustes de Página</SectionLabel>
           <FieldDropdown
-            label="Art Style"
+            label="Estilo de Dibujo"
             value={pageStyle}
             options={ART_STYLES}
             onChange={(val) => {
@@ -530,10 +717,12 @@ function ViewControls({
           />
 
           <div className="gf-cast-section">
-            <SectionLabel>Active Cast ({currentPage?.castIds?.length || 0})</SectionLabel>
+            <SectionLabel>Elenco Activo ({currentPage?.castIds?.length || 0})</SectionLabel>
             <div className="gf-cast-chips">
               {project.characters.length === 0 ? (
-                <span className="gf-cast-empty">No characters in roster yet.</span>
+                <span className="gf-cast-empty">
+                  Aún no hay personajes en «Settei y Personajes».
+                </span>
               ) : (
                 project.characters.map((c) => {
                   const selected = currentPage?.castIds?.includes(c.id) ?? false;
@@ -550,7 +739,7 @@ function ViewControls({
                       }}
                       className={`gf-cast-chip ${selected ? 'is-active' : ''}`}
                     >
-                      {c.name || 'Unnamed'}
+                      {c.name || 'Sin nombre'}
                     </button>
                   );
                 })
@@ -565,24 +754,26 @@ function ViewControls({
                 updatePageById(currentPage.id, { prompt: val });
               }
             }}
-            placeholder="Describe the action and panels..."
+            placeholder="Describe la acción, planos y viñetas de esta página..."
           />
         </div>
 
         <PillButton
           variant="solid"
           icon={
-            <span className={`material-symbols-outlined ${isGenerating ? 'gf-spin' : ''}`}>
-              {isGenerating ? 'refresh' : 'auto_awesome'}
-            </span>
+            isCurrentPageBusy ? (
+              <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+            ) : (
+              <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+            )
           }
           onClick={generatePage}
-          disabled={isGenerating || !currentPage}
+          disabled={isCurrentPageBusy || !currentPage}
         >
-          {isGenerating ? 'Drawing Page...' : 'Generate High-Res Ink'}
+          {isCurrentPageBusy ? 'Entintando Página...' : 'Generar Tinta Alta Res.'}
         </PillButton>
 
-        {errorMsg && <div className="gf-inline-error">{errorMsg}</div>}
+        {currentPageError && <div className="gf-inline-error">{currentPageError}</div>}
       </div>
     );
   }
@@ -591,14 +782,14 @@ function ViewControls({
     return (
       <div className="gf-controls-stack animate-slide-in-right">
         <div className="gf-controls-group">
-          <SectionLabel>Unified Cover Generation</SectionLabel>
+          <SectionLabel>Generación de Cubierta Completa</SectionLabel>
           <p className="gf-helper-copy">
-            Generates a wide 16:9 wrap that ensures the front and back styles match perfectly.
+            Genera un lienzo panorámico 16:9 que unifica portada, lomo y contraportada en el mismo estilo.
           </p>
           <TextInput
             value={coverPrompt}
             onChange={(val) => updateCover({ prompt: val })}
-            placeholder="Describe the overall cover theme and mood..."
+            placeholder="Describe el ambiente, personajes y composición de la portada..."
           />
         </div>
 
@@ -606,26 +797,28 @@ function ViewControls({
           <PillButton
             variant="solid"
             icon={
-              <span className={`material-symbols-outlined ${isGenerating ? 'gf-spin' : ''}`}>
-                {isGenerating ? 'refresh' : 'auto_awesome'}
-              </span>
+              isCoverBusy ? (
+                <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+              ) : (
+                <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+              )
             }
             onClick={generateUnifiedCover}
-            disabled={isGenerating}
+            disabled={isCoverBusy}
           >
-            {isGenerating ? 'Generating Wrap...' : 'Generate Full Wrap'}
+            {isCoverBusy ? 'Generando Cubierta...' : 'Generar Cubierta Completa'}
           </PillButton>
 
-          {errorMsg && <div className="gf-inline-error">{errorMsg}</div>}
+          {coverError && <div className="gf-inline-error">{coverError}</div>}
 
           <div className="gf-controls-divider">
-            <SectionLabel>Production</SectionLabel>
+            <SectionLabel>Producción</SectionLabel>
             <PillButton
               variant="outline"
-              icon={<span className="material-symbols-outlined">print</span>}
+              icon={<Printer size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
               onClick={onExportCover}
             >
-              Export KDP PDF-Ready
+              Exportar PDF Listo para Imprenta
             </PillButton>
           </div>
         </div>
@@ -635,8 +828,11 @@ function ViewControls({
 
   return (
     <div className="gf-controls-empty">
-      <span className="material-symbols-outlined gf-controls-empty-icon">info</span>
-      <span>Select a view from the sidebar to access generation controls.</span>
+      <Info size={28} strokeWidth={1.5} className="gf-controls-empty-icon gf-icon-shrink" />
+      <span>
+        Selecciona «Portada Tankōbon» o «Páginas e Interiores» en la barra lateral para acceder a
+        los controles de generación IA.
+      </span>
     </div>
   );
 }
