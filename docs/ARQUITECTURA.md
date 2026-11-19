@@ -46,3 +46,10 @@ flowchart TD
 - **Settei v2 y Motor Koma-wari (`CharacterLibrary.tsx`, `PageEditor.tsx`, `page.tsx`):**
   - Entidades Settei con pestañas (`Personajes`, `Objetos (Props)`, `Escenarios y Lore`), `@tag_handle` único, chips de **Anclas Visuales** y `Seed Bloqueado`.
   - 4 presets geométricos (`3_panel_dramatic`, `4_panel_classic`, `5_panel_action` con corte diagonal central, `splash_spread`), recorte CSS `clip-path` + bordes vectoriales SVG, selección interactiva de viñeta (`#4F46E5`), máquina de estados (`VACIO → NEMU → PEN_IRE → TONE_FX → SHIAGE → LOCKED`) y generación aislada por `komaId` (`generating.komas[komaId]`).
+
+## Sprint 3 — Globos Fukidashi (`L5`), Pila Estricta `L0–L6`, Presets de Imprenta y Aplanado Pre-Prensa
+
+- **Pila de 7 Capas (`L0`–`L6`) con Z-Index fijo (`10`–`70`):** `L6_guides` (`70`, no imprimible), `L5_balloons` (`60`), `L4_sfx` (`50`), `L3_borders_fx` (`40`), `L2_ink` (`30`), `L1_tones` (`20`, opacidad ajustable) y `L0_nemu` (`10`, no imprimible, opacidad default `40%`). Controladas desde el panel `L6 → L0` en el Inspector Derecho.
+- **Globos Vectoriales (`components/studio/FukidashiLayer.tsx`) y SFX (`KakimojiLayer.tsx`):** 6 estilos SVG (`normal`, `shout`, `whisper`, `thought`, `narrator`, `system`), arrastre por puntero, cola orientable, edición inline por doble clic, alerta visual *Naiwaku* y botón `Marcar Viñeta Lista (SHIAGE → LOCKED)`.
+- **Formatos y Portada (`lib/print/presets.ts` + `lib/print/ean13.ts`):** Presets `tankobon_b6`, `b4_canva_pro` (`2150 × 3035 px` + `3.5 mm` bleed) y `kdp_6x9`; ISBN-13 editable con código de barras EAN-13 SVG puro opcional y tipografía en vivo sobre el *Full Wrap*.
+- **Exportador Pre-Prensa (`lib/export/buildPrintBundle.ts` + `PreflightModal.tsx`):** Aplanado estricto `L1 → L5` (excluye automáticamente `L0` y `L6`), Semáforo Pre-Flight de 4 verificaciones, `README_IMPRENTA.txt` y descarga con nombre dinámico `${slug}_${trimFormat}_PRINT_BUNDLE.zip`.

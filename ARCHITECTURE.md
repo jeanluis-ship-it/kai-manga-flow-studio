@@ -36,3 +36,24 @@
    - **Settei v2:** Pestañas de filtrado (`Todo el Canon`, `Personajes`, `Objetos (Props)`, `Escenarios y Lore`), handles `@Settei` únicos, chips interactivos de **Anclas Visuales** y bloqueo `Seed Bloqueado`.
    - **4 Plantillas Koma-wari:** `3_panel_dramatic`, `4_panel_classic`, `5_panel_action` (corte diagonal central) y `splash_spread`, renderizadas con `clip-path: polygon(...)` y bordes SVG vectoriales (Sumi Ink `#111111` + selección activa Indigo `#4F46E5`).
    - **Inspector Contextual de Viñeta (`Viñeta #N`):** Edita estado (`VACIO`..`LOCKED`), ángulo de cámara, chips `@Settei`, acción, diálogo/SFX y entinta cada viñeta de forma aislada (`generating.komas[komaId]`), avanzando su estado a `PEN_IRE` y exportando también las viñetas entintadas en el paquete ZIP.
+
+## Decisiones del Sprint 3 — Globos Fukidashi, Pila Estricta de 7 Capas (`L0–L6`) y Pre-Prensa
+
+1. **Pila Determinista de 7 Capas (`L0` a `L6`) en `app/studio/components/PageEditor.tsx` y `app/studio/types.ts`:**
+   - `L6_guides` (`z-index: 70`, **No imprimible**): Guías técnicas `#00AEEF` de sangrado (*Bleed*), corte (*Trim*), área segura (*Naiwaku*) y zona del lomo (*Gutter*) sincronizadas con el formato activo y dirección de lectura.
+   - `L5_balloons` (`z-index: 60`, imprimible): `components/studio/FukidashiLayer.tsx` con 6 estilos vectoriales auténticos (`normal`, `shout`, `whisper`, `thought`, `narrator`, `system`), arrastre por puntero (`x`, `y`), manija orientable de cola (`tailX`, `tailY`), edición inline por doble clic y validación automática de *Naiwaku*.
+   - `L4_sfx` (`z-index: 50`, imprimible): `components/studio/KakimojiLayer.tsx` con onomatopeyas arrastrables y contorno blanco (`paint-order: stroke`).
+   - `L3_borders_fx` (`z-index: 40`, imprimible): Marcos Sumi Ink (`0.8mm`) y overlays cinéticos recortados por polígono (`ryusen` y `shuchusen`).
+   - `L2_ink` (`z-index: 30`, imprimible): Arte entintado en blanco y negro (`inkRenderUrl`) recortado dentro del `clip-path` de cada viñeta.
+   - `L1_tones` (`z-index: 20`, imprimible): Tramas semitono SVG (`dots_15`, `dots_30`, `dots_60`, `gradient`, `beta_black`) con slider de opacidad individual (default `100%`).
+   - `L0_nemu` (`z-index: 10`, **No imprimible**): Boceto guía azul no-foto `#00AEEF` con slider de opacidad individual (default `40%`).
+   - Panel `L6 → L0` integrado en la mitad inferior del Inspector Derecho con toggles `Eye`/`EyeOff` sincronizados con `pages.layersVisibility` y marca explícita `"No imprimible"` en `L6` y `L0`.
+2. **3 Presets de Formato Editorial (`lib/print/presets.ts` + `ProjectManager.tsx`):**
+   - `tankobon_b6` (Default): `128 × 182 mm`, bleed `3.0 mm`, `600 DPI` interiores (`1583 × 2220 px`), `300 DPI` cubierta.
+   - `b4_canva_pro` (Canva Bridge B4 Pro): lienzo exacto **`2150 × 3035 px`**, bleed `3.5 mm`, listo para Canva sin reescalado.
+   - `kdp_6x9` (Amazon KDP Paperback): `6.0" × 9.0"`, bleed `0.125"` (`1838 × 2775 px`).
+3. **ISBN-13 Editable y Código EAN-13 SVG Puro (`lib/print/ean13.ts` + `CoverDesigner.tsx`):**
+   - Validación de 13 dígitos y dígito verificador, auto-formateo, interruptor `Incluir caja de código de barras ISBN` (ON/OFF), código EAN-13 SVG en el cuadrante inferior derecho de la contraportada, y campos en vivo de título en lomo, autor y sinopsis.
+4. **Motor de Aplanado Pre-Prensa (`L1 → L5`) y Semáforo Pre-Flight (`lib/export/buildPrintBundle.ts` + `PreflightModal.tsx`):**
+   - Aplana estrictamente **`L1_tones + L2_ink + L3_borders_fx + L4_sfx + L5_balloons`** a PNG de alta resolución (2150×3035 px en `b4_canva_pro`), garantizando la exclusión total de `L0_nemu` y `L6_guides` tanto en el ZIP como en la impresión directa (`@media print`).
+   - Genera `README_IMPRENTA.txt`, `print_manifest.json` y archivo dinámico `${slugify(title)}_${trimFormat}_PRINT_BUNDLE.zip` tras mostrar los 4 checks del Semáforo Pre-Flight.

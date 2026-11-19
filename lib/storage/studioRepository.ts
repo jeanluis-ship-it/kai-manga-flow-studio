@@ -1,13 +1,21 @@
-import { KOMA_LAYOUT_PRESETS, type KomaLayoutId } from '@/lib/kai/schema';
+import { getPolygonBounds, KOMA_LAYOUT_PRESETS, type KomaLayoutId } from '@/lib/kai/schema';
+import { computeSpineInches, PRINT_PRESETS, type TrimFormatId } from '@/lib/print/presets';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import {
+  DEFAULT_LAYERS_VISIBILITY,
+  DEFAULT_LAYER_OPACITY,
   normalizeTagHandle,
   type Character,
   type Koma,
+  type KomaDialogue,
+  type KomaSfx,
   type KomaState,
+  type LayersVisibility,
   type Page,
   type Project,
+  type ScreentonePreset,
   type SetteiEntityType,
+  type SpeedlinePreset,
 } from '@/app/studio/types';
 
 export const STUDIO_STORAGE_KEY = 'mangai-flow-studio-v1';
@@ -19,6 +27,61 @@ function createId(prefix: string): string {
     return globalThis.crypto.randomUUID();
   }
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function hydrateDialogues(
+  rawDialogues: KomaDialogue[] | undefined,
+  coords: { x: number; y: number }[],
+): KomaDialogue[] {
+  if (!Array.isArray(rawDialogues)) return [];
+  const bounds = getPolygonBounds(coords);
+  return rawDialogues.map((d, idx) => {
+    const defaultX = Math.min(
+      85,
+      Math.max(15, bounds.left + bounds.width * (idx % 2 === 0 ? 0.28 : 0.72)),
+    );
+    const defaultY = Math.min(
+      86,
+      Math.max(14, bounds.top + Math.min(bounds.height * 0.34, 12) + idx * 9),
+    );
+    const x = typeof d.x === 'number' && Number.isFinite(d.x) ? d.x : Number(defaultX.toFixed(1));
+    const y = typeof d.y === 'number' && Number.isFinite(d.y) ? d.y : Number(defaultY.toFixed(1));
+    return {
+      ...d,
+      x,
+      y,
+      tailX:
+        typeof d.tailX === 'number' && Number.isFinite(d.tailX)
+          ? d.tailX
+          : Number(Math.min(92, Math.max(8, x + (idx % 2 === 0 ? 7 : -7))).toFixed(1)),
+      tailY:
+        typeof d.tailY === 'number' && Number.isFinite(d.tailY)
+          ? d.tailY
+          : Number(Math.min(92, y + 9).toFixed(1)),
+      fontSize: typeof d.fontSize === 'number' && d.fontSize > 0 ? d.fontSize : 2.35,
+      width: typeof d.width === 'number' && d.width >= 10 ? d.width : 20,
+    };
+  });
+}
+
+function hydrateSfx(rawSfx: KomaSfx[] | undefined, coords: { x: number; y: number }[]): KomaSfx[] {
+  if (!Array.isArray(rawSfx)) return [];
+  const bounds = getPolygonBounds(coords);
+  return rawSfx.map((s, idx) => ({
+    ...s,
+    x:
+      typeof s.x === 'number' && Number.isFinite(s.x)
+        ? s.x
+        : Number(Math.min(86, Math.max(14, bounds.left + bounds.width * 0.74)).toFixed(1)),
+    y:
+      typeof s.y === 'number' && Number.isFinite(s.y)
+        ? s.y
+        : Number(
+            Math.min(88, Math.max(12, bounds.top + bounds.height * 0.78 - idx * 6)).toFixed(1),
+          ),
+    rotation: typeof s.rotation === 'number' && Number.isFinite(s.rotation) ? s.rotation : -8,
+    fontSize: typeof s.fontSize === 'number' && s.fontSize > 0 ? s.fontSize : 4.2,
+  }));
 }
 
 export function buildKomasForLayout(
@@ -39,9 +102,10 @@ export function buildKomasForLayout(
       actionPrompt: prev?.actionPrompt ?? '',
       nemuSketchUrl: prev?.nemuSketchUrl,
       inkRenderUrl: prev?.inkRenderUrl,
-      screentonePreset: prev?.screentonePreset,
-      dialogues: Array.isArray(prev?.dialogues) ? prev.dialogues : [],
-      sfxItems: Array.isArray(prev?.sfxItems) ? prev.sfxItems : [],
+      screentonePreset: (prev?.screentonePreset as ScreentonePreset) || 'none',
+      speedlinePreset: (prev?.speedlinePreset as SpeedlinePreset) || 'none',
+      dialogues: hydrateDialogues(prev?.dialogues, coords),
+      sfxItems: hydrateSfx(prev?.sfxItems, coords),
     };
   });
 }
@@ -53,6 +117,7 @@ export function createInitialStudioProject(pageId = 'page-1'): Project {
     author: 'Autor',
     pageCount: 100,
     paperType: 'white',
+    trimFormat: 'tankobon_b6',
     readingDirection: 'rtl',
     characters: [],
     pages: [
@@ -64,6 +129,8 @@ export function createInitialStudioProject(pageId = 'page-1'): Project {
         castIds: [],
         layoutTemplate: '4_panel_classic',
         chapterBeat: '',
+        layersVisibility: { ...DEFAULT_LAYERS_VISIBILITY },
+        layerOpacity: { ...DEFAULT_LAYER_OPACITY },
         komas: buildKomasForLayout('4_panel_classic', [], pageId),
       },
     ],
@@ -72,7 +139,11 @@ export function createInitialStudioProject(pageId = 'page-1'): Project {
       backBase64: '',
       fullWrapBase64: '',
       prompt: '',
-      spineWidthInches: 0.2252,
+      spineWidthInches: computeSpineInches(100, 'white'),
+      isbn: '978-9945-0000-0-0',
+      includeIsbn: true,
+      spineTitle: '',
+      backSynopsis: '',
     },
   };
 }
@@ -81,7 +152,10 @@ function hydrateProjectShape(parsed: Partial<Project>): Project {
   const paperType = parsed.paperType === 'cream' ? 'cream' : 'white';
   const pageCount =
     typeof parsed.pageCount === 'number' && parsed.pageCount > 0 ? parsed.pageCount : 100;
-  const multi = paperType === 'white' ? 0.002252 : 0.0025;
+  const trimFormat: TrimFormatId =
+    parsed.trimFormat && parsed.trimFormat in PRINT_PRESETS
+      ? parsed.trimFormat
+      : 'tankobon_b6';
 
   const characters: Character[] = Array.isArray(parsed.characters)
     ? parsed.characters.map((c, idx) => ({
@@ -116,23 +190,33 @@ function hydrateProjectShape(parsed: Partial<Project>): Project {
     const existingKomas = Array.isArray(p.komas) && p.komas.length > 0 ? p.komas : [];
     const komas =
       existingKomas.length > 0
-        ? existingKomas.map((k, kIdx) => ({
-            ...k,
-            id: k.id || `${pid}-koma-${kIdx + 1}`,
-            panelIndex: k.panelIndex || kIdx + 1,
-            state: (k.state as KomaState) || 'VACIO',
-            polygonCoords:
+        ? existingKomas.map((k, kIdx) => {
+            const poly =
               Array.isArray(k.polygonCoords) && k.polygonCoords.length >= 3
                 ? k.polygonCoords
                 : KOMA_LAYOUT_PRESETS[layoutTemplate].panels[kIdx] ??
-                  KOMA_LAYOUT_PRESETS['4_panel_classic'].panels[0],
-            cameraAngle: k.cameraAngle || 'Plano Medio',
-            taggedHandles: Array.isArray(k.taggedHandles) ? k.taggedHandles : [],
-            actionPrompt: k.actionPrompt ?? '',
-            dialogues: Array.isArray(k.dialogues) ? k.dialogues : [],
-            sfxItems: Array.isArray(k.sfxItems) ? k.sfxItems : [],
-          }))
+                  KOMA_LAYOUT_PRESETS['4_panel_classic'].panels[0];
+            return {
+              ...k,
+              id: k.id || `${pid}-koma-${kIdx + 1}`,
+              panelIndex: k.panelIndex || kIdx + 1,
+              state: (k.state as KomaState) || 'VACIO',
+              polygonCoords: poly,
+              cameraAngle: k.cameraAngle || 'Plano Medio',
+              taggedHandles: Array.isArray(k.taggedHandles) ? k.taggedHandles : [],
+              actionPrompt: k.actionPrompt ?? '',
+              screentonePreset: (k.screentonePreset as ScreentonePreset) || 'none',
+              speedlinePreset: (k.speedlinePreset as SpeedlinePreset) || 'none',
+              dialogues: hydrateDialogues(k.dialogues, poly),
+              sfxItems: hydrateSfx(k.sfxItems, poly),
+            };
+          })
         : buildKomasForLayout(layoutTemplate, [], pid);
+
+    const mergedVisibility: LayersVisibility = {
+      ...DEFAULT_LAYERS_VISIBILITY,
+      ...(p.layersVisibility ?? {}),
+    };
 
     return {
       id: pid,
@@ -142,6 +226,17 @@ function hydrateProjectShape(parsed: Partial<Project>): Project {
       castIds: Array.isArray(p.castIds) ? p.castIds : [],
       layoutTemplate,
       chapterBeat: typeof p.chapterBeat === 'string' ? p.chapterBeat : '',
+      layersVisibility: mergedVisibility,
+      layerOpacity: {
+        L0_nemu:
+          typeof p.layerOpacity?.L0_nemu === 'number'
+            ? p.layerOpacity.L0_nemu
+            : DEFAULT_LAYER_OPACITY.L0_nemu,
+        L1_tones:
+          typeof p.layerOpacity?.L1_tones === 'number'
+            ? p.layerOpacity.L1_tones
+            : DEFAULT_LAYER_OPACITY.L1_tones,
+      },
       komas,
     };
   });
@@ -152,6 +247,7 @@ function hydrateProjectShape(parsed: Partial<Project>): Project {
     author: typeof parsed.author === 'string' ? parsed.author : 'Autor',
     pageCount,
     paperType,
+    trimFormat,
     readingDirection: parsed.readingDirection === 'ltr' ? 'ltr' : 'rtl',
     characters,
     pages,
@@ -160,10 +256,12 @@ function hydrateProjectShape(parsed: Partial<Project>): Project {
       backBase64: parsed.cover?.backBase64 ?? '',
       fullWrapBase64: parsed.cover?.fullWrapBase64 ?? '',
       prompt: parsed.cover?.prompt ?? '',
-      spineWidthInches:
-        typeof parsed.cover?.spineWidthInches === 'number'
-          ? parsed.cover.spineWidthInches
-          : Math.max(0.1, pageCount * multi),
+      spineWidthInches: computeSpineInches(pageCount, paperType),
+      isbn: typeof parsed.cover?.isbn === 'string' ? parsed.cover.isbn : '978-9945-0000-0-0',
+      includeIsbn:
+        typeof parsed.cover?.includeIsbn === 'boolean' ? parsed.cover.includeIsbn : true,
+      spineTitle: typeof parsed.cover?.spineTitle === 'string' ? parsed.cover.spineTitle : '',
+      backSynopsis: typeof parsed.cover?.backSynopsis === 'string' ? parsed.cover.backSynopsis : '',
     },
   };
 }
@@ -278,6 +376,7 @@ export async function loadStudioProject(): Promise<{ project: Project; mode: Sto
             author: session.user.user_metadata?.display_name || 'Autor',
             pageCount: row.target_page_count,
             paperType: row.paper_type === 'cream' ? 'cream' : 'white',
+            trimFormat: (row.trim_format as TrimFormatId) || 'tankobon_b6',
             readingDirection: row.reading_direction === 'ltr' ? 'ltr' : 'rtl',
             characters: (entities ?? []).map((e) => ({
               id: e.id,
@@ -300,6 +399,10 @@ export async function loadStudioProject(): Promise<{ project: Project; mode: Sto
               castIds: [],
               layoutTemplate: (pg.layout_template as KomaLayoutId) || '4_panel_classic',
               chapterBeat: pg.chapter_beat || '',
+              layersVisibility:
+                pg.layers_visibility && typeof pg.layers_visibility === 'object'
+                  ? (pg.layers_visibility as LayersVisibility)
+                  : { ...DEFAULT_LAYERS_VISIBILITY },
               komas: komasByPage.get(pg.id) ?? [],
             })),
             cover: {
@@ -308,6 +411,8 @@ export async function loadStudioProject(): Promise<{ project: Project; mode: Sto
               fullWrapBase64: row.cover_image_url || '',
               prompt: row.cover_prompt || '',
               spineWidthInches: Number(row.spine_width_in) || 0.2252,
+              isbn: row.isbn || '978-9945-0000-0-0',
+              includeIsbn: Boolean(row.isbn ?? true),
             },
           });
 
@@ -355,9 +460,11 @@ export async function saveStudioProject(project: Project): Promise<StorageMode> 
       user_id: session.user.id,
       title: project.name || 'Sin Título',
       reading_direction: project.readingDirection || 'rtl',
+      trim_format: project.trimFormat || 'tankobon_b6',
       target_page_count: project.pageCount,
       paper_type: project.paperType === 'cream' ? 'cream' : 'white_standard',
       spine_width_in: Number(project.cover.spineWidthInches.toFixed(4)),
+      isbn: project.cover.includeIsbn === false ? null : project.cover.isbn || null,
       cover_prompt: project.cover.prompt || null,
       cover_image_url: project.cover.fullWrapBase64?.startsWith('http')
         ? project.cover.fullWrapBase64
@@ -398,6 +505,7 @@ export async function saveStudioProject(project: Project): Promise<StorageMode> 
             page_number: i + 1,
             layout_template: pg.layoutTemplate || '4_panel_classic',
             chapter_beat: pg.chapterBeat || pg.prompt || null,
+            layers_visibility: pg.layersVisibility ?? DEFAULT_LAYERS_VISIBILITY,
             status: (pg.komas ?? []).some((k) => k.inkRenderUrl) ? 'inked' : 'draft',
           },
           { onConflict: 'project_id,page_number' },
@@ -419,6 +527,7 @@ export async function saveStudioProject(project: Project): Promise<StorageMode> 
             tagged_handles: k.taggedHandles ?? [],
             action_prompt: k.actionPrompt || null,
             ink_render_url: k.inkRenderUrl?.startsWith('http') ? k.inkRenderUrl : null,
+            screentone_preset: k.screentonePreset || 'none',
             dialogues: k.dialogues ?? [],
             sfx_items: k.sfxItems ?? [],
           })),

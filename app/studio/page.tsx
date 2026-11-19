@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -8,8 +8,13 @@ import {
   BookOpen,
   CheckCircle2,
   Cloud,
+  Eye,
+  EyeOff,
   HardDrive,
   Info,
+  Layers,
+  Lock,
+  MessageSquarePlus,
   Moon,
   PackageCheck,
   PenTool,
@@ -18,13 +23,21 @@ import {
   RefreshCw,
   Sparkles,
   Sun,
+  Trash2,
   Users,
 } from 'lucide-react';
 import {
+  getPolygonBounds,
   KOMA_LAYOUT_PRESETS,
   type KaiDualOutput,
   type KomaLayoutId,
 } from '@/lib/kai/schema';
+import {
+  buildPrintBundle,
+  runPreflightChecks,
+} from '@/lib/export/buildPrintBundle';
+import { encodeEan13, formatIsbn13 } from '@/lib/print/ean13';
+import { computeSpineInches } from '@/lib/print/presets';
 import {
   buildKomasForLayout,
   createInitialStudioProject,
@@ -32,23 +45,31 @@ import {
   saveStudioProject,
   type StorageMode,
 } from '@/lib/storage/studioRepository';
-import JSZip from './jszip-lite';
 import { Flow } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
 import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
 import { PageEditor } from './components/PageEditor';
+import { PreflightModal } from './components/PreflightModal';
 import { ProjectManager } from './components/ProjectManager';
 import {
+  DEFAULT_LAYERS_VISIBILITY,
+  DEFAULT_LAYER_OPACITY,
   KOMA_STATES,
+  LAYER_DEFINITIONS,
   normalizeTagHandle,
-  splitDataUrl,
+  type DialogueStyle,
   type GeneratingState,
   type Koma,
+  type KomaDialogue,
+  type KomaSfx,
   type KomaState,
+  type LayerKey,
   type Page,
   type Project,
+  type ScreentonePreset,
+  type SpeedlinePreset,
   type StudioView,
 } from './types';
 import './studio.css';
@@ -72,6 +93,30 @@ const CAMERA_ANGLES = [
   'Plano Holandés (Acción)',
   'Detalle / Inserto',
   'Doble Página Splash',
+];
+
+const SCREENTONE_OPTIONS: Array<{ value: ScreentonePreset; label: string }> = [
+  { value: 'none', label: 'Sin trama' },
+  { value: 'dots_15', label: 'Trama Semitono 15%' },
+  { value: 'dots_30', label: 'Trama Semitono 30%' },
+  { value: 'dots_60', label: 'Trama Semitono 60%' },
+  { value: 'gradient', label: 'Degradado Atmosférico' },
+  { value: 'beta_black', label: 'Relleno Negro Beta' },
+];
+
+const SPEEDLINE_OPTIONS: Array<{ value: SpeedlinePreset; label: string }> = [
+  { value: 'none', label: 'Sin líneas cinéticas' },
+  { value: 'ryusen', label: 'Ryūsen (Acción Lateral)' },
+  { value: 'shuchusen', label: 'Shūchūsen (Impacto Radial)' },
+];
+
+const DIALOGUE_STYLE_OPTIONS: Array<{ value: DialogueStyle; label: string }> = [
+  { value: 'normal', label: 'Normal (Elipse + Cola)' },
+  { value: 'shout', label: 'Grito / Impacto (Picos)' },
+  { value: 'whisper', label: 'Susurro (Punteado)' },
+  { value: 'thought', label: 'Pensamiento (Nube)' },
+  { value: 'narrator', label: 'Narrador (Caja Recta)' },
+  { value: 'system', label: 'Sistema / RPG (Marco Doble)' },
 ];
 
 function resolveTabParam(raw: string | null): StudioView | null {
@@ -107,7 +152,9 @@ export default function StudioPage() {
   const [project, setProject] = useState<Project>(() => createInitialStudioProject());
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
   const [selectedKomaId, setSelectedKomaId] = useState<string | null>(null);
+  const [selectedDialogueId, setSelectedDialogueId] = useState<string | null>(null);
   const [kaiOpen, setKaiOpen] = useState(false);
+  const [preflightOpen, setPreflightOpen] = useState(false);
   const [generating, setGenerating] = useState<GeneratingState>({
     cover: false,
     bundle: false,
@@ -118,6 +165,8 @@ export default function StudioPage() {
   const [bundleError, setBundleError] = useState('');
 
   const coverDesignerRef = useRef<CoverDesignerHandle>(null);
+
+  const preflightReport = useMemo(() => runPreflightChecks(project), [project]);
 
   const setTaskLoading = useCallback((task: 'cover' | 'bundle', value: boolean) => {
     setGenerating((prev) => ({ ...prev, [task]: value }));
@@ -171,8 +220,9 @@ export default function StudioPage() {
       if (!active) return;
       setProject(loaded);
       setStorageMode(mode);
-      const firstKoma = loaded.pages[0]?.komas?.[0]?.id ?? null;
-      setSelectedKomaId(firstKoma);
+      const firstKoma = loaded.pages[0]?.komas?.[0] ?? null;
+      setSelectedKomaId(firstKoma?.id ?? null);
+      setSelectedDialogueId(firstKoma?.dialogues?.[0]?.id ?? null);
       setMounted(true);
     });
 
@@ -206,10 +256,12 @@ export default function StudioPage() {
     const komas = activePage?.komas ?? [];
     if (komas.length === 0) {
       setSelectedKomaId(null);
+      setSelectedDialogueId(null);
       return;
     }
     if (!selectedKomaId || !komas.some((k) => k.id === selectedKomaId)) {
       setSelectedKomaId(komas[0].id);
+      setSelectedDialogueId(komas[0].dialogues[0]?.id ?? null);
     }
   }, [activePage, selectedKomaId]);
 
@@ -244,8 +296,10 @@ export default function StudioPage() {
         ...updates,
         cover: mergedCover,
       };
-      const multi = nextState.paperType === 'white' ? 0.002252 : 0.0025;
-      nextState.cover.spineWidthInches = Math.max(0.1, nextState.pageCount * multi);
+      nextState.cover.spineWidthInches = computeSpineInches(
+        nextState.pageCount,
+        nextState.paperType,
+      );
       return nextState;
     });
   };
@@ -266,6 +320,145 @@ export default function StudioPage() {
           k.id === komaId ? { ...k, ...patch } : k,
         );
         return { ...p, komas: nextKomas };
+      }),
+    }));
+  };
+
+  const handleToggleLayer = (pageId: string, layer: LayerKey) => {
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        const current = { ...DEFAULT_LAYERS_VISIBILITY, ...(p.layersVisibility ?? {}) };
+        return {
+          ...p,
+          layersVisibility: {
+            ...current,
+            [layer]: !current[layer],
+          },
+        };
+      }),
+    }));
+  };
+
+  const handleLayerOpacity = (
+    pageId: string,
+    layer: 'L0_nemu' | 'L1_tones',
+    value: number,
+  ) => {
+    const clamped = Math.min(100, Math.max(0, Math.round(value)));
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        const current = { ...DEFAULT_LAYER_OPACITY, ...(p.layerOpacity ?? {}) };
+        return {
+          ...p,
+          layerOpacity: {
+            ...current,
+            [layer]: clamped,
+          },
+        };
+      }),
+    }));
+  };
+
+  const handleAddBalloon = (pageId: string, koma: Koma) => {
+    const bounds = getPolygonBounds(koma.polygonCoords);
+    const count = koma.dialogues.length;
+    const x = Number(
+      Math.min(82, Math.max(18, bounds.left + bounds.width * (count % 2 === 0 ? 0.35 : 0.65))).toFixed(1),
+    );
+    const y = Number(
+      Math.min(84, Math.max(16, bounds.top + Math.min(bounds.height * 0.35, 11) + count * 8)).toFixed(1),
+    );
+    const newBalloon: KomaDialogue = {
+      id: createEntityId('dlg'),
+      speaker: koma.taggedHandles[0] || 'Personaje',
+      style: 'normal',
+      text: 'Escribe tu diálogo aquí...',
+      x,
+      y,
+      tailX: Number(Math.min(90, x + 7).toFixed(1)),
+      tailY: Number(Math.min(90, y + 8).toFixed(1)),
+      fontSize: 2.35,
+      width: 20,
+    };
+
+    updateKomaById(pageId, koma.id, {
+      dialogues: [...koma.dialogues, newBalloon],
+    });
+    setSelectedDialogueId(newBalloon.id);
+  };
+
+  const handleUpdateDialogue = (
+    pageId: string,
+    komaId: string,
+    dialogueId: string,
+    patch: Partial<KomaDialogue>,
+  ) => {
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        return {
+          ...p,
+          komas: (p.komas ?? []).map((k) => {
+            if (k.id !== komaId) return k;
+            return {
+              ...k,
+              dialogues: k.dialogues.map((d) =>
+                d.id === dialogueId ? { ...d, ...patch } : d,
+              ),
+            };
+          }),
+        };
+      }),
+    }));
+  };
+
+  const handleDeleteDialogue = (pageId: string, komaId: string, dialogueId: string) => {
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        return {
+          ...p,
+          komas: (p.komas ?? []).map((k) => {
+            if (k.id !== komaId) return k;
+            return {
+              ...k,
+              dialogues: k.dialogues.filter((d) => d.id !== dialogueId),
+            };
+          }),
+        };
+      }),
+    }));
+    if (selectedDialogueId === dialogueId) {
+      setSelectedDialogueId(null);
+    }
+  };
+
+  const handleUpdateSfx = (
+    pageId: string,
+    komaId: string,
+    sfxId: string,
+    patch: Partial<KomaSfx>,
+  ) => {
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        return {
+          ...p,
+          komas: (p.komas ?? []).map((k) => {
+            if (k.id !== komaId) return k;
+            return {
+              ...k,
+              sfxItems: k.sfxItems.map((s) => (s.id === sfxId ? { ...s, ...patch } : s)),
+            };
+          }),
+        };
       }),
     }));
   };
@@ -296,6 +489,8 @@ export default function StudioPage() {
       const komas: Koma[] = preset.panels.map((coords, idx) => {
         const scriptKoma = sp.komas[idx];
         const handles = scriptKoma?.tagged_handles ?? [];
+        const b = getPolygonBounds(coords);
+
         return {
           id: createEntityId('koma'),
           panelIndex: idx + 1,
@@ -304,17 +499,37 @@ export default function StudioPage() {
           cameraAngle: scriptKoma?.camera_angle || 'Plano Medio',
           taggedHandles: handles,
           actionPrompt: scriptKoma?.action_prompt || '',
-          dialogues: (scriptKoma?.dialogues ?? []).map((d, dIdx) => ({
-            id: `${pageId}-d-${idx}-${dIdx}`,
-            speaker: d.speaker,
-            style: d.style,
-            text: d.text,
-          })),
+          screentonePreset: 'none',
+          speedlinePreset: sp.suggested_layout === '5_panel_action' && idx === 1 ? 'ryusen' : 'none',
+          dialogues: (scriptKoma?.dialogues ?? []).map((d, dIdx) => {
+            const x = Number(
+              Math.min(82, Math.max(18, b.left + b.width * (dIdx % 2 === 0 ? 0.3 : 0.7))).toFixed(1),
+            );
+            const y = Number(
+              Math.min(84, Math.max(15, b.top + Math.min(b.height * 0.32, 10) + dIdx * 9)).toFixed(1),
+            );
+            return {
+              id: `${pageId}-d-${idx}-${dIdx}`,
+              speaker: d.speaker,
+              style: d.style,
+              text: d.text,
+              x,
+              y,
+              tailX: Number(Math.min(88, Math.max(12, x + (dIdx % 2 === 0 ? 6 : -6))).toFixed(1)),
+              tailY: Number(Math.min(88, y + 8).toFixed(1)),
+              fontSize: 2.35,
+              width: 20,
+            };
+          }),
           sfxItems: scriptKoma?.sfx
             ? [
                 {
                   id: `${pageId}-sfx-${idx}`,
                   text: scriptKoma.sfx,
+                  x: Number(Math.min(84, Math.max(16, b.left + b.width * 0.74)).toFixed(1)),
+                  y: Number(Math.min(86, Math.max(14, b.top + b.height * 0.76)).toFixed(1)),
+                  rotation: -8,
+                  fontSize: 4.2,
                 },
               ]
             : [],
@@ -336,6 +551,8 @@ export default function StudioPage() {
         castIds,
         layoutTemplate: sp.suggested_layout,
         chapterBeat: sp.chapter_beat,
+        layersVisibility: { ...DEFAULT_LAYERS_VISIBILITY },
+        layerOpacity: { ...DEFAULT_LAYER_OPACITY },
         komas,
       };
     });
@@ -357,7 +574,9 @@ export default function StudioPage() {
 
     updateProject({ pages: nextPages });
     setActivePageIndex(targetPageIndex);
-    setSelectedKomaId(generatedPages[0].komas?.[0]?.id ?? null);
+    const firstKoma = generatedPages[0].komas?.[0] ?? null;
+    setSelectedKomaId(firstKoma?.id ?? null);
+    setSelectedDialogueId(firstKoma?.dialogues?.[0]?.id ?? null);
     setKaiOpen(false);
     handleSelectView('pages');
   };
@@ -372,58 +591,18 @@ export default function StudioPage() {
     }));
   };
 
-  const handleDownloadAll = async () => {
+  const handleConfirmPrintExport = async () => {
     if (generating.bundle) return;
     setTaskLoading('bundle', true);
     setBundleError('');
     try {
-      const zip = new JSZip();
-      zip.file(
-        'kdp_manifest.json',
-        JSON.stringify(
-          {
-            ...project,
-            printSpec: '6x9 Paperback',
-            bleed: '0.125in',
-          },
-          null,
-          2,
-        ),
-      );
-      if (project.cover.fullWrapBase64) {
-        const { base64 } = splitDataUrl(project.cover.fullWrapBase64);
-        if (base64) {
-          zip.file('cover/paperback_wrap.png', base64, { base64: true });
-        }
-      }
-      project.pages.forEach((page, i) => {
-        const pageNum = String(i + 1).padStart(3, '0');
-        if (page.base64) {
-          const { base64 } = splitDataUrl(page.base64);
-          if (base64) {
-            zip.file(`interior/page_${pageNum}.png`, base64, { base64: true });
-          }
-        }
-        (page.komas ?? []).forEach((koma) => {
-          if (koma.inkRenderUrl) {
-            const { base64 } = splitDataUrl(koma.inkRenderUrl);
-            if (base64) {
-              zip.file(
-                `interior/page_${pageNum}_koma_${String(koma.panelIndex).padStart(2, '0')}.png`,
-                base64,
-                { base64: true },
-              );
-            }
-          }
-        });
-      });
-      const base64 = await zip.generateAsync({ type: 'base64' });
-      const safeName = (project.name || 'Manga_Sin_Titulo').trim().replace(/\s+/g, '_') || 'Manga';
+      const { base64, filename } = await buildPrintBundle(project);
       await Flow.download({
         base64,
         mimeType: 'application/zip',
-        filename: `${safeName}_KDP_BUNDLE.zip`,
+        filename,
       });
+      setPreflightOpen(false);
     } catch (err) {
       console.error(err);
       setBundleError(err instanceof Error ? err.message : 'No se pudo generar el paquete ZIP.');
@@ -591,12 +770,15 @@ export default function StudioPage() {
                         castIds: [],
                         layoutTemplate: '4_panel_classic',
                         chapterBeat: '',
+                        layersVisibility: { ...DEFAULT_LAYERS_VISIBILITY },
+                        layerOpacity: { ...DEFAULT_LAYER_OPACITY },
                         komas: newKomas,
                       },
                     ];
                     updateProject({ pages: newPages });
                     setActivePageIndex(newPages.length - 1);
                     setSelectedKomaId(newKomas[0]?.id ?? null);
+                    setSelectedDialogueId(null);
                   }}
                 >
                   Añadir Página
@@ -606,7 +788,7 @@ export default function StudioPage() {
           )}
 
           <div className="gf-sidebar-bottom">
-            <SectionLabel>Entrega Final</SectionLabel>
+            <SectionLabel>Pre-Prensa & Entrega</SectionLabel>
             <PillButton
               variant="solid"
               icon={
@@ -616,17 +798,20 @@ export default function StudioPage() {
                   <PackageCheck size={16} strokeWidth={1.75} className="gf-icon-shrink" />
                 )
               }
-              onClick={handleDownloadAll}
+              onClick={() => {
+                setBundleError('');
+                setPreflightOpen(true);
+              }}
               disabled={generating.bundle}
             >
               {generating.bundle ? 'Empaquetando ZIP...' : 'Exportar Paquete ZIP'}
             </PillButton>
             {generating.bundle && (
               <div className="gf-status-text animate-pulse-slow">
-                Preparando archivos editoriales...
+                Aplanando capas L1 → L5...
               </div>
             )}
-            {bundleError && <div className="gf-inline-error">{bundleError}</div>}
+            {bundleError && !preflightOpen && <div className="gf-inline-error">{bundleError}</div>}
           </div>
         </aside>
 
@@ -637,7 +822,19 @@ export default function StudioPage() {
                 project={project}
                 pageIndex={safePageIndex}
                 selectedKomaId={selectedKomaId}
-                onSelectKoma={setSelectedKomaId}
+                selectedDialogueId={selectedDialogueId}
+                onSelectKoma={(kId) => {
+                  setSelectedKomaId(kId);
+                  const found = activePage?.komas?.find((k) => k.id === kId);
+                  setSelectedDialogueId(found?.dialogues?.[0]?.id ?? null);
+                }}
+                onSelectDialogue={(kId, dId) => {
+                  setSelectedKomaId(kId);
+                  setSelectedDialogueId(dId);
+                }}
+                onUpdateDialogue={handleUpdateDialogue}
+                onUpdateSfx={handleUpdateSfx}
+                onToggleLayer={handleToggleLayer}
                 onChangeLayout={handleChangePageLayout}
                 updateProject={updateProject}
                 isGeneratingPage={Boolean(activePage && generating.pages[activePage.id])}
@@ -672,12 +869,20 @@ export default function StudioPage() {
             project={project}
             pageIndex={safePageIndex}
             selectedKomaId={selectedKomaId}
+            selectedDialogueId={selectedDialogueId}
             generating={generating}
             setTaskLoading={setTaskLoading}
             setPageLoading={setPageLoading}
             setKomaLoading={setKomaLoading}
+            updateProject={updateProject}
             updatePageById={updatePageById}
             updateKomaById={updateKomaById}
+            onToggleLayer={handleToggleLayer}
+            onLayerOpacity={handleLayerOpacity}
+            onAddBalloon={handleAddBalloon}
+            onSelectDialogue={setSelectedDialogueId}
+            onUpdateDialogue={handleUpdateDialogue}
+            onDeleteDialogue={handleDeleteDialogue}
             updateCover={updateCover}
             onExportCover={() => coverDesignerRef.current?.exportCover()}
             onOpenKai={() => setKaiOpen(true)}
@@ -690,6 +895,15 @@ export default function StudioPage() {
         onClose={() => setKaiOpen(false)}
         project={project}
         onApplyScript={handleApplyKaiScript}
+      />
+
+      <PreflightModal
+        open={preflightOpen}
+        report={preflightReport}
+        isBuilding={generating.bundle}
+        error={bundleError}
+        onClose={() => setPreflightOpen(false)}
+        onConfirmExport={handleConfirmPrintExport}
       />
     </div>
   );
@@ -723,11 +937,19 @@ function ViewControls({
   project,
   pageIndex,
   selectedKomaId,
+  selectedDialogueId,
   generating,
   setTaskLoading,
   setKomaLoading,
+  updateProject,
   updatePageById,
   updateKomaById,
+  onToggleLayer,
+  onLayerOpacity,
+  onAddBalloon,
+  onSelectDialogue,
+  onUpdateDialogue,
+  onDeleteDialogue,
   updateCover,
   onExportCover,
   onOpenKai,
@@ -736,12 +958,25 @@ function ViewControls({
   project: Project;
   pageIndex: number;
   selectedKomaId: string | null;
+  selectedDialogueId: string | null;
   generating: GeneratingState;
   setTaskLoading: (task: 'cover' | 'bundle', value: boolean) => void;
   setPageLoading: (pageId: string, value: boolean) => void;
   setKomaLoading: (komaId: string, value: boolean) => void;
+  updateProject: (updates: Partial<Project>) => void;
   updatePageById: (pageId: string, patch: Partial<Page>) => void;
   updateKomaById: (pageId: string, komaId: string, patch: Partial<Koma>) => void;
+  onToggleLayer: (pageId: string, layer: LayerKey) => void;
+  onLayerOpacity: (pageId: string, layer: 'L0_nemu' | 'L1_tones', value: number) => void;
+  onAddBalloon: (pageId: string, koma: Koma) => void;
+  onSelectDialogue: (dialogueId: string | null) => void;
+  onUpdateDialogue: (
+    pageId: string,
+    komaId: string,
+    dialogueId: string,
+    patch: Partial<KomaDialogue>,
+  ) => void;
+  onDeleteDialogue: (pageId: string, komaId: string, dialogueId: string) => void;
   updateCover: (patch: Partial<Project['cover']>) => void;
   onExportCover: () => void;
   onOpenKai: () => void;
@@ -751,16 +986,28 @@ function ViewControls({
   const [komaErrors, setKomaErrors] = useState<Record<string, string>>({});
 
   const currentPage = project.pages[pageIndex];
-  const currentPageId = currentPage?.id ?? '';
   const pageStyle = currentPage?.artStyle || style;
   const coverPrompt = project.cover.prompt ?? '';
 
   const komas = currentPage?.komas ?? [];
   const selectedKoma = komas.find((k) => k.id === selectedKomaId) ?? komas[0] ?? null;
+  const activeDialogue =
+    selectedKoma?.dialogues.find((d) => d.id === selectedDialogueId) ??
+    selectedKoma?.dialogues[0] ??
+    null;
 
   const isSelectedKomaBusy = Boolean(selectedKoma && generating.komas[selectedKoma.id]);
   const isCoverBusy = generating.cover;
   const currentKomaError = selectedKoma ? komaErrors[selectedKoma.id] ?? '' : '';
+
+  const layersVis = {
+    ...DEFAULT_LAYERS_VISIBILITY,
+    ...(currentPage?.layersVisibility ?? {}),
+  };
+  const layersOpacity = {
+    ...DEFAULT_LAYER_OPACITY,
+    ...(currentPage?.layerOpacity ?? {}),
+  };
 
   const toggleKomaSetteiHandle = (handle: string, charId: string) => {
     if (!currentPage || !selectedKoma) return;
@@ -928,8 +1175,13 @@ function ViewControls({
   };
 
   if (view === 'pages') {
-    const primaryDialogue = selectedKoma?.dialogues?.[0];
     const primarySfx = selectedKoma?.sfxItems?.[0];
+    const canMarkLocked = Boolean(
+      selectedKoma &&
+        selectedKoma.inkRenderUrl &&
+        selectedKoma.dialogues.length > 0 &&
+        selectedKoma.state !== 'LOCKED',
+    );
 
     return (
       <div className="gf-controls-stack animate-slide-in-right">
@@ -945,7 +1197,6 @@ function ViewControls({
             )}
           </div>
 
-          {/* Koma State Machine */}
           {selectedKoma && currentPage && (
             <div className="gf-state-machine" role="group" aria-label="Estado de la viñeta">
               {KOMA_STATES.map((st) => (
@@ -1036,52 +1287,210 @@ function ViewControls({
                 />
               </div>
 
-              <div className="gf-koma-meta-fields">
+              <PillButton
+                variant="filled"
+                icon={
+                  isSelectedKomaBusy ? (
+                    <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+                  ) : (
+                    <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
+                  )
+                }
+                onClick={generateKomaInk}
+                disabled={isSelectedKomaBusy || !currentPage || !selectedKoma}
+              >
+                {isSelectedKomaBusy
+                  ? `Entintando Viñeta #${selectedKoma.panelIndex}...`
+                  : `Generar Tinta Alta Res. (Viñeta #${selectedKoma.panelIndex})`}
+              </PillButton>
+
+              {currentKomaError && <div className="gf-inline-error">{currentKomaError}</div>}
+
+              {/* Tramas L1 & Líneas Cinéticas L3 */}
+              <div className="gf-controls-divider">
+                <SectionLabel>Tramas (L1) y Efectos Cinéticos (L3)</SectionLabel>
                 <div className="gf-field-box">
-                  <label className="gf-field-label">Globo / Diálogo principal</label>
-                  <input
-                    type="text"
-                    className="gf-text-input gf-text-input-sm"
-                    value={primaryDialogue?.text ?? ''}
-                    onChange={(e) => {
-                      const nextText = e.target.value;
-                      const rest = selectedKoma.dialogues.slice(1);
-                      const nextDialogues = nextText.trim()
-                        ? [
-                            {
-                              id: primaryDialogue?.id || `${selectedKoma.id}-dlg-0`,
-                              speaker:
-                                primaryDialogue?.speaker ||
-                                selectedKoma.taggedHandles[0] ||
-                                'Voz',
-                              style: primaryDialogue?.style || 'normal',
-                              text: nextText,
-                            },
-                            ...rest,
-                          ]
-                        : rest;
+                  <label className="gf-field-label" htmlFor="gf-tone-select">
+                    Trama Screentone (Capa L1)
+                  </label>
+                  <select
+                    id="gf-tone-select"
+                    className="gf-select-native"
+                    value={selectedKoma.screentonePreset || 'none'}
+                    onChange={(e) =>
                       updateKomaById(currentPage.id, selectedKoma.id, {
-                        dialogues: nextDialogues,
-                      });
-                    }}
-                    placeholder="Texto del diálogo en esta viñeta..."
-                  />
+                        screentonePreset: e.target.value as ScreentonePreset,
+                        state:
+                          selectedKoma.state === 'PEN_IRE' ? 'TONE_FX' : selectedKoma.state,
+                      })
+                    }
+                  >
+                    {SCREENTONE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="gf-field-box">
-                  <label className="gf-field-label">SFX / Onomatopeya</label>
+                  <label className="gf-field-label" htmlFor="gf-fx-select">
+                    Líneas Cinéticas (Capa L3)
+                  </label>
+                  <select
+                    id="gf-fx-select"
+                    className="gf-select-native"
+                    value={selectedKoma.speedlinePreset || 'none'}
+                    onChange={(e) =>
+                      updateKomaById(currentPage.id, selectedKoma.id, {
+                        speedlinePreset: e.target.value as SpeedlinePreset,
+                      })
+                    }
+                  >
+                    {SPEEDLINE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Globos Vectoriales Fukidashi (L5) */}
+              <div className="gf-controls-divider">
+                <div className="gf-inspector-head">
+                  <SectionLabel>Globos Fukidashi L5 ({selectedKoma.dialogues.length})</SectionLabel>
+                  <button
+                    type="button"
+                    className="gf-mini-add-btn"
+                    onClick={() => onAddBalloon(currentPage.id, selectedKoma)}
+                  >
+                    <MessageSquarePlus size={12} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>+ Añadir Globo</span>
+                  </button>
+                </div>
+
+                {selectedKoma.dialogues.length > 1 && (
+                  <div className="gf-cast-chips">
+                    {selectedKoma.dialogues.map((d, dIdx) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        className={`gf-cast-chip ${activeDialogue?.id === d.id ? 'is-active' : ''}`}
+                        onClick={() => onSelectDialogue(d.id)}
+                      >
+                        Globo #{dIdx + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {activeDialogue ? (
+                  <div className="gf-balloon-editor-box">
+                    <div className="gf-field-box">
+                      <label className="gf-field-label" htmlFor="gf-balloon-style">
+                        Estilo Fukidashi
+                      </label>
+                      <select
+                        id="gf-balloon-style"
+                        className="gf-select-native"
+                        value={activeDialogue.style}
+                        onChange={(e) =>
+                          onUpdateDialogue(currentPage.id, selectedKoma.id, activeDialogue.id, {
+                            style: e.target.value as DialogueStyle,
+                          })
+                        }
+                      >
+                        {DIALOGUE_STYLE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="gf-field-box">
+                      <label className="gf-field-label" htmlFor="gf-balloon-text">
+                        Texto del Globo (o doble clic en lienzo)
+                      </label>
+                      <input
+                        id="gf-balloon-text"
+                        type="text"
+                        className="gf-text-input gf-text-input-sm"
+                        value={activeDialogue.text}
+                        onChange={(e) =>
+                          onUpdateDialogue(currentPage.id, selectedKoma.id, activeDialogue.id, {
+                            text: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="gf-balloon-size-row">
+                      <label className="gf-field-label" htmlFor="gf-balloon-size">
+                        Tamaño ({Math.round((activeDialogue.fontSize ?? 2.35) * 4.5)} px)
+                      </label>
+                      <input
+                        id="gf-balloon-size"
+                        type="range"
+                        min={1.6}
+                        max={3.6}
+                        step={0.1}
+                        value={activeDialogue.fontSize ?? 2.35}
+                        onChange={(e) =>
+                          onUpdateDialogue(currentPage.id, selectedKoma.id, activeDialogue.id, {
+                            fontSize: Number(e.target.value),
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="gf-char-delete-btn"
+                        title="Eliminar este globo"
+                        onClick={() =>
+                          onDeleteDialogue(currentPage.id, selectedKoma.id, activeDialogue.id)
+                        }
+                      >
+                        <Trash2 size={14} strokeWidth={1.75} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="gf-helper-copy">
+                    Pulsa «+ Añadir Globo» para insertar un Fukidashi arrastrable en la capa L5.
+                  </p>
+                )}
+
+                {/* SFX L4 Quick Input */}
+                <div className="gf-field-box">
+                  <label className="gf-field-label" htmlFor="gf-sfx-input">
+                    Onomatopeya Kakimoji (Capa L4)
+                  </label>
                   <input
+                    id="gf-sfx-input"
                     type="text"
                     className="gf-text-input gf-text-input-sm"
                     value={primarySfx?.text ?? ''}
                     onChange={(e) => {
                       const nextText = e.target.value;
                       const rest = selectedKoma.sfxItems.slice(1);
+                      const bounds = getPolygonBounds(selectedKoma.polygonCoords);
                       const nextSfx = nextText.trim()
                         ? [
                             {
                               id: primarySfx?.id || `${selectedKoma.id}-sfx-0`,
                               text: nextText,
+                              x:
+                                primarySfx?.x ??
+                                Number(
+                                  Math.min(84, Math.max(16, bounds.left + bounds.width * 0.74)).toFixed(1),
+                                ),
+                              y:
+                                primarySfx?.y ??
+                                Number(
+                                  Math.min(86, Math.max(14, bounds.top + bounds.height * 0.76)).toFixed(1),
+                                ),
+                              rotation: primarySfx?.rotation ?? -8,
                             },
                             ...rest,
                           ]
@@ -1091,29 +1500,99 @@ function ViewControls({
                     placeholder="Ej. ドン! (DON!)"
                   />
                 </div>
+
+                {canMarkLocked && (
+                  <PillButton
+                    variant="solid"
+                    icon={<Lock size={14} strokeWidth={2} className="gf-icon-shrink" />}
+                    onClick={() =>
+                      updateKomaById(currentPage.id, selectedKoma.id, { state: 'LOCKED' })
+                    }
+                  >
+                    Marcar Viñeta Lista (SHIAGE → LOCKED)
+                  </PillButton>
+                )}
               </div>
             </>
           )}
         </div>
 
-        <PillButton
-          variant="filled"
-          icon={
-            isSelectedKomaBusy ? (
-              <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
-            ) : (
-              <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
-            )
-          }
-          onClick={generateKomaInk}
-          disabled={isSelectedKomaBusy || !currentPage || !selectedKoma}
-        >
-          {isSelectedKomaBusy
-            ? `Entintando Viñeta #${selectedKoma?.panelIndex ?? 1}...`
-            : `Generar Tinta Alta Res. (Viñeta #${selectedKoma?.panelIndex ?? 1})`}
-        </PillButton>
+        {/* =========================================================
+            BLOCK 1: STRICT 7-LAYER STACK PANEL (L6 → L0)
+            ========================================================= */}
+        {currentPage && (
+          <div className="gf-controls-divider gf-layers-panel">
+            <div className="gf-inspector-head">
+              <SectionLabel>Pila de Capas (L6 → L0)</SectionLabel>
+              <Layers size={14} strokeWidth={1.75} className="gf-icon-shrink gf-layers-head-icon" />
+            </div>
 
-        {currentKomaError && <div className="gf-inline-error">{currentKomaError}</div>}
+            <div className="gf-layers-list">
+              {LAYER_DEFINITIONS.map((layer) => {
+                const isVisible = layersVis[layer.key];
+                const opacityVal =
+                  layer.key === 'L0_nemu'
+                    ? layersOpacity.L0_nemu
+                    : layer.key === 'L1_tones'
+                    ? layersOpacity.L1_tones
+                    : null;
+
+                return (
+                  <div
+                    key={layer.key}
+                    className={`gf-layer-row ${isVisible ? '' : 'is-hidden'} ${
+                      !layer.printable ? 'is-non-printable' : ''
+                    }`}
+                  >
+                    <div className="gf-layer-row-top">
+                      <button
+                        type="button"
+                        className="gf-layer-eye-btn"
+                        onClick={() => onToggleLayer(currentPage.id, layer.key)}
+                        aria-label={`${isVisible ? 'Ocultar' : 'Mostrar'} capa ${layer.code}`}
+                      >
+                        {isVisible ? (
+                          <Eye size={14} strokeWidth={1.75} className="gf-icon-shrink" />
+                        ) : (
+                          <EyeOff size={14} strokeWidth={1.75} className="gf-icon-shrink" />
+                        )}
+                      </button>
+
+                      <span className="gf-layer-code">{layer.code}</span>
+                      <span className="gf-layer-name">{layer.label}</span>
+
+                      {!layer.printable && (
+                        <span className="gf-layer-nonprint-tag">No imprimible</span>
+                      )}
+                    </div>
+
+                    {layer.hasOpacity && opacityVal !== null && (
+                      <div className="gf-layer-opacity-row">
+                        <span>Opacidad</span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={opacityVal}
+                          onChange={(e) =>
+                            onLayerOpacity(
+                              currentPage.id,
+                              layer.key as 'L0_nemu' | 'L1_tones',
+                              Number(e.target.value),
+                            )
+                          }
+                          aria-label={`Opacidad de capa ${layer.code}`}
+                        />
+                        <span className="gf-layer-opacity-val">{opacityVal}%</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="gf-controls-divider">
           <SectionLabel>Guionización Asistida</SectionLabel>
@@ -1130,6 +1609,9 @@ function ViewControls({
   }
 
   if (view === 'cover') {
+    const includeIsbn = project.cover.includeIsbn !== false;
+    const isbnValidation = encodeEan13(project.cover.isbn || '');
+
     return (
       <div className="gf-controls-stack animate-slide-in-right">
         <div className="gf-controls-group">
@@ -1161,17 +1643,107 @@ function ViewControls({
           </PillButton>
 
           {coverError && <div className="gf-inline-error">{coverError}</div>}
+        </div>
 
-          <div className="gf-controls-divider">
-            <SectionLabel>Producción</SectionLabel>
-            <PillButton
-              variant="outline"
-              icon={<Printer size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
-              onClick={onExportCover}
-            >
-              Exportar PDF Listo para Imprenta
-            </PillButton>
+        {/* Block 4: Editable ISBN-13, Barcode Toggle & Full Wrap Typography */}
+        <div className="gf-controls-divider">
+          <SectionLabel>ISBN-13 y Código de Barras EAN-13</SectionLabel>
+
+          <label className="gf-toggle-row">
+            <input
+              type="checkbox"
+              checked={includeIsbn}
+              onChange={(e) => updateCover({ includeIsbn: e.target.checked })}
+            />
+            <span>Incluir caja de código de barras ISBN</span>
+          </label>
+
+          {includeIsbn && (
+            <div className="gf-controls-group">
+              <div className="gf-field-box">
+                <label className="gf-field-label" htmlFor="gf-isbn-input">
+                  ISBN-13 (13 dígitos)
+                </label>
+                <input
+                  id="gf-isbn-input"
+                  type="text"
+                  className="gf-text-input gf-text-input-sm gf-mono-input"
+                  value={project.cover.isbn ?? ''}
+                  onChange={(e) => updateCover({ isbn: formatIsbn13(e.target.value) })}
+                  placeholder="978-9945-0000-0-0"
+                  maxLength={17}
+                />
+              </div>
+              <span
+                className={`gf-isbn-status ${
+                  isbnValidation.valid && isbnValidation.checksumValid
+                    ? 'is-ok'
+                    : isbnValidation.valid
+                    ? 'is-warn'
+                    : 'is-muted'
+                }`}
+              >
+                {isbnValidation.message}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="gf-controls-divider">
+          <SectionLabel>Tipografía sobre Full Wrap</SectionLabel>
+
+          <div className="gf-field-box">
+            <label className="gf-field-label" htmlFor="gf-spine-title">
+              Título en el Lomo
+            </label>
+            <input
+              id="gf-spine-title"
+              type="text"
+              className="gf-text-input gf-text-input-sm"
+              value={project.cover.spineTitle ?? ''}
+              onChange={(e) => updateCover({ spineTitle: e.target.value })}
+              placeholder={project.name || 'Manga sin título'}
+            />
           </div>
+
+          <div className="gf-field-box">
+            <label className="gf-field-label" htmlFor="gf-cover-author">
+              Nombre del Autor
+            </label>
+            <input
+              id="gf-cover-author"
+              type="text"
+              className="gf-text-input gf-text-input-sm"
+              value={project.author}
+              onChange={(e) => updateProject({ author: e.target.value })}
+              placeholder="Autor / Mangaka"
+            />
+          </div>
+
+          <div className="gf-field-box">
+            <label className="gf-field-label" htmlFor="gf-cover-synopsis">
+              Sinopsis de Contraportada
+            </label>
+            <textarea
+              id="gf-cover-synopsis"
+              className="gf-synopsis-textarea"
+              value={project.cover.backSynopsis ?? ''}
+              onChange={(e) => updateCover({ backSynopsis: e.target.value })}
+              placeholder="Breve sinopsis editorial que aparecerá en la contraportada..."
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <div className="gf-controls-divider">
+          <SectionLabel>Producción</SectionLabel>
+          <PillButton
+            variant="outline"
+            icon={<Printer size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
+            onClick={onExportCover}
+          >
+            Exportar PDF Listo para Imprenta
+          </PillButton>
         </div>
       </div>
     );
@@ -1181,7 +1753,7 @@ function ViewControls({
     <div className="gf-controls-empty">
       <Info size={28} strokeWidth={1.5} className="gf-controls-empty-icon gf-icon-shrink" />
       <span>
-        Selecciona «Páginas e Interiores» para dirigir viñetas Koma-wari, o abre{' '}
+        Selecciona «Páginas e Interiores» para dirigir capas L0–L6 y globos Fukidashi, o abre{' '}
         <strong>KAI Sensei</strong> arriba para estructurar tu guion automáticamente.
       </span>
       <PillButton

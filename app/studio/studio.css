@@ -1006,7 +1006,7 @@ body {
 /* ProjectManager */
 .gf-project-wrap {
   width: 100%;
-  max-width: 560px;
+  max-width: 780px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -2607,9 +2607,745 @@ body {
   cursor: not-allowed;
 }
 
+/* =========================================================
+   SPRINT 3: 7-LAYER STACK (L0-L6), FUKIDASHI, PRESETS, ISBN & PREFLIGHT
+   ========================================================= */
+
+/* Deterministic 7-Layer Stack inside Genkō Sheet */
+.gf-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.gf-layer-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.gf-layer-l0 {
+  z-index: 10;
+}
+
+.gf-layer-l1 {
+  z-index: 20;
+}
+
+.gf-layer-l2 {
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.gf-layer-l3 {
+  z-index: 40;
+}
+
+.gf-layer-l4-sfx {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.gf-kakimoji-item {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+  width: 34%;
+  max-width: 180px;
+}
+
+.gf-kakimoji-item:active {
+  cursor: grabbing;
+}
+
+.gf-kakimoji-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+
+/* Layer L5 — Fukidashi Vector Balloons */
+.gf-layer-l5-fukidashi {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.gf-fukidashi-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.gf-fukidashi-group {
+  pointer-events: auto;
+}
+
+.gf-fukidashi-text-box {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  line-height: 1.22;
+  font-weight: 600;
+  color: #111111;
+  pointer-events: none;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 2px 4px;
+  word-break: break-word;
+}
+
+.gf-fukidashi-text-box.style-shout {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.gf-fukidashi-text-box.style-system {
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+.gf-fukidashi-inline-input {
+  pointer-events: auto;
+  width: 100%;
+  min-width: 90px;
+  border: 1.5px solid #4f46e5;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 4px;
+  resize: none;
+  outline: none;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+}
+
+.gf-naiwaku-warn-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  background: #e11d48;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Layer L6 — Technical Cyan Guides (#00AEEF) */
+.gf-layer-l6 {
+  z-index: 70;
+  pointer-events: none;
+}
+
+.gf-guide-trim {
+  position: absolute;
+  border: 1px dashed rgba(0, 174, 239, 0.85);
+}
+
+.gf-guide-naiwaku {
+  position: absolute;
+  border: 1.5px solid rgba(0, 174, 239, 0.65);
+}
+
+.gf-guide-tag {
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #0284c7;
+  background: rgba(250, 248, 245, 0.88);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.gf-guide-tag-trim {
+  top: 2px;
+  left: 4px;
+}
+
+.gf-guide-tag-safe {
+  bottom: 2px;
+  right: 4px;
+}
+
+.gf-guide-gutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 174, 239, 0.07),
+    rgba(0, 174, 239, 0.07) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  border-left: 1px dashed rgba(0, 174, 239, 0.45);
+  border-right: 1px dashed rgba(0, 174, 239, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gf-guide-gutter.is-right {
+  right: 0;
+}
+
+.gf-guide-gutter.is-left {
+  left: 0;
+}
+
+.gf-guide-gutter span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 800;
+  color: rgba(2, 132, 199, 0.85);
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  letter-spacing: 0.1em;
+}
+
+/* Right Inspector: Layer Stack Panel & Balloon Controls */
+.gf-select-native {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gf-ink);
+  cursor: pointer;
+}
+
+.gf-select-native option {
+  background: var(--gf-surface);
+  color: var(--gf-ink);
+}
+
+.gf-mini-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 9999px;
+  border: 1px solid var(--gf-ai-accent);
+  background: var(--gf-ai-soft);
+  color: var(--gf-ai-accent);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gf-mini-add-btn:hover {
+  background: var(--gf-ai-accent);
+  color: #ffffff;
+}
+
+.gf-balloon-editor-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--gf-surface-muted);
+  border: 1px solid var(--gf-border);
+}
+
+.gf-balloon-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gf-balloon-size-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--gf-ai-accent);
+}
+
+.gf-layers-panel {
+  gap: 10px;
+}
+
+.gf-layers-head-icon {
+  color: var(--gf-ink-secondary);
+}
+
+.gf-layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gf-layer-row {
+  border: 1px solid var(--gf-border);
+  border-radius: 10px;
+  background: var(--gf-surface-muted);
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.gf-layer-row.is-hidden {
+  opacity: 0.54;
+}
+
+.gf-layer-row.is-non-printable {
+  border-style: dashed;
+  border-color: rgba(0, 174, 239, 0.45);
+}
+
+.gf-layer-row-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.gf-layer-eye-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1px solid var(--gf-border-strong);
+  background: var(--gf-surface);
+  color: var(--gf-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.gf-layer-eye-btn:hover {
+  border-color: var(--gf-ai-accent);
+  color: var(--gf-ai-accent);
+}
+
+.gf-layer-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--gf-ai-accent);
+  flex-shrink: 0;
+}
+
+.gf-layer-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gf-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.gf-layer-nonprint-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background: rgba(0, 174, 239, 0.14);
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.gf-studio-root[data-theme='dark'] .gf-layer-nonprint-tag {
+  color: #38bdf8;
+}
+
+.gf-layer-opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 31px;
+  font-size: 10px;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-layer-opacity-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--gf-ai-accent);
+}
+
+.gf-layer-opacity-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Block 3: Print Presets Grid in ProjectManager */
+.gf-preset-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gf-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gf-preset-card {
+  text-align: left;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--gf-border-strong);
+  background: var(--gf-surface);
+  color: var(--gf-ink);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.gf-preset-card:hover {
+  border-color: var(--gf-ink);
+  transform: translateY(-1px);
+}
+
+.gf-preset-card.is-active {
+  border-color: var(--gf-ai-accent);
+  background: var(--gf-ai-soft);
+}
+
+.gf-preset-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.gf-preset-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--gf-ai-accent);
+  background: var(--gf-surface-muted);
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.gf-preset-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--gf-ai-accent);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gf-preset-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--gf-ink);
+}
+
+.gf-preset-desc {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-preset-specs {
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px dashed var(--gf-border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-preset-specs span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Block 4: Real EAN-13 Barcode & Full Wrap Cover Typography */
+.gf-isbn-box-real {
+  left: auto;
+  right: 16px;
+  bottom: 16px;
+  padding: 5px 7px;
+  width: 132px;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.gf-ean13-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gf-cover-empty-isbn {
+  position: relative;
+  margin-top: 6px;
+}
+
+.gf-cover-empty-isbn .gf-isbn-box-real {
+  position: static;
+}
+
+.gf-cover-synopsis-card {
+  position: absolute;
+  top: 22%;
+  left: 10%;
+  right: 10%;
+  background: rgba(17, 17, 17, 0.72);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #ffffff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gf-cover-synopsis-text {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gf-cover-synopsis-author {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+
+.gf-cover-front-meta {
+  position: absolute;
+  bottom: 18px;
+  left: 16px;
+  right: 16px;
+  background: linear-gradient(180deg, transparent, rgba(17, 17, 17, 0.82));
+  padding: 16px 12px 10px;
+  border-radius: 8px;
+  color: #ffffff;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gf-cover-front-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.gf-cover-front-author {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  opacity: 0.88;
+  text-transform: uppercase;
+}
+
+.gf-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gf-ink);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.gf-toggle-row input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--gf-ai-accent);
+  cursor: pointer;
+}
+
+.gf-isbn-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.gf-isbn-status.is-ok {
+  color: var(--gf-spine-accent);
+}
+
+.gf-isbn-status.is-warn {
+  color: #d97706;
+}
+
+.gf-isbn-status.is-muted {
+  color: var(--gf-ink-muted);
+}
+
+.gf-synopsis-textarea {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--gf-ink);
+  font-size: 12px;
+  line-height: 1.45;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+/* Block 5: Pre-Flight Traffic Light Modal */
+.gf-preflight-modal {
+  max-width: 540px;
+}
+
+.gf-preflight-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gf-preflight-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gf-preflight-badge.is-ok {
+  background: rgba(5, 150, 105, 0.14);
+  color: var(--gf-spine-accent);
+}
+
+.gf-preflight-badge.is-warn {
+  background: rgba(217, 119, 6, 0.16);
+  color: #d97706;
+}
+
+.gf-preflight-sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-preflight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.gf-preflight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--gf-border);
+  background: var(--gf-surface-muted);
+}
+
+.gf-preflight-item.is-ok .gf-preflight-icon {
+  color: var(--gf-spine-accent);
+}
+
+.gf-preflight-item.is-warn {
+  border-color: rgba(217, 119, 6, 0.45);
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.gf-preflight-item.is-warn .gf-preflight-icon {
+  color: #d97706;
+}
+
+.gf-preflight-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.gf-preflight-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gf-preflight-item-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gf-ink);
+}
+
+.gf-preflight-item-detail {
+  margin: 0;
+  font-size: 11px;
+  color: var(--gf-ink-secondary);
+  line-height: 1.4;
+}
+
+.gf-preflight-filename {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px dashed var(--gf-border-strong);
+  background: var(--gf-surface-muted);
+  color: var(--gf-ink);
+  font-size: 11px;
+  overflow-x: auto;
+}
+
+.gf-preflight-filename code {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
 @media (max-width: 1100px) {
   .gf-roster-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gf-preset-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2648,7 +3384,8 @@ body {
 
   .gf-roster-grid,
   .gf-cover-info-grid,
-  .gf-grid-2 {
+  .gf-grid-2,
+  .gf-preset-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2680,6 +3417,10 @@ body {
   .gf-koma-templates,
   .gf-koma-top-badges,
   .gf-kai-backdrop,
+  .gf-modal-backdrop,
+  .gf-layer-l0,
+  .gf-layer-l6,
+  .gf-naiwaku-warn-pill,
   .gf-prompt-card,
   .gf-sheet-guide,
   .gf-task-overlay {

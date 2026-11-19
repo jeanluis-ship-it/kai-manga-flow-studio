@@ -1,4 +1,5 @@
 import type { KomaLayoutId, PolygonPoint } from '@/lib/kai/schema';
+import type { TrimFormatId } from '@/lib/print/presets';
 
 export type PaperType = 'white' | 'cream';
 
@@ -7,6 +8,110 @@ export type StudioView = 'project' | 'characters' | 'cover' | 'pages';
 export type SetteiEntityType = 'character' | 'prop' | 'location' | 'lore_rule';
 
 export type KomaState = 'VACIO' | 'NEMU' | 'PEN_IRE' | 'TONE_FX' | 'SHIAGE' | 'LOCKED';
+
+export type LayerKey =
+  | 'L6_guides'
+  | 'L5_balloons'
+  | 'L4_sfx'
+  | 'L3_borders_fx'
+  | 'L2_ink'
+  | 'L1_tones'
+  | 'L0_nemu';
+
+export type LayersVisibility = Record<LayerKey, boolean>;
+
+export interface LayerOpacity {
+  L0_nemu: number;
+  L1_tones: number;
+}
+
+export interface LayerDefinition {
+  key: LayerKey;
+  code: string;
+  label: string;
+  zIndex: number;
+  printable: boolean;
+  hasOpacity?: boolean;
+}
+
+export const LAYER_DEFINITIONS: LayerDefinition[] = [
+  {
+    key: 'L6_guides',
+    code: 'L6',
+    label: 'Guías Técnicas (#00AEEF)',
+    zIndex: 70,
+    printable: false,
+  },
+  {
+    key: 'L5_balloons',
+    code: 'L5',
+    label: 'Globos Fukidashi y Texto',
+    zIndex: 60,
+    printable: true,
+  },
+  {
+    key: 'L4_sfx',
+    code: 'L4',
+    label: 'Onomatopeyas (Kakimoji)',
+    zIndex: 50,
+    printable: true,
+  },
+  {
+    key: 'L3_borders_fx',
+    code: 'L3',
+    label: 'Marcos y Líneas Cinéticas',
+    zIndex: 40,
+    printable: true,
+  },
+  {
+    key: 'L2_ink',
+    code: 'L2',
+    label: 'Tinta Blanca y Negra',
+    zIndex: 30,
+    printable: true,
+  },
+  {
+    key: 'L1_tones',
+    code: 'L1',
+    label: 'Tramas (Screentones / Beta)',
+    zIndex: 20,
+    printable: true,
+    hasOpacity: true,
+  },
+  {
+    key: 'L0_nemu',
+    code: 'L0',
+    label: 'Boceto Azul Nemu',
+    zIndex: 10,
+    printable: false,
+    hasOpacity: true,
+  },
+];
+
+export const DEFAULT_LAYERS_VISIBILITY: LayersVisibility = {
+  L6_guides: true,
+  L5_balloons: true,
+  L4_sfx: true,
+  L3_borders_fx: true,
+  L2_ink: true,
+  L1_tones: true,
+  L0_nemu: true,
+};
+
+export const DEFAULT_LAYER_OPACITY: LayerOpacity = {
+  L0_nemu: 40,
+  L1_tones: 100,
+};
+
+export type ScreentonePreset =
+  | 'none'
+  | 'dots_15'
+  | 'dots_30'
+  | 'dots_60'
+  | 'gradient'
+  | 'beta_black';
+
+export type SpeedlinePreset = 'none' | 'ryusen' | 'shuchusen';
 
 export const KOMA_STATES: KomaState[] = [
   'VACIO',
@@ -40,13 +145,25 @@ export interface Character {
   referenceBase64?: string;
 }
 
+export type DialogueStyle = 'normal' | 'shout' | 'whisper' | 'thought' | 'narrator' | 'system';
+
 export interface KomaDialogue {
   id: string;
   speaker: string;
-  style: 'normal' | 'shout' | 'whisper' | 'thought' | 'narrator' | 'system';
+  style: DialogueStyle;
   text: string;
+  /** Balloon center X in canvas percentage (0..100) */
   x?: number;
+  /** Balloon center Y in canvas percentage (0..100) */
   y?: number;
+  /** Tail tip X in canvas percentage (0..100) */
+  tailX?: number;
+  /** Tail tip Y in canvas percentage (0..100) */
+  tailY?: number;
+  /** Font size in SVG/canvas reference units (default 2.45) */
+  fontSize?: number;
+  /** Optional width hint in canvas % */
+  width?: number;
 }
 
 export interface KomaSfx {
@@ -55,6 +172,7 @@ export interface KomaSfx {
   x?: number;
   y?: number;
   rotation?: number;
+  fontSize?: number;
 }
 
 export interface Koma {
@@ -67,7 +185,8 @@ export interface Koma {
   actionPrompt: string;
   nemuSketchUrl?: string;
   inkRenderUrl?: string;
-  screentonePreset?: string;
+  screentonePreset?: ScreentonePreset;
+  speedlinePreset?: SpeedlinePreset;
   dialogues: KomaDialogue[];
   sfxItems: KomaSfx[];
 }
@@ -80,6 +199,8 @@ export interface Page {
   castIds: string[];
   layoutTemplate?: KomaLayoutId;
   chapterBeat?: string;
+  layersVisibility?: LayersVisibility;
+  layerOpacity?: LayerOpacity;
   komas?: Koma[];
 }
 
@@ -89,6 +210,10 @@ export interface Cover {
   fullWrapBase64?: string;
   prompt: string;
   spineWidthInches: number;
+  isbn?: string;
+  includeIsbn?: boolean;
+  spineTitle?: string;
+  backSynopsis?: string;
 }
 
 export interface Project {
@@ -97,6 +222,7 @@ export interface Project {
   author: string;
   pageCount: number;
   paperType: PaperType;
+  trimFormat?: TrimFormatId;
   readingDirection?: 'rtl' | 'ltr';
   characters: Character[];
   pages: Page[];
