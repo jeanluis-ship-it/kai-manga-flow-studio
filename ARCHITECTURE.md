@@ -57,3 +57,20 @@
 4. **Motor de Aplanado Pre-Prensa (`L1 → L5`) y Semáforo Pre-Flight (`lib/export/buildPrintBundle.ts` + `PreflightModal.tsx`):**
    - Aplana estrictamente **`L1_tones + L2_ink + L3_borders_fx + L4_sfx + L5_balloons`** a PNG de alta resolución (2150×3035 px en `b4_canva_pro`), garantizando la exclusión total de `L0_nemu` y `L6_guides` tanto en el ZIP como en la impresión directa (`@media print`).
    - Genera `README_IMPRENTA.txt`, `print_manifest.json` y archivo dinámico `${slugify(title)}_${trimFormat}_PRINT_BUNDLE.zip` tras mostrar los 4 checks del Semáforo Pre-Flight.
+
+## Decisiones del Sprint 4 — Supabase Auth, Matriz `PLAN_CATALOG`, Cuotas y Checkout
+
+1. **Migración Auth & Planes (`supabase/migrations/002_auth_profiles_plans.sql`):**
+   - Extiende `public.profiles` con `trial_ends_at`, `hd_render_enabled`, `render_priority`, `billing_customer_id` y `subscription_status` (`trialing` | `active` | `past_due` | `canceled`).
+   - Trigger `on_auth_user_created` (`public.handle_new_user()`) asigna automáticamente al registrarse el plan `trial` (3 días, 1 proyecto, 10 páginas).
+2. **Flujo Supabase Auth SSR (`@supabase/ssr`):**
+   - `lib/supabase/browser.ts` (`createBrowserClient`), `lib/supabase/server.ts` (`createServerClient`) y `proxy.ts` (convención Next.js 16 sustituta de `middleware.ts`) refrescan la sesión en cookies sin bloquear nunca `/` ni el **Modo Invitado** de `/studio`.
+   - `app/login/page.tsx` ofrece acceso con Correo/Contraseña y Google OAuth vía `app/auth/callback/route.ts` (`exchangeCodeForSession`).
+3. **Matriz `PLAN_CATALOG` y Motor `checkQuota` (`lib/plans/quotas.ts` + `lib/plans/serverAuth.ts`):**
+   - Única fuente de verdad compartida entre cliente y servidor para `trial` (`$0.00`, 1 proy., 10 págs.), `starter` (`$2.49/mes`, 5 proy., 50 págs.), `pro` (`$3.49/mes`, 10 proy., 100 págs., `Nano Banana 2 HD`) y `master` (`$4.49/mes`, 20 proy., 200 págs., `HD` + `Prioridad de Render`).
+   - Valida `CREATE_PROJECT`, `ADD_PAGE` (incluyendo inserción múltiple de KAI), `USE_HD_MODEL`, `USE_RENDER_PRIORITY` y `TRIAL_EXPIRED`.
+4. **Bloqueo en UI + Validación HTTP `402 QUOTA_EXCEEDED` en Servidor:**
+   - `/studio` muestra medidores `Páginas: X / Y` y `Proyectos: A / B` (ámbar ≥80%, carmesí 100%), banner de Modo Invitado / menú de usuario autenticado e intercepta `+ Añadir Página`, `Aplicar al Manuscrito`, `+ Nuevo Proyecto`, `Nano Banana 2 HD` y `Prioridad de Render`.
+   - `POST /api/kai/script` y `POST /api/images/generate` validan el perfil autenticado vía `getServerQuotaContext()` y responden HTTP `402 Payment Required` con `{ code: 'QUOTA_EXCEEDED', requiredPlan }` si se intenta omitir el bloqueo cliente.
+5. **Modal de Upgrade y Checkout (`components/studio/PricingUpgradeModal.tsx` + `app/api/billing/checkout/route.ts`):**
+   - Grid de 4 planes con `Pro` resaltado en Oro Guanín (`#D97706` / `"Más Popular"`), plan actual marcado como `"Plan Actual ✓"`, soporte de Stripe Checkout / `NEXT_PUBLIC_FOUNDER_CHECKOUT_URL` y modo **Pre-registro Fundador** con simulador de planes en desarrollo (`Trial → Master`).

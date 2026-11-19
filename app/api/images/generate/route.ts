@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 import { timingSafeEqual } from 'node:crypto';
 import { CLOUDFLARE_IMAGE_MODEL, IMAGE_MODES } from '@/lib/prompts';
 import { cloudflareImageConfig, generateCloudflareImage } from '@/lib/cloudflare-images';
+import { checkQuota } from '@/lib/plans/quotas';
+import { getServerQuotaContext } from '@/lib/plans/serverAuth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -413,6 +415,53 @@ export async function POST(req: NextRequest) {
     const rawCustomKey = read(form, 'customApiKey', 260);
     const customApiKey = isValidCustomKey(rawCustomKey) ? rawCustomKey : '';
     const preferredModel = read(form, 'preferredModel', 80);
+    const useHdModel =
+      read(form, 'useHdModel', 16) === 'true' ||
+      preferredModel === 'gemini-nano-banana-2.1' ||
+      preferredModel === 'gemini-3-pro-image';
+    const renderPriority = read(form, 'renderPriority', 16) === 'true';
+
+    // Server-side quota validation for authenticated Supabase users (HTTP 402)
+    const serverQuota = await getServerQuotaContext();
+    if (serverQuota) {
+      const trialCheck = checkQuota(serverQuota.profile, serverQuota.usage, 'TRIAL_EXPIRED');
+      if (!trialCheck.allowed) {
+        return NextResponse.json(
+          {
+            code: 'QUOTA_EXCEEDED',
+            requiredPlan: trialCheck.requiredPlan || 'starter',
+            error: trialCheck.reason || 'Período Trial expirado.',
+          },
+          { status: 402 },
+        );
+      }
+      if (useHdModel) {
+        const hdCheck = checkQuota(serverQuota.profile, serverQuota.usage, 'USE_HD_MODEL');
+        if (!hdCheck.allowed) {
+          return NextResponse.json(
+            {
+              code: 'QUOTA_EXCEEDED',
+              requiredPlan: 'pro',
+              error: hdCheck.reason || 'Nano Banana 2 HD requiere Plan Pro o Master.',
+            },
+            { status: 402 },
+          );
+        }
+      }
+      if (renderPriority) {
+        const prioCheck = checkQuota(serverQuota.profile, serverQuota.usage, 'USE_RENDER_PRIORITY');
+        if (!prioCheck.allowed) {
+          return NextResponse.json(
+            {
+              code: 'QUOTA_EXCEEDED',
+              requiredPlan: 'master',
+              error: prioCheck.reason || 'Prioridad de Render requiere Plan Master.',
+            },
+            { status: 402 },
+          );
+        }
+      }
+    }
 
     const activeGeminiKey = customApiKey.startsWith('AIza') ? customApiKey : process.env.GEMINI_API_KEY || '';
     const activeOpenaiKey = customApiKey.startsWith('sk-') ? customApiKey : process.env.OPENAI_API_KEY || '';

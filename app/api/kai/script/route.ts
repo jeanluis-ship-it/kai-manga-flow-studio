@@ -7,6 +7,8 @@ import {
   type KaiScriptRequest,
   type KomaLayoutId,
 } from '@/lib/kai/schema';
+import { checkQuota } from '@/lib/plans/quotas';
+import { getServerQuotaContext } from '@/lib/plans/serverAuth';
 
 export const runtime = 'nodejs';
 export const maxDuration = 45;
@@ -437,6 +439,27 @@ export async function POST(req: NextRequest) {
   }
 
   const input = parsedReq.data;
+
+  // Server-side quota validation when user is authenticated in Supabase
+  const serverQuota = await getServerQuotaContext();
+  if (serverQuota) {
+    const pageCheck = checkQuota(
+      serverQuota.profile,
+      serverQuota.usage,
+      'ADD_PAGE',
+      input.targetPages,
+    );
+    if (!pageCheck.allowed) {
+      return NextResponse.json(
+        {
+          code: 'QUOTA_EXCEEDED',
+          requiredPlan: pageCheck.requiredPlan || 'starter',
+          error: pageCheck.reason || 'Cuota de páginas excedida para tu plan actual.',
+        },
+        { status: 402 },
+      );
+    }
+  }
 
   // Try live LLM first when server credentials exist
   const geminiResult = await tryGeminiScript(input);

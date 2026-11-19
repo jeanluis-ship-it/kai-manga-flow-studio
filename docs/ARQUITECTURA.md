@@ -53,3 +53,10 @@ flowchart TD
 - **Globos Vectoriales (`components/studio/FukidashiLayer.tsx`) y SFX (`KakimojiLayer.tsx`):** 6 estilos SVG (`normal`, `shout`, `whisper`, `thought`, `narrator`, `system`), arrastre por puntero, cola orientable, edición inline por doble clic, alerta visual *Naiwaku* y botón `Marcar Viñeta Lista (SHIAGE → LOCKED)`.
 - **Formatos y Portada (`lib/print/presets.ts` + `lib/print/ean13.ts`):** Presets `tankobon_b6`, `b4_canva_pro` (`2150 × 3035 px` + `3.5 mm` bleed) y `kdp_6x9`; ISBN-13 editable con código de barras EAN-13 SVG puro opcional y tipografía en vivo sobre el *Full Wrap*.
 - **Exportador Pre-Prensa (`lib/export/buildPrintBundle.ts` + `PreflightModal.tsx`):** Aplanado estricto `L1 → L5` (excluye automáticamente `L0` y `L6`), Semáforo Pre-Flight de 4 verificaciones, `README_IMPRENTA.txt` y descarga con nombre dinámico `${slug}_${trimFormat}_PRINT_BUNDLE.zip`.
+
+## Sprint 4 — Supabase Auth, Cuotas `Trial → Master` y Modal de Upgrade
+
+- **Auth SSR (`@supabase/ssr`):** `lib/supabase/browser.ts`, `lib/supabase/server.ts`, `proxy.ts` (Next.js 16), `/login` y `/auth/callback` preservando Modo Invitado en `/studio`.
+- **Trigger SQL (`supabase/migrations/002_auth_profiles_plans.sql`):** Crea automáticamente el perfil `trial` (3 días, 1 proyecto, 10 páginas) al registrarse en `auth.users`.
+- **Cuotas y HTTP `402` (`lib/plans/quotas.ts`, `serverAuth.ts`, `/api/kai/script`, `/api/images/generate`):** Valida límites de `PLAN_CATALOG` (`trial`, `starter`, `pro`, `master`) en cliente y servidor devolviendo `{ code: 'QUOTA_EXCEEDED', requiredPlan }` en HTTP `402`.
+- **Upgrade & Checkout (`PricingUpgradeModal.tsx` + `/api/billing/checkout`):** Conecta Stripe/URL Fundador cuando hay llaves o muestra Pre-registro Fundador + simulador de planes en desarrollo.

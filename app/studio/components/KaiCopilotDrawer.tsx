@@ -14,6 +14,7 @@ import {
   KOMA_LAYOUT_PRESETS,
   type KaiDualOutput,
 } from '@/lib/kai/schema';
+import type { PlanTier } from '@/lib/plans/quotas';
 import { normalizeTagHandle, type Project } from '../types';
 import { PillButton } from './Primitives';
 
@@ -42,8 +43,9 @@ export const KaiCopilotDrawer: React.FC<{
   open: boolean;
   onClose: () => void;
   project: Project;
-  onApplyScript: (output: KaiDualOutput) => void;
-}> = ({ open, onClose, project, onApplyScript }) => {
+  onApplyScript: (output: KaiDualOutput) => boolean;
+  onQuotaBlocked?: (reason: string, requiredPlan?: PlanTier) => void;
+}> = ({ open, onClose, project, onApplyScript, onQuotaBlocked }) => {
   const [prompt, setPrompt] = useState('');
   const [targetPages, setTargetPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -93,7 +95,18 @@ export const KaiCopilotDrawer: React.FC<{
       });
 
       const modeHeader = response.headers.get('X-KAI-Mode') || 'fallback';
-      const payload = (await response.json()) as KaiDualOutput & { error?: string };
+      const payload = (await response.json()) as KaiDualOutput & {
+        error?: string;
+        code?: string;
+        requiredPlan?: PlanTier;
+      };
+
+      if (response.status === 402 || payload.code === 'QUOTA_EXCEEDED') {
+        const msg = payload.error || 'Cuota excedida para tu plan actual.';
+        setError(msg);
+        onQuotaBlocked?.(msg, payload.requiredPlan);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(payload.error || 'KAI Sensei no pudo estructurar el guion.');
@@ -119,7 +132,8 @@ export const KaiCopilotDrawer: React.FC<{
   };
 
   const handleApplyCard = (msgId: string, output: KaiDualOutput) => {
-    onApplyScript(output);
+    const applied = onApplyScript(output);
+    if (!applied) return;
     setMessages((prev) =>
       prev.map((m) => (m.id === msgId ? { ...m, applied: true } : m)),
     );

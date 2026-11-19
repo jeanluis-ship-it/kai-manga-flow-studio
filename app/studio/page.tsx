@@ -8,12 +8,16 @@ import {
   BookOpen,
   CheckCircle2,
   Cloud,
+  Crown,
   Eye,
   EyeOff,
+  FolderPlus,
   HardDrive,
   Info,
   Layers,
   Lock,
+  LogIn,
+  LogOut,
   MessageSquarePlus,
   Moon,
   PackageCheck,
@@ -25,6 +29,7 @@ import {
   Sun,
   Trash2,
   Users,
+  Zap,
 } from 'lucide-react';
 import {
   getPolygonBounds,
@@ -36,6 +41,17 @@ import {
   buildPrintBundle,
   runPreflightChecks,
 } from '@/lib/export/buildPrintBundle';
+import {
+  PLAN_CATALOG,
+  buildProfileForPlan,
+  checkQuota,
+  createGuestQuotaProfile,
+  normalizePlanTier,
+  type PlanTier,
+  type SubscriptionStatus,
+  type UsageSnapshot,
+  type UserQuotaProfile,
+} from '@/lib/plans/quotas';
 import { encodeEan13, formatIsbn13 } from '@/lib/print/ean13';
 import { computeSpineInches } from '@/lib/print/presets';
 import {
@@ -45,7 +61,9 @@ import {
   saveStudioProject,
   type StorageMode,
 } from '@/lib/storage/studioRepository';
-import { Flow } from './flow-sdk';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { PricingUpgradeModal } from '@/components/studio/PricingUpgradeModal';
+import { Flow, QuotaExceededError } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
@@ -75,6 +93,8 @@ import {
 import './studio.css';
 
 const STUDIO_THEME_KEY = 'mangai-studio-theme-v1';
+const SIMULATED_PLAN_KEY = 'mangai-simulated-plan-v1';
+const EXTRA_PROJECTS_KEY = 'mangai-extra-projects-v1';
 
 const ART_STYLES = [
   'Classic Shonen',
@@ -150,11 +170,23 @@ export default function StudioPage() {
   const [storageMode, setStorageMode] = useState<StorageMode>('local');
   const [view, setView] = useState<StudioView>('project');
   const [project, setProject] = useState<Project>(() => createInitialStudioProject());
+  const [extraProjects, setExtraProjects] = useState<Project[]>([]);
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
   const [selectedKomaId, setSelectedKomaId] = useState<string | null>(null);
   const [selectedDialogueId, setSelectedDialogueId] = useState<string | null>(null);
   const [kaiOpen, setKaiOpen] = useState(false);
   const [preflightOpen, setPreflightOpen] = useState(false);
+  const [quotaProfile, setQuotaProfile] = useState<UserQuotaProfile>(() =>
+    createGuestQuotaProfile('trial'),
+  );
+  const [upgradeModal, setUpgradeModal] = useState<{
+    open: boolean;
+    reason?: string;
+    requiredPlan?: PlanTier;
+  }>({ open: false });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [hdModelOn, setHdModelOn] = useState(false);
+  const [renderPriorityOn, setRenderPriorityOn] = useState(false);
   const [generating, setGenerating] = useState<GeneratingState>({
     cover: false,
     bundle: false,
@@ -167,6 +199,18 @@ export default function StudioPage() {
   const coverDesignerRef = useRef<CoverDesignerHandle>(null);
 
   const preflightReport = useMemo(() => runPreflightChecks(project), [project]);
+
+  const usageSnapshot = useMemo<UsageSnapshot>(() => {
+    const extraPages = extraProjects.reduce((acc, p) => acc + p.pages.length, 0);
+    return {
+      projectCount: 1 + extraProjects.length,
+      totalPages: project.pages.length + extraPages,
+    };
+  }, [project.pages.length, extraProjects]);
+
+  const openUpgradeModal = useCallback((reason?: string, requiredPlan?: PlanTier) => {
+    setUpgradeModal({ open: true, reason, requiredPlan });
+  }, []);
 
   const setTaskLoading = useCallback((task: 'cover' | 'bundle', value: boolean) => {
     setGenerating((prev) => ({ ...prev, [task]: value }));
@@ -212,11 +256,93 @@ export default function StudioPage() {
       if (savedTheme === 'dark' || savedTheme === 'light') {
         setTheme(savedTheme);
       }
+      const savedExtras = window.localStorage.getItem(EXTRA_PROJECTS_KEY);
+      if (savedExtras) {
+        const parsedExtras = JSON.parse(savedExtras) as Project[];
+        if (Array.isArray(parsedExtras)) {
+          setExtraProjects(parsedExtras);
+        }
+      }
     } catch {
       // Ignore storage access errors.
     }
 
-    void loadStudioProject().then(({ project: loaded, mode }) => {
+    const loadAuthProfile = async () => {
+      let simulated: PlanTier | undefined;
+      try {
+        const rawSim = window.localStorage.getItem(SIMULATED_PLAN_KEY);
+        if (rawSim === 'trial' || rawSim === 'starter' || rawSim === 'pro' || rawSim === 'master') {
+          simulated = rawSim;
+        }
+      } catch {
+        // Ignore storage errors.
+      }
+
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        if (active) setQuotaProfile(createGuestQuotaProfile(simulated));
+        return;
+      }
+
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!active) return;
+
+        if (!user) {
+          setQuotaProfile(createGuestQuotaProfile(simulated));
+          return;
+        }
+
+        const { data: row } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!active) return;
+        const effectiveTier = simulated ?? normalizePlanTier(row?.plan_tier);
+        setQuotaProfile(
+          buildProfileForPlan(effectiveTier, {
+            id: user.id,
+            email: user.email ?? undefined,
+            displayName:
+              row?.display_name ||
+              (user.user_metadata?.full_name as string | undefined) ||
+              user.email?.split('@')[0] ||
+              'Mangaka',
+            isGuest: false,
+            maxProjects: simulated
+              ? PLAN_CATALOG[simulated].maxProjects
+              : typeof row?.max_projects === 'number'
+              ? row.max_projects
+              : undefined,
+            maxPages: simulated
+              ? PLAN_CATALOG[simulated].maxPages
+              : typeof row?.max_pages === 'number'
+              ? row.max_pages
+              : undefined,
+            trialEndsAt: typeof row?.trial_ends_at === 'string' ? row.trial_ends_at : null,
+            hdRenderEnabled: simulated
+              ? PLAN_CATALOG[simulated].hdModelEnabled
+              : typeof row?.hd_render_enabled === 'boolean'
+              ? row.hd_render_enabled
+              : undefined,
+            renderPriority: simulated
+              ? PLAN_CATALOG[simulated].renderPriority
+              : typeof row?.render_priority === 'boolean'
+              ? row.render_priority
+              : undefined,
+            subscriptionStatus: (row?.subscription_status as SubscriptionStatus) || undefined,
+          }),
+        );
+      } catch {
+        if (active) setQuotaProfile(createGuestQuotaProfile(simulated));
+      }
+    };
+
+    void Promise.all([loadStudioProject(), loadAuthProfile()]).then(([{ project: loaded, mode }]) => {
       if (!active) return;
       setProject(loaded);
       setStorageMode(mode);
@@ -230,6 +356,15 @@ export default function StudioPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      window.localStorage.setItem(EXTRA_PROJECTS_KEY, JSON.stringify(extraProjects));
+    } catch {
+      // Ignore quota errors gracefully.
+    }
+  }, [extraProjects, mounted]);
 
   // Debounced persistence via studioRepository (Supabase + localStorage fallback)
   useEffect(() => {
@@ -557,7 +692,7 @@ export default function StudioPage() {
       };
     });
 
-    if (generatedPages.length === 0) return;
+    if (generatedPages.length === 0) return false;
 
     const firstPage = project.pages[0];
     const isStarterBlank =
@@ -566,6 +701,18 @@ export default function StudioPage() {
       !firstPage.prompt.trim() &&
       !firstPage.chapterBeat?.trim() &&
       (firstPage.komas ?? []).every((k) => !k.inkRenderUrl && !k.actionPrompt.trim());
+
+    const netPageDelta = isStarterBlank
+      ? Math.max(0, generatedPages.length - 1)
+      : generatedPages.length;
+
+    if (netPageDelta > 0) {
+      const quotaCheck = checkQuota(quotaProfile, usageSnapshot, 'ADD_PAGE', netPageDelta);
+      if (!quotaCheck.allowed) {
+        openUpgradeModal(quotaCheck.reason, quotaCheck.requiredPlan);
+        return false;
+      }
+    }
 
     const nextPages = isStarterBlank
       ? generatedPages
@@ -579,6 +726,125 @@ export default function StudioPage() {
     setSelectedDialogueId(firstKoma?.dialogues?.[0]?.id ?? null);
     setKaiOpen(false);
     handleSelectView('pages');
+    return true;
+  };
+
+  const handleAddPage = () => {
+    const quotaCheck = checkQuota(quotaProfile, usageSnapshot, 'ADD_PAGE', 1);
+    if (!quotaCheck.allowed) {
+      openUpgradeModal(quotaCheck.reason, quotaCheck.requiredPlan);
+      return;
+    }
+    const activeArtStyle = project.pages[safePageIndex]?.artStyle || 'Classic Shonen';
+    const newPageId = createEntityId('page');
+    const newKomas = buildKomasForLayout('4_panel_classic', [], newPageId);
+    const newPages: Page[] = [
+      ...project.pages,
+      {
+        id: newPageId,
+        base64: '',
+        prompt: '',
+        artStyle: activeArtStyle,
+        castIds: [],
+        layoutTemplate: '4_panel_classic',
+        chapterBeat: '',
+        layersVisibility: { ...DEFAULT_LAYERS_VISIBILITY },
+        layerOpacity: { ...DEFAULT_LAYER_OPACITY },
+        komas: newKomas,
+      },
+    ];
+    updateProject({ pages: newPages });
+    setActivePageIndex(newPages.length - 1);
+    setSelectedKomaId(newKomas[0]?.id ?? null);
+    setSelectedDialogueId(null);
+  };
+
+  const handleCreateNewProject = () => {
+    const projectCheck = checkQuota(quotaProfile, usageSnapshot, 'CREATE_PROJECT', 1);
+    if (!projectCheck.allowed) {
+      openUpgradeModal(projectCheck.reason, projectCheck.requiredPlan);
+      return;
+    }
+    const pageCheck = checkQuota(quotaProfile, usageSnapshot, 'ADD_PAGE', 1);
+    if (!pageCheck.allowed) {
+      openUpgradeModal(pageCheck.reason, pageCheck.requiredPlan);
+      return;
+    }
+    const fresh = createInitialStudioProject(createEntityId('page'));
+    fresh.name = `Nuevo Tomo #${usageSnapshot.projectCount + 1}`;
+    fresh.author = project.author || quotaProfile.displayName || 'Autor';
+    setExtraProjects((prev) => [...prev, project]);
+    setProject(fresh);
+    setActivePageIndex(0);
+    setSelectedKomaId(fresh.pages[0]?.komas?.[0]?.id ?? null);
+    setSelectedDialogueId(null);
+    handleSelectView('project');
+  };
+
+  const handleSwitchProject = (targetId: string) => {
+    if (!targetId || targetId === project.id) return;
+    const target = extraProjects.find((p) => p.id === targetId);
+    if (!target) return;
+    setExtraProjects((prev) => [...prev.filter((p) => p.id !== targetId), project]);
+    setProject(target);
+    setActivePageIndex(0);
+    setSelectedKomaId(target.pages[0]?.komas?.[0]?.id ?? null);
+    setSelectedDialogueId(null);
+  };
+
+  const handleToggleHdModel = () => {
+    if (hdModelOn) {
+      setHdModelOn(false);
+      return;
+    }
+    const check = checkQuota(quotaProfile, usageSnapshot, 'USE_HD_MODEL');
+    if (!check.allowed) {
+      openUpgradeModal(check.reason, check.requiredPlan);
+      return;
+    }
+    setHdModelOn(true);
+  };
+
+  const handleToggleRenderPriority = () => {
+    if (renderPriorityOn) {
+      setRenderPriorityOn(false);
+      return;
+    }
+    const check = checkQuota(quotaProfile, usageSnapshot, 'USE_RENDER_PRIORITY');
+    if (!check.allowed) {
+      openUpgradeModal(check.reason, check.requiredPlan);
+      return;
+    }
+    setRenderPriorityOn(true);
+  };
+
+  const handleSimulatePlan = (tier: PlanTier) => {
+    try {
+      window.localStorage.setItem(SIMULATED_PLAN_KEY, tier);
+    } catch {
+      // Ignore storage errors.
+    }
+    const nextProfile = buildProfileForPlan(tier, {
+      id: quotaProfile.id,
+      email: quotaProfile.email,
+      displayName: quotaProfile.displayName,
+      isGuest: quotaProfile.isGuest,
+    });
+    setQuotaProfile(nextProfile);
+    if (!nextProfile.hdRenderEnabled) setHdModelOn(false);
+    if (!nextProfile.renderPriority) setRenderPriorityOn(false);
+  };
+
+  const handleSignOut = async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    setUserMenuOpen(false);
+    setQuotaProfile(createGuestQuotaProfile('trial'));
+    setStorageMode('local');
+    setHdModelOn(false);
+    setRenderPriorityOn(false);
   };
 
   const updateCover = (patch: Partial<Project['cover']>) => {
@@ -615,6 +881,21 @@ export default function StudioPage() {
     return <div className="gf-loading" aria-hidden="true" />;
   }
 
+  const activePlanCfg = PLAN_CATALOG[quotaProfile.planTier];
+  const pagesPct = Math.min(100, Math.round((usageSnapshot.totalPages / Math.max(1, quotaProfile.maxPages)) * 100));
+  const projectsPct = Math.min(
+    100,
+    Math.round((usageSnapshot.projectCount / Math.max(1, quotaProfile.maxProjects)) * 100),
+  );
+  const pagesMeterTone = pagesPct >= 100 ? 'is-danger' : pagesPct >= 80 ? 'is-warn' : 'is-ok';
+  const projectsMeterTone = projectsPct >= 100 ? 'is-danger' : projectsPct >= 80 ? 'is-warn' : 'is-ok';
+  const userInitials = (quotaProfile.displayName || quotaProfile.email || 'M')
+    .split(/\s+/)
+    .map((part) => part[0] || '')
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className="gf-studio-root" data-theme={theme}>
       <header className="gf-topbar">
@@ -630,24 +911,43 @@ export default function StudioPage() {
           </Link>
           <span className="gf-topbar-divider" aria-hidden="true" />
           <span className="gf-topbar-project">{project.name || 'Manga sin título'}</span>
-          <span
-            className={`gf-storage-pill ${storageMode === 'supabase' ? 'is-cloud' : ''}`}
-            title={
-              storageMode === 'supabase'
-                ? 'Sincronizado con Supabase'
-                : 'Guardado local automático en este navegador (Modo Demo)'
-            }
-          >
-            {storageMode === 'supabase' ? (
-              <Cloud size={12} strokeWidth={2} className="gf-icon-shrink" />
-            ) : (
+          {quotaProfile.isGuest ? (
+            <span className="gf-guest-banner">
               <HardDrive size={12} strokeWidth={2} className="gf-icon-shrink" />
-            )}
-            <span>{storageMode === 'supabase' ? 'Supabase Sync' : 'Local / Demo'}</span>
-          </span>
+              <span>Modo Invitado · Inicia sesión para guardar en la nube</span>
+            </span>
+          ) : (
+            <span
+              className={`gf-storage-pill ${storageMode === 'supabase' ? 'is-cloud' : ''}`}
+              title={
+                storageMode === 'supabase'
+                  ? 'Sincronizado con Supabase'
+                  : 'Guardado local automático en este navegador'
+              }
+            >
+              {storageMode === 'supabase' ? (
+                <Cloud size={12} strokeWidth={2} className="gf-icon-shrink" />
+              ) : (
+                <HardDrive size={12} strokeWidth={2} className="gf-icon-shrink" />
+              )}
+              <span>{storageMode === 'supabase' ? 'Supabase Sync' : 'Local Sync'}</span>
+            </span>
+          )}
         </div>
 
         <div className="gf-topbar-right">
+          <button
+            type="button"
+            onClick={() => openUpgradeModal()}
+            className={`gf-quota-top-pill ${pagesMeterTone}`}
+            title="Ver cuotas y gestionar plan"
+          >
+            <Crown size={13} strokeWidth={2} className="gf-icon-shrink" />
+            <span>
+              {activePlanCfg.name} · Págs {usageSnapshot.totalPages}/{quotaProfile.maxPages}
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={() => setKaiOpen(true)}
@@ -657,6 +957,52 @@ export default function StudioPage() {
             <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
             <span>KAI Sensei</span>
           </button>
+
+          {quotaProfile.isGuest ? (
+            <Link href="/login" className="gf-auth-cta-btn">
+              <LogIn size={14} strokeWidth={2} className="gf-icon-shrink" />
+              <span>Iniciar Sesión</span>
+            </Link>
+          ) : (
+            <div className="gf-user-menu-wrap">
+              <button
+                type="button"
+                className="gf-user-pill"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                aria-expanded={userMenuOpen}
+              >
+                <span className="gf-user-avatar">{userInitials}</span>
+                <span className="gf-user-plan-tag">{activePlanCfg.name}</span>
+              </button>
+              {userMenuOpen && (
+                <div className="gf-user-dropdown">
+                  <div className="gf-user-dropdown-head">
+                    <strong>{quotaProfile.displayName}</strong>
+                    <span>{quotaProfile.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="gf-user-dropdown-item"
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      openUpgradeModal();
+                    }}
+                  >
+                    <Crown size={14} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>Gestionar Plan / Upgrade</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="gf-user-dropdown-item is-danger"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut size={14} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>Cerrar Sesión</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             type="button"
@@ -756,36 +1102,83 @@ export default function StudioPage() {
                 <PillButton
                   variant="outline"
                   icon={<Plus size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
-                  onClick={() => {
-                    const activeArtStyle = project.pages[safePageIndex]?.artStyle || 'Classic Shonen';
-                    const newPageId = createEntityId('page');
-                    const newKomas = buildKomasForLayout('4_panel_classic', [], newPageId);
-                    const newPages: Page[] = [
-                      ...project.pages,
-                      {
-                        id: newPageId,
-                        base64: '',
-                        prompt: '',
-                        artStyle: activeArtStyle,
-                        castIds: [],
-                        layoutTemplate: '4_panel_classic',
-                        chapterBeat: '',
-                        layersVisibility: { ...DEFAULT_LAYERS_VISIBILITY },
-                        layerOpacity: { ...DEFAULT_LAYER_OPACITY },
-                        komas: newKomas,
-                      },
-                    ];
-                    updateProject({ pages: newPages });
-                    setActivePageIndex(newPages.length - 1);
-                    setSelectedKomaId(newKomas[0]?.id ?? null);
-                    setSelectedDialogueId(null);
-                  }}
+                  onClick={handleAddPage}
                 >
                   Añadir Página
                 </PillButton>
               </div>
             </div>
           )}
+
+          {/* Sprint 4: Projects & Compact Quota Meter */}
+          <div className="gf-sidebar-section gf-quota-card">
+            <div className="gf-quota-card-head">
+              <SectionLabel>Plan {activePlanCfg.name}</SectionLabel>
+              <button
+                type="button"
+                className="gf-quota-upgrade-link"
+                onClick={() => openUpgradeModal()}
+              >
+                <Crown size={11} strokeWidth={2.2} className="gf-icon-shrink" />
+                <span>Upgrade</span>
+              </button>
+            </div>
+
+            {extraProjects.length > 0 && (
+              <select
+                className="gf-project-switcher"
+                value={project.id || ''}
+                onChange={(e) => handleSwitchProject(e.target.value)}
+                aria-label="Cambiar de proyecto activo"
+              >
+                <option value={project.id || ''}>{project.name || 'Proyecto activo'}</option>
+                {extraProjects.map((ep) => (
+                  <option key={ep.id} value={ep.id}>
+                    {ep.name || 'Tomo sin título'} ({ep.pages.length} págs.)
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <div className="gf-quota-meter">
+              <div className="gf-quota-meter-row">
+                <span>Páginas</span>
+                <strong>
+                  {usageSnapshot.totalPages} / {quotaProfile.maxPages}
+                </strong>
+              </div>
+              <div className="gf-quota-bar-track">
+                <div
+                  className={`gf-quota-bar-fill ${pagesMeterTone}`}
+                  style={{ width: `${pagesPct}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="gf-quota-meter">
+              <div className="gf-quota-meter-row">
+                <span>Proyectos</span>
+                <strong>
+                  {usageSnapshot.projectCount} / {quotaProfile.maxProjects}
+                </strong>
+              </div>
+              <div className="gf-quota-bar-track">
+                <div
+                  className={`gf-quota-bar-fill ${projectsMeterTone}`}
+                  style={{ width: `${projectsPct}%` }}
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="gf-new-project-btn"
+              onClick={handleCreateNewProject}
+            >
+              <FolderPlus size={13} strokeWidth={2} className="gf-icon-shrink" />
+              <span>+ Nuevo Proyecto</span>
+            </button>
+          </div>
 
           <div className="gf-sidebar-bottom">
             <SectionLabel>Pre-Prensa & Entrega</SectionLabel>
@@ -871,6 +1264,12 @@ export default function StudioPage() {
             selectedKomaId={selectedKomaId}
             selectedDialogueId={selectedDialogueId}
             generating={generating}
+            quotaProfile={quotaProfile}
+            hdModelOn={hdModelOn}
+            renderPriorityOn={renderPriorityOn}
+            onToggleHdModel={handleToggleHdModel}
+            onToggleRenderPriority={handleToggleRenderPriority}
+            onQuotaBlocked={openUpgradeModal}
             setTaskLoading={setTaskLoading}
             setPageLoading={setPageLoading}
             setKomaLoading={setKomaLoading}
@@ -895,6 +1294,7 @@ export default function StudioPage() {
         onClose={() => setKaiOpen(false)}
         project={project}
         onApplyScript={handleApplyKaiScript}
+        onQuotaBlocked={openUpgradeModal}
       />
 
       <PreflightModal
@@ -904,6 +1304,16 @@ export default function StudioPage() {
         error={bundleError}
         onClose={() => setPreflightOpen(false)}
         onConfirmExport={handleConfirmPrintExport}
+      />
+
+      <PricingUpgradeModal
+        open={upgradeModal.open}
+        currentPlan={quotaProfile.planTier}
+        isGuest={quotaProfile.isGuest}
+        blockReason={upgradeModal.reason}
+        recommendedPlan={upgradeModal.requiredPlan}
+        onClose={() => setUpgradeModal({ open: false })}
+        onSimulatePlan={handleSimulatePlan}
       />
     </div>
   );
@@ -939,6 +1349,12 @@ function ViewControls({
   selectedKomaId,
   selectedDialogueId,
   generating,
+  quotaProfile,
+  hdModelOn,
+  renderPriorityOn,
+  onToggleHdModel,
+  onToggleRenderPriority,
+  onQuotaBlocked,
   setTaskLoading,
   setKomaLoading,
   updateProject,
@@ -960,6 +1376,12 @@ function ViewControls({
   selectedKomaId: string | null;
   selectedDialogueId: string | null;
   generating: GeneratingState;
+  quotaProfile: UserQuotaProfile;
+  hdModelOn: boolean;
+  renderPriorityOn: boolean;
+  onToggleHdModel: () => void;
+  onToggleRenderPriority: () => void;
+  onQuotaBlocked: (reason?: string, requiredPlan?: PlanTier) => void;
   setTaskLoading: (task: 'cover' | 'bundle', value: boolean) => void;
   setPageLoading: (pageId: string, value: boolean) => void;
   setKomaLoading: (komaId: string, value: boolean) => void;
@@ -1083,7 +1505,9 @@ function ViewControls({
 
       const result = await Flow.generate.image({
         prompt: finalPrompt,
-        modelDisplayName: '🍌 Nano Banana Pro',
+        modelDisplayName: hdModelOn ? 'Nano Banana 2.1' : '🍌 Nano Banana Pro',
+        useHdModel: hdModelOn,
+        renderPriority: renderPriorityOn,
         mode: 'panel',
         aspectRatio: '3:4',
         name:
@@ -1107,6 +1531,9 @@ function ViewControls({
       });
     } catch (err) {
       console.error(err);
+      if (err instanceof QuotaExceededError) {
+        onQuotaBlocked(err.message, normalizePlanTier(err.requiredPlan));
+      }
       setKomaErrors((prev) => ({
         ...prev,
         [targetKomaId]:
@@ -1145,7 +1572,9 @@ function ViewControls({
 
       const result = await Flow.generate.image({
         prompt: finalPrompt,
-        modelDisplayName: '🍌 Nano Banana Pro',
+        modelDisplayName: hdModelOn ? 'Nano Banana 2.1' : '🍌 Nano Banana Pro',
+        useHdModel: hdModelOn,
+        renderPriority: renderPriorityOn,
         mode: 'cover_wrap',
         aspectRatio: '16:9',
         name: project.name || 'Manga sin título',
@@ -1166,6 +1595,9 @@ function ViewControls({
       });
     } catch (err) {
       console.error(err);
+      if (err instanceof QuotaExceededError) {
+        onQuotaBlocked(err.message, normalizePlanTier(err.requiredPlan));
+      }
       setCoverError(
         err instanceof Error ? err.message : 'No se pudo generar la cubierta envolvente.',
       );
@@ -1285,6 +1717,53 @@ function ViewControls({
                   }
                   placeholder="Describe postura, expresión, fondo y foco dramático de esta viñeta..."
                 />
+              </div>
+
+              {/* Sprint 4: Quota-gated Engine Boosters (Pro / Master) */}
+              <div className="gf-engine-gates">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={hdModelOn}
+                  className={`gf-engine-gate-btn ${hdModelOn ? 'is-on' : ''} ${
+                    !quotaProfile.hdRenderEnabled ? 'is-locked' : ''
+                  }`}
+                  onClick={onToggleHdModel}
+                >
+                  <span className="gf-engine-gate-left">
+                    {quotaProfile.hdRenderEnabled ? (
+                      <Zap size={13} strokeWidth={2.2} className="gf-icon-shrink" />
+                    ) : (
+                      <Lock size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                    )}
+                    <span>Nano Banana 2 HD</span>
+                  </span>
+                  <span className="gf-engine-gate-pill">
+                    {hdModelOn ? 'ON' : quotaProfile.hdRenderEnabled ? 'OFF' : 'PRO'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={renderPriorityOn}
+                  className={`gf-engine-gate-btn ${renderPriorityOn ? 'is-on' : ''} ${
+                    !quotaProfile.renderPriority ? 'is-locked' : ''
+                  }`}
+                  onClick={onToggleRenderPriority}
+                >
+                  <span className="gf-engine-gate-left">
+                    {quotaProfile.renderPriority ? (
+                      <Crown size={13} strokeWidth={2.2} className="gf-icon-shrink" />
+                    ) : (
+                      <Lock size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                    )}
+                    <span>Prioridad de Render</span>
+                  </span>
+                  <span className="gf-engine-gate-pill">
+                    {renderPriorityOn ? 'ON' : quotaProfile.renderPriority ? 'OFF' : 'MASTER'}
+                  </span>
+                </button>
               </div>
 
               <PillButton
@@ -1624,6 +2103,52 @@ function ViewControls({
             onChange={(val) => updateCover({ prompt: val })}
             placeholder="Describe el ambiente, personajes y composición de la portada..."
           />
+        </div>
+
+        <div className="gf-engine-gates">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hdModelOn}
+            className={`gf-engine-gate-btn ${hdModelOn ? 'is-on' : ''} ${
+              !quotaProfile.hdRenderEnabled ? 'is-locked' : ''
+            }`}
+            onClick={onToggleHdModel}
+          >
+            <span className="gf-engine-gate-left">
+              {quotaProfile.hdRenderEnabled ? (
+                <Zap size={13} strokeWidth={2.2} className="gf-icon-shrink" />
+              ) : (
+                <Lock size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+              )}
+              <span>Nano Banana 2 HD</span>
+            </span>
+            <span className="gf-engine-gate-pill">
+              {hdModelOn ? 'ON' : quotaProfile.hdRenderEnabled ? 'OFF' : 'PRO'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={renderPriorityOn}
+            className={`gf-engine-gate-btn ${renderPriorityOn ? 'is-on' : ''} ${
+              !quotaProfile.renderPriority ? 'is-locked' : ''
+            }`}
+            onClick={onToggleRenderPriority}
+          >
+            <span className="gf-engine-gate-left">
+              {quotaProfile.renderPriority ? (
+                <Crown size={13} strokeWidth={2.2} className="gf-icon-shrink" />
+              ) : (
+                <Lock size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+              )}
+              <span>Prioridad de Render</span>
+            </span>
+            <span className="gf-engine-gate-pill">
+              {renderPriorityOn ? 'ON' : quotaProfile.renderPriority ? 'OFF' : 'MASTER'}
+            </span>
+          </button>
         </div>
 
         <div className="gf-controls-actions">

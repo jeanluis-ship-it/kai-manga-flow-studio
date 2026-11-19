@@ -15,6 +15,20 @@ export interface GenerateImageParams {
   style?: string;
   notes?: string;
   canon?: string;
+  useHdModel?: boolean;
+  renderPriority?: boolean;
+}
+
+export class QuotaExceededError extends Error {
+  code: string;
+  requiredPlan?: string;
+
+  constructor(message: string, requiredPlan?: string) {
+    super(message);
+    this.name = 'QuotaExceededError';
+    this.code = 'QUOTA_EXCEEDED';
+    this.requiredPlan = requiredPlan;
+  }
 }
 
 export interface GenerateImageResult {
@@ -157,6 +171,8 @@ export const Flow = {
       formData.set('mode', mode);
       formData.set('aspectRatio', aspectRatio);
       formData.set('preferredModel', preferredModel);
+      if (params.useHdModel) formData.set('useHdModel', 'true');
+      if (params.renderPriority) formData.set('renderPriority', 'true');
       if (name) formData.set('name', name);
       if (params.details?.trim()) formData.set('details', params.details.trim());
       if (params.style?.trim()) formData.set('style', params.style.trim());
@@ -205,11 +221,32 @@ export const Flow = {
       });
 
       const rawText = await resp.text();
-      let payload: { image?: string; model?: string; error?: string } = {};
+      let payload: {
+        image?: string;
+        model?: string;
+        error?: string;
+        code?: string;
+        requiredPlan?: string;
+      } = {};
       try {
-        payload = rawText ? (JSON.parse(rawText) as { image?: string; model?: string; error?: string }) : {};
+        payload = rawText
+          ? (JSON.parse(rawText) as {
+              image?: string;
+              model?: string;
+              error?: string;
+              code?: string;
+              requiredPlan?: string;
+            })
+          : {};
       } catch {
         throw new Error(`Invalid response from image generator (HTTP ${resp.status}).`);
+      }
+
+      if (resp.status === 402 || payload.code === 'QUOTA_EXCEEDED') {
+        throw new QuotaExceededError(
+          payload.error || 'Cuota excedida para tu plan actual.',
+          payload.requiredPlan,
+        );
       }
 
       if (!resp.ok || !payload.image) {
