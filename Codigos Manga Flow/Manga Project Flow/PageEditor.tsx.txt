@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Project } from '../types';
+import { Flow } from 'flow-sdk';
+import { Project, splitDataUrl, toDataImageSrc } from '../types';
 import { SectionLabel, PillButton } from './Primitives';
 
 export const PageEditor: React.FC<{
@@ -8,12 +9,28 @@ export const PageEditor: React.FC<{
   updateProject: (updates: Partial<Project>) => void;
 }> = ({ project, pageIndex, updateProject }) => {
   const [showGuides, setShowGuides] = useState(false);
-  const page = project.pages[pageIndex];
+
+  const safeIndex = Math.min(Math.max(0, pageIndex), Math.max(0, project.pages.length - 1));
+  const page = project.pages[safeIndex];
+  const pageSrc = toDataImageSrc(page?.base64);
 
   const handleDelete = () => {
     if (project.pages.length <= 1) return;
-    const nextPages = project.pages.filter((_, idx) => idx !== pageIndex);
+    const nextPages = project.pages.filter((_, idx) => idx !== safeIndex);
     updateProject({ pages: nextPages });
+  };
+
+  const handleDownload = async () => {
+    if (!page?.base64) return;
+    const { mimeType, base64 } = splitDataUrl(page.base64);
+    if (!base64) return;
+    const ext = mimeType.includes('webp') ? 'webp' : mimeType.includes('jpeg') ? 'jpg' : 'png';
+    const baseName = (project.name || 'manga').trim().replace(/\s+/g, '_');
+    await Flow.download({
+      base64,
+      mimeType,
+      filename: `${baseName}_page_${String(safeIndex + 1).padStart(3, '0')}.${ext}`,
+    });
   };
 
   return (
@@ -22,10 +39,11 @@ export const PageEditor: React.FC<{
         <div>
           <h2 className="text-[18px] font-bold">Interior View</h2>
           <p className="text-[10px] font-mono text-white/40 uppercase">
-            PAGE {pageIndex + 1} / {project.pages.length}
+            PAGE {safeIndex + 1} / {project.pages.length}
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setShowGuides(!showGuides)}
           className="px-3.5 py-1.5 rounded-full border border-white/15 bg-white/5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
         >
@@ -38,8 +56,8 @@ export const PageEditor: React.FC<{
         {showGuides && (
           <div className="absolute inset-4 border border-dashed border-rose-500 pointer-events-none z-20" />
         )}
-        {page?.base64 ? (
-          <img src={`data:image/png;base64,${page.base64}`} className="w-full h-full object-cover" />
+        {pageSrc ? (
+          <img src={pageSrc} alt={`Page ${safeIndex + 1}`} className="w-full h-full object-cover" />
         ) : (
           <div className="flex flex-col items-center gap-2 text-black/20 select-none">
             <span className="material-symbols-outlined text-[28px]">draw</span>
@@ -54,8 +72,12 @@ export const PageEditor: React.FC<{
           {page?.prompt || 'No instructions provided. Use the sidebar to generate ink.'}
         </p>
         <div className="grid grid-cols-2 gap-2 pt-1">
-          <PillButton variant="outline" onClick={handleDelete}>Delete Page</PillButton>
-          <PillButton variant="outline" onClick={() => window.print()}>Download Asset</PillButton>
+          <PillButton variant="outline" onClick={handleDelete} disabled={project.pages.length <= 1}>
+            Delete Page
+          </PillButton>
+          <PillButton variant="outline" onClick={handleDownload} disabled={!page?.base64}>
+            Download Asset
+          </PillButton>
         </div>
       </div>
     </div>

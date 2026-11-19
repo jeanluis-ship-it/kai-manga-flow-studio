@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Flow } from 'flow-sdk';
-import { Project, Character } from '../types';
+import { Project, Character, toDataImageSrc } from '../types';
 import { SectionLabel, PillButton } from './Primitives';
 
 export const CharacterLibrary: React.FC<{
@@ -10,6 +10,7 @@ export const CharacterLibrary: React.FC<{
   setIsGenerating: (val: boolean) => void;
 }> = ({ project, updateProject, isGenerating, setIsGenerating }) => {
   const [editingChar, setEditingChar] = useState<Character | null>(null);
+  const [lockingCharId, setLockingCharId] = useState<string | null>(null);
 
   const createNewCharacter = () => {
     setEditingChar({
@@ -17,34 +18,68 @@ export const CharacterLibrary: React.FC<{
       name: '',
       appearance: '',
       clothing: '',
-      role: 'Protagonist'
+      role: 'Protagonist',
     });
   };
 
-  const lockAndGenerateReference = async () => {
+  const handleSaveProfile = () => {
     if (!editingChar) return;
+    const trimmed: Character = {
+      ...editingChar,
+      name: editingChar.name.trim() || 'Unnamed Character',
+      appearance: editingChar.appearance.trim(),
+      clothing: editingChar.clothing.trim(),
+    };
+    const exists = project.characters.some((c) => c.id === trimmed.id);
+    const nextChars = exists
+      ? project.characters.map((c) => (c.id === trimmed.id ? trimmed : c))
+      : [...project.characters, trimmed];
+    updateProject({ characters: nextChars });
+    setEditingChar(null);
+  };
+
+  const handleDeleteCharacter = (e: React.MouseEvent, charId: string) => {
+    e.stopPropagation();
+    const nextChars = project.characters.filter((c) => c.id !== charId);
+    const nextPages = project.pages.map((p) => ({
+      ...p,
+      castIds: p.castIds.filter((cid) => cid !== charId),
+    }));
+    updateProject({ characters: nextChars, pages: nextPages });
+  };
+
+  const lockConsistency = async (e: React.MouseEvent, char: Character) => {
+    e.stopPropagation();
+    if (isGenerating) return;
+    setLockingCharId(char.id);
     setIsGenerating(true);
     try {
-      const prompt = `Character reference sheet, manga turnaround, front and side view, high contrast black and white ink. Name: ${editingChar.name}. Appearance: ${editingChar.appearance}. Outfit: ${editingChar.clothing}`;
+      const details = [
+        char.appearance ? `Appearance: ${char.appearance}` : '',
+        char.clothing ? `Outfit: ${char.clothing}` : '',
+      ]
+        .filter(Boolean)
+        .join('. ');
+      const prompt = `Character reference sheet, manga turnaround, front and side view, high contrast black and white ink. Name: ${char.name || 'Character'}. ${details}`;
       const res = await Flow.generate.image({
         prompt,
         modelDisplayName: '🍌 Nano Banana Pro',
-        aspectRatio: '1:1'
+        aspectRatio: '1:1',
       });
-      const updatedChar: Character = {
-        ...editingChar,
-        referenceBase64: res.base64,
-        referenceMediaId: res.mediaId
-      };
-      const exists = project.characters.some((c) => c.id === updatedChar.id);
-      const nextChars = exists
-        ? project.characters.map((c) => (c.id === updatedChar.id ? updatedChar : c))
-        : [...project.characters, updatedChar];
+      const nextChars = project.characters.map((c) =>
+        c.id === char.id
+          ? {
+              ...c,
+              referenceBase64: res.base64,
+              referenceMediaId: res.mediaId,
+            }
+          : c
+      );
       updateProject({ characters: nextChars });
-      setEditingChar(null);
     } catch (err) {
       console.error(err);
     } finally {
+      setLockingCharId(null);
       setIsGenerating(false);
     }
   };
@@ -54,80 +89,137 @@ export const CharacterLibrary: React.FC<{
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[24px] font-bold tracking-tight">Character Roster</h1>
-          <p className="text-[13px] text-white/40">Lock in character visuals to maintain consistency across every panel.</p>
+          <p className="text-[13px] text-white/40">
+            Lock in character visuals to maintain consistency across every panel.
+          </p>
         </div>
         <div className="w-44">
-          <PillButton variant="solid" icon={<span className="material-symbols-outlined text-[18px]">add</span>} onClick={createNewCharacter}>
+          <PillButton
+            variant="solid"
+            icon={<span className="material-symbols-outlined text-[18px]">add</span>}
+            onClick={createNewCharacter}
+          >
             New Character
           </PillButton>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        {project.characters.map((char) => (
-          <div
-            key={char.id}
-            onClick={() => setEditingChar(char)}
-            className="bg-[#141414] border border-white/10 hover:border-white/30 rounded-2xl overflow-hidden cursor-pointer transition-all"
-          >
-            <div className="relative aspect-square bg-black/50 flex items-center justify-center">
-              {char.referenceBase64 ? (
-                <img src={`data:image/png;base64,${char.referenceBase64}`} className="w-full h-full object-cover" />
-              ) : (
-                <span className="material-symbols-outlined text-[36px] text-white/20">person</span>
-              )}
-              {char.referenceMediaId && (
-                <div className="absolute top-2 left-2 bg-[#00e699] text-black text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[10px]">lock</span>
-                  LOCKED
-                </div>
-              )}
+        {project.characters.map((char) => {
+          const imgSrc = toDataImageSrc(char.referenceBase64);
+          const isLocked = Boolean(char.referenceMediaId || char.referenceBase64);
+          const isLocking = lockingCharId === char.id;
+
+          return (
+            <div
+              key={char.id}
+              onClick={() => setEditingChar({ ...char })}
+              className="bg-[#141414] border border-white/10 hover:border-white/30 rounded-2xl overflow-hidden cursor-pointer transition-all flex flex-col"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                <p className="text-sm font-bold text-white truncate">{char.name || 'Unnamed'}</p>
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteCharacter(e, char.id)}
+                  className="text-white/40 hover:text-rose-400 transition-colors p-1 rounded-lg"
+                  aria-label={`Delete ${char.name || 'character'}`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </div>
+
+              <div className="relative aspect-square bg-black/50 flex items-center justify-center">
+                {imgSrc ? (
+                  <img src={imgSrc} alt={char.name || 'Character'} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5 text-white/25 select-none">
+                    <span className="material-symbols-outlined text-[36px]">person</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">NO REFERENCE</span>
+                  </div>
+                )}
+
+                {isLocked && (
+                  <div className="absolute top-2.5 left-2.5 bg-[#00e699] text-black text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[10px]">lock</span>
+                    LOCKED
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  disabled={isGenerating}
+                  onClick={(e) => lockConsistency(e, char)}
+                  className="absolute bottom-2.5 right-2.5 bg-[#0e0e0e]/90 hover:bg-white hover:text-black text-white border border-white/20 text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {isLocking ? 'refresh' : imgSrc ? 'sync' : 'lock'}
+                  </span>
+                  <span>
+                    {isLocking ? 'Locking...' : imgSrc ? 'Refresh Lock' : 'Lock Consistency'}
+                  </span>
+                </button>
+              </div>
+
+              <div className="p-4 space-y-1.5 border-t border-white/10">
+                <p className="text-[11px] text-white/50 line-clamp-2">
+                  <span className="font-mono font-bold text-white/80 mr-1">FACE:</span>
+                  {char.appearance || 'Click card to define facial traits'}
+                </p>
+                <p className="text-[11px] text-white/50 line-clamp-2">
+                  <span className="font-mono font-bold text-white/80 mr-1">OUTFIT:</span>
+                  {char.clothing || 'Click card to define wardrobe'}
+                </p>
+              </div>
             </div>
-            <div className="p-4">
-              <p className="text-sm font-bold text-white">{char.name || 'Unnamed'}</p>
-              <p className="text-[11px] text-white/40 line-clamp-2 mt-1">{char.appearance}</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {editingChar && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="bg-[#141414] border border-white/15 rounded-3xl w-full max-w-lg p-8 space-y-6">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
+          onClick={() => setEditingChar(null)}
+        >
+          <div
+            className="bg-[#141414] border border-white/15 rounded-3xl w-full max-w-lg p-8 space-y-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-xl font-bold">Character Identity</h3>
             <div className="space-y-4">
               <div className="space-y-1">
                 <SectionLabel>Name</SectionLabel>
                 <input
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-[#969696]"
                   value={editingChar.name}
                   onChange={(e) => setEditingChar({ ...editingChar, name: e.target.value })}
-                  placeholder="e.g. Kenji / Anacaona"
+                  placeholder="e.g. Kenji"
                 />
               </div>
               <div className="space-y-1">
-                <SectionLabel>Appearance & Physical Traits</SectionLabel>
+                <SectionLabel>Visual Attributes (Face, Hair, Features)</SectionLabel>
                 <textarea
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white h-20"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white h-20 resize-none outline-none focus:border-[#969696]"
                   value={editingChar.appearance}
                   onChange={(e) => setEditingChar({ ...editingChar, appearance: e.target.value })}
-                  placeholder="Hair style, eyes, scars, build..."
+                  placeholder="Lock these features: e.g. spiky blue hair, scar on left eye, intense yellow eyes"
                 />
               </div>
               <div className="space-y-1">
-                <SectionLabel>Signature Clothing</SectionLabel>
-                <input
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white"
+                <SectionLabel>Default Wardrobe</SectionLabel>
+                <textarea
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white h-20 resize-none outline-none focus:border-[#969696]"
                   value={editingChar.clothing}
                   onChange={(e) => setEditingChar({ ...editingChar, clothing: e.target.value })}
-                  placeholder="Tactical jacket, ancestral medallion..."
+                  placeholder="e.g. high-collared techwear jacket, cargo pants"
                 />
               </div>
             </div>
             <div className="flex gap-3">
-              <PillButton variant="outline" onClick={() => setEditingChar(null)}>Cancel</PillButton>
-              <PillButton variant="solid" onClick={lockAndGenerateReference} disabled={isGenerating}>
-                {isGenerating ? 'Locking Seed...' : 'Generate & Lock Reference'}
+              <PillButton variant="outline" onClick={() => setEditingChar(null)}>
+                Discard
+              </PillButton>
+              <PillButton variant="solid" onClick={handleSaveProfile}>
+                Update Profile
               </PillButton>
             </div>
           </div>
