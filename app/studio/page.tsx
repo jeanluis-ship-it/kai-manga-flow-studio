@@ -7,6 +7,8 @@ import {
   BookMarked,
   BookOpen,
   CheckCircle2,
+  Cloud,
+  HardDrive,
   Info,
   Moon,
   PackageCheck,
@@ -18,23 +20,39 @@ import {
   Sun,
   Users,
 } from 'lucide-react';
+import {
+  KOMA_LAYOUT_PRESETS,
+  type KaiDualOutput,
+  type KomaLayoutId,
+} from '@/lib/kai/schema';
+import {
+  buildKomasForLayout,
+  createInitialStudioProject,
+  loadStudioProject,
+  saveStudioProject,
+  type StorageMode,
+} from '@/lib/storage/studioRepository';
 import JSZip from './jszip-lite';
 import { Flow } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
+import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
 import { PageEditor } from './components/PageEditor';
 import { ProjectManager } from './components/ProjectManager';
 import {
+  KOMA_STATES,
+  normalizeTagHandle,
+  splitDataUrl,
   type GeneratingState,
+  type Koma,
+  type KomaState,
   type Page,
   type Project,
   type StudioView,
-  splitDataUrl,
 } from './types';
 import './studio.css';
 
-const STUDIO_STORAGE_KEY = 'mangai-flow-studio-v1';
 const STUDIO_THEME_KEY = 'mangai-studio-theme-v1';
 
 const ART_STYLES = [
@@ -43,6 +61,17 @@ const ART_STYLES = [
   'Modern Shojo',
   'Retro Gekiga',
   'Cyberpunk Manga',
+];
+
+const CAMERA_ANGLES = [
+  'Plano General / Establishing',
+  'Plano Medio',
+  'Primer Plano Emocional',
+  'Contrapicado Heroico',
+  'Picado Dramático',
+  'Plano Holandés (Acción)',
+  'Detalle / Inserto',
+  'Doble Página Splash',
 ];
 
 function resolveTabParam(raw: string | null): StudioView | null {
@@ -63,41 +92,27 @@ function resolveTabParam(raw: string | null): StudioView | null {
   return null;
 }
 
-function createPageId(): string {
+function createEntityId(prefix: string): string {
   if (typeof globalThis !== 'undefined' && typeof globalThis.crypto?.randomUUID === 'function') {
     return globalThis.crypto.randomUUID();
   }
-  return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function createInitialProject(pageId = 'page-1'): Project {
-  return {
-    name: 'Manga sin título',
-    author: 'Autor',
-    pageCount: 100,
-    paperType: 'white',
-    characters: [],
-    pages: [{ id: pageId, base64: '', prompt: '', artStyle: 'Classic Shonen', castIds: [] }],
-    cover: {
-      frontBase64: '',
-      backBase64: '',
-      fullWrapBase64: '',
-      prompt: '',
-      spineWidthInches: 0.2252,
-    },
-  };
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export default function StudioPage() {
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [storageMode, setStorageMode] = useState<StorageMode>('local');
   const [view, setView] = useState<StudioView>('project');
-  const [project, setProject] = useState<Project>(() => createInitialProject());
+  const [project, setProject] = useState<Project>(() => createInitialStudioProject());
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
+  const [selectedKomaId, setSelectedKomaId] = useState<string | null>(null);
+  const [kaiOpen, setKaiOpen] = useState(false);
   const [generating, setGenerating] = useState<GeneratingState>({
     cover: false,
     bundle: false,
     pages: {},
+    komas: {},
     characters: {},
   });
   const [bundleError, setBundleError] = useState('');
@@ -117,6 +132,15 @@ export default function StudioPage() {
     });
   }, []);
 
+  const setKomaLoading = useCallback((komaId: string, value: boolean) => {
+    setGenerating((prev) => {
+      const nextKomas = { ...prev.komas };
+      if (value) nextKomas[komaId] = true;
+      else delete nextKomas[komaId];
+      return { ...prev, komas: nextKomas };
+    });
+  }, []);
+
   const setCharacterLoading = useCallback((charId: string, value: boolean) => {
     setGenerating((prev) => {
       const nextCharacters = { ...prev.characters };
@@ -127,6 +151,7 @@ export default function StudioPage() {
   }, []);
 
   useEffect(() => {
+    let active = true;
     const params = new URLSearchParams(window.location.search);
     const initialTab = resolveTabParam(params.get('tab'));
     if (initialTab) {
@@ -142,72 +167,29 @@ export default function StudioPage() {
       // Ignore storage access errors.
     }
 
-    try {
-      const raw = window.localStorage.getItem(STUDIO_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<Project>;
-        if (
-          parsed &&
-          typeof parsed.name === 'string' &&
-          Array.isArray(parsed.pages) &&
-          parsed.pages.length > 0
-        ) {
-          const paperType = parsed.paperType === 'cream' ? 'cream' : 'white';
-          const pageCount =
-            typeof parsed.pageCount === 'number' && parsed.pageCount > 0 ? parsed.pageCount : 100;
-          const multi = paperType === 'white' ? 0.002252 : 0.0025;
-          setProject({
-            name: parsed.name || 'Manga sin título',
-            author: typeof parsed.author === 'string' ? parsed.author : 'Autor',
-            pageCount,
-            paperType,
-            characters: Array.isArray(parsed.characters) ? parsed.characters : [],
-            pages: parsed.pages.map((p, idx) => ({
-              id: typeof p.id === 'string' && p.id ? p.id : `page-${idx + 1}`,
-              base64: typeof p.base64 === 'string' ? p.base64 : '',
-              prompt: typeof p.prompt === 'string' ? p.prompt : '',
-              artStyle: typeof p.artStyle === 'string' ? p.artStyle : 'Classic Shonen',
-              castIds: Array.isArray(p.castIds) ? p.castIds : [],
-            })),
-            cover: {
-              frontBase64: parsed.cover?.frontBase64 ?? '',
-              backBase64: parsed.cover?.backBase64 ?? '',
-              fullWrapBase64: parsed.cover?.fullWrapBase64 ?? '',
-              prompt: parsed.cover?.prompt ?? '',
-              spineWidthInches:
-                typeof parsed.cover?.spineWidthInches === 'number'
-                  ? parsed.cover.spineWidthInches
-                  : Math.max(0.1, pageCount * multi),
-            },
-          });
-          setMounted(true);
-          return;
-        }
-      }
-    } catch {
-      // Ignore malformed localStorage state and fall back to fresh project.
-    }
-    setProject(createInitialProject(createPageId()));
-    setMounted(true);
+    void loadStudioProject().then(({ project: loaded, mode }) => {
+      if (!active) return;
+      setProject(loaded);
+      setStorageMode(mode);
+      const firstKoma = loaded.pages[0]?.komas?.[0]?.id ?? null;
+      setSelectedKomaId(firstKoma);
+      setMounted(true);
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
+  // Debounced persistence via studioRepository (Supabase + localStorage fallback)
   useEffect(() => {
     if (!mounted) return;
-    try {
-      window.localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify(project));
-    } catch {
-      try {
-        const lightweight: Project = {
-          ...project,
-          characters: project.characters.map((c) => ({ ...c, referenceBase64: undefined })),
-          pages: project.pages.map((p) => ({ ...p, base64: '' })),
-          cover: { ...project.cover, frontBase64: '', backBase64: '', fullWrapBase64: undefined },
-        };
-        window.localStorage.setItem(STUDIO_STORAGE_KEY, JSON.stringify(lightweight));
-      } catch {
-        // Ignore storage quota overflow gracefully.
-      }
-    }
+    const timer = window.setTimeout(() => {
+      void saveStudioProject(project).then((mode) => {
+        setStorageMode(mode);
+      });
+    }, 400);
+    return () => window.clearTimeout(timer);
   }, [project, mounted]);
 
   useEffect(() => {
@@ -215,6 +197,21 @@ export default function StudioPage() {
       setActivePageIndex(Math.max(0, project.pages.length - 1));
     }
   }, [project.pages.length, activePageIndex]);
+
+  const safePageIndex = Math.min(activePageIndex, Math.max(0, project.pages.length - 1));
+  const activePage = project.pages[safePageIndex];
+
+  // Keep selectedKomaId synchronized with the active page's komas
+  useEffect(() => {
+    const komas = activePage?.komas ?? [];
+    if (komas.length === 0) {
+      setSelectedKomaId(null);
+      return;
+    }
+    if (!selectedKomaId || !komas.some((k) => k.id === selectedKomaId)) {
+      setSelectedKomaId(komas[0].id);
+    }
+  }, [activePage, selectedKomaId]);
 
   const toggleTheme = () => {
     setTheme((prev) => {
@@ -237,9 +234,6 @@ export default function StudioPage() {
     }
   };
 
-  const safePageIndex = Math.min(activePageIndex, Math.max(0, project.pages.length - 1));
-  const activePage = project.pages[safePageIndex];
-
   const updateProject = (updates: Partial<Project>) => {
     setProject((prev) => {
       const mergedCover = updates.cover
@@ -261,6 +255,111 @@ export default function StudioPage() {
       ...prev,
       pages: prev.pages.map((p) => (p.id === pageId ? { ...p, ...patch } : p)),
     }));
+  };
+
+  const updateKomaById = (pageId: string, komaId: string, patch: Partial<Koma>) => {
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        const nextKomas = (p.komas ?? []).map((k) =>
+          k.id === komaId ? { ...k, ...patch } : k,
+        );
+        return { ...p, komas: nextKomas };
+      }),
+    }));
+  };
+
+  const handleChangePageLayout = (pageId: string, layoutId: KomaLayoutId) => {
+    setProject((prev) => ({
+      ...prev,
+      pages: prev.pages.map((p) => {
+        if (p.id !== pageId) return p;
+        const nextKomas = buildKomasForLayout(layoutId, p.komas ?? [], p.id);
+        return {
+          ...p,
+          layoutTemplate: layoutId,
+          komas: nextKomas,
+        };
+      }),
+    }));
+  };
+
+  const handleApplyKaiScript = (output: KaiDualOutput) => {
+    const activeArtStyle = project.pages[safePageIndex]?.artStyle || 'Classic Shonen';
+
+    const generatedPages: Page[] = output.script_pages.map((sp) => {
+      const pageId = createEntityId('page');
+      const preset =
+        KOMA_LAYOUT_PRESETS[sp.suggested_layout] ?? KOMA_LAYOUT_PRESETS['4_panel_classic'];
+
+      const komas: Koma[] = preset.panels.map((coords, idx) => {
+        const scriptKoma = sp.komas[idx];
+        const handles = scriptKoma?.tagged_handles ?? [];
+        return {
+          id: createEntityId('koma'),
+          panelIndex: idx + 1,
+          state: 'NEMU',
+          polygonCoords: coords,
+          cameraAngle: scriptKoma?.camera_angle || 'Plano Medio',
+          taggedHandles: handles,
+          actionPrompt: scriptKoma?.action_prompt || '',
+          dialogues: (scriptKoma?.dialogues ?? []).map((d, dIdx) => ({
+            id: `${pageId}-d-${idx}-${dIdx}`,
+            speaker: d.speaker,
+            style: d.style,
+            text: d.text,
+          })),
+          sfxItems: scriptKoma?.sfx
+            ? [
+                {
+                  id: `${pageId}-sfx-${idx}`,
+                  text: scriptKoma.sfx,
+                },
+              ]
+            : [],
+        };
+      });
+
+      const taggedSet = new Set(
+        komas.flatMap((k) => k.taggedHandles.map((h) => h.toLowerCase())),
+      );
+      const castIds = project.characters
+        .filter((c) => taggedSet.has(normalizeTagHandle(c.tagHandle || '', c.name).toLowerCase()))
+        .map((c) => c.id);
+
+      return {
+        id: pageId,
+        base64: '',
+        prompt: sp.chapter_beat,
+        artStyle: activeArtStyle,
+        castIds,
+        layoutTemplate: sp.suggested_layout,
+        chapterBeat: sp.chapter_beat,
+        komas,
+      };
+    });
+
+    if (generatedPages.length === 0) return;
+
+    const firstPage = project.pages[0];
+    const isStarterBlank =
+      project.pages.length === 1 &&
+      !firstPage.base64 &&
+      !firstPage.prompt.trim() &&
+      !firstPage.chapterBeat?.trim() &&
+      (firstPage.komas ?? []).every((k) => !k.inkRenderUrl && !k.actionPrompt.trim());
+
+    const nextPages = isStarterBlank
+      ? generatedPages
+      : [...project.pages, ...generatedPages];
+    const targetPageIndex = isStarterBlank ? 0 : project.pages.length;
+
+    updateProject({ pages: nextPages });
+    setActivePageIndex(targetPageIndex);
+    setSelectedKomaId(generatedPages[0].komas?.[0]?.id ?? null);
+    setKaiOpen(false);
+    handleSelectView('pages');
   };
 
   const updateCover = (patch: Partial<Project['cover']>) => {
@@ -298,14 +397,25 @@ export default function StudioPage() {
         }
       }
       project.pages.forEach((page, i) => {
+        const pageNum = String(i + 1).padStart(3, '0');
         if (page.base64) {
           const { base64 } = splitDataUrl(page.base64);
           if (base64) {
-            zip.file(`interior/page_${String(i + 1).padStart(3, '0')}.png`, base64, {
-              base64: true,
-            });
+            zip.file(`interior/page_${pageNum}.png`, base64, { base64: true });
           }
         }
+        (page.komas ?? []).forEach((koma) => {
+          if (koma.inkRenderUrl) {
+            const { base64 } = splitDataUrl(koma.inkRenderUrl);
+            if (base64) {
+              zip.file(
+                `interior/page_${pageNum}_koma_${String(koma.panelIndex).padStart(2, '0')}.png`,
+                base64,
+                { base64: true },
+              );
+            }
+          }
+        });
       });
       const base64 = await zip.generateAsync({ type: 'base64' });
       const safeName = (project.name || 'Manga_Sin_Titulo').trim().replace(/\s+/g, '_') || 'Manga';
@@ -341,9 +451,34 @@ export default function StudioPage() {
           </Link>
           <span className="gf-topbar-divider" aria-hidden="true" />
           <span className="gf-topbar-project">{project.name || 'Manga sin título'}</span>
+          <span
+            className={`gf-storage-pill ${storageMode === 'supabase' ? 'is-cloud' : ''}`}
+            title={
+              storageMode === 'supabase'
+                ? 'Sincronizado con Supabase'
+                : 'Guardado local automático en este navegador (Modo Demo)'
+            }
+          >
+            {storageMode === 'supabase' ? (
+              <Cloud size={12} strokeWidth={2} className="gf-icon-shrink" />
+            ) : (
+              <HardDrive size={12} strokeWidth={2} className="gf-icon-shrink" />
+            )}
+            <span>{storageMode === 'supabase' ? 'Supabase Sync' : 'Local / Demo'}</span>
+          </span>
         </div>
 
         <div className="gf-topbar-right">
+          <button
+            type="button"
+            onClick={() => setKaiOpen(true)}
+            className="gf-kai-trigger-btn"
+            title="Abrir copiloto KAI Sensei de guion y Koma-wari"
+          >
+            <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
+            <span>KAI Sensei</span>
+          </button>
+
           <button
             type="button"
             onClick={toggleTheme}
@@ -411,7 +546,11 @@ export default function StudioPage() {
               <SectionLabel>Manuscrito</SectionLabel>
               <div className="gf-manuscript-list dark-scrollbar">
                 {project.pages.map((p, i) => {
-                  const isThisPageBusy = Boolean(generating.pages[p.id]);
+                  const isThisPageBusy =
+                    Boolean(generating.pages[p.id]) ||
+                    (p.komas ?? []).some((k) => Boolean(generating.komas[k.id]));
+                  const hasInk =
+                    Boolean(p.base64) || (p.komas ?? []).some((k) => Boolean(k.inkRenderUrl));
                   return (
                     <button
                       key={p.id || i}
@@ -426,7 +565,7 @@ export default function StudioPage() {
                       <span className="gf-page-item-icon">
                         {isThisPageBusy ? (
                           <RefreshCw size={14} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
-                        ) : p.base64 ? (
+                        ) : hasInk ? (
                           <CheckCircle2 size={14} strokeWidth={1.75} className="gf-icon-shrink" />
                         ) : (
                           <PenTool size={14} strokeWidth={1.75} className="gf-icon-shrink" />
@@ -440,18 +579,24 @@ export default function StudioPage() {
                   icon={<Plus size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
                   onClick={() => {
                     const activeArtStyle = project.pages[safePageIndex]?.artStyle || 'Classic Shonen';
+                    const newPageId = createEntityId('page');
+                    const newKomas = buildKomasForLayout('4_panel_classic', [], newPageId);
                     const newPages: Page[] = [
                       ...project.pages,
                       {
-                        id: createPageId(),
+                        id: newPageId,
                         base64: '',
                         prompt: '',
                         artStyle: activeArtStyle,
                         castIds: [],
+                        layoutTemplate: '4_panel_classic',
+                        chapterBeat: '',
+                        komas: newKomas,
                       },
                     ];
                     updateProject({ pages: newPages });
                     setActivePageIndex(newPages.length - 1);
+                    setSelectedKomaId(newKomas[0]?.id ?? null);
                   }}
                 >
                   Añadir Página
@@ -491,8 +636,12 @@ export default function StudioPage() {
               <PageEditor
                 project={project}
                 pageIndex={safePageIndex}
+                selectedKomaId={selectedKomaId}
+                onSelectKoma={setSelectedKomaId}
+                onChangeLayout={handleChangePageLayout}
                 updateProject={updateProject}
                 isGeneratingPage={Boolean(activePage && generating.pages[activePage.id])}
+                komaLoading={generating.komas}
               />
             )}
             {view === 'characters' && (
@@ -522,15 +671,26 @@ export default function StudioPage() {
             view={view}
             project={project}
             pageIndex={safePageIndex}
+            selectedKomaId={selectedKomaId}
             generating={generating}
             setTaskLoading={setTaskLoading}
             setPageLoading={setPageLoading}
+            setKomaLoading={setKomaLoading}
             updatePageById={updatePageById}
+            updateKomaById={updateKomaById}
             updateCover={updateCover}
             onExportCover={() => coverDesignerRef.current?.exportCover()}
+            onOpenKai={() => setKaiOpen(true)}
           />
         </aside>
       </div>
+
+      <KaiCopilotDrawer
+        open={kaiOpen}
+        onClose={() => setKaiOpen(false)}
+        project={project}
+        onApplyScript={handleApplyKaiScript}
+      />
     </div>
   );
 }
@@ -562,90 +722,153 @@ function ViewControls({
   view,
   project,
   pageIndex,
+  selectedKomaId,
   generating,
   setTaskLoading,
-  setPageLoading,
+  setKomaLoading,
   updatePageById,
+  updateKomaById,
   updateCover,
   onExportCover,
+  onOpenKai,
 }: {
   view: StudioView;
   project: Project;
   pageIndex: number;
+  selectedKomaId: string | null;
   generating: GeneratingState;
   setTaskLoading: (task: 'cover' | 'bundle', value: boolean) => void;
   setPageLoading: (pageId: string, value: boolean) => void;
+  setKomaLoading: (komaId: string, value: boolean) => void;
   updatePageById: (pageId: string, patch: Partial<Page>) => void;
+  updateKomaById: (pageId: string, komaId: string, patch: Partial<Koma>) => void;
   updateCover: (patch: Partial<Project['cover']>) => void;
   onExportCover: () => void;
+  onOpenKai: () => void;
 }) {
   const [style, setStyle] = useState<string>('Classic Shonen');
   const [coverError, setCoverError] = useState<string>('');
-  const [pageErrors, setPageErrors] = useState<Record<string, string>>({});
+  const [komaErrors, setKomaErrors] = useState<Record<string, string>>({});
 
   const currentPage = project.pages[pageIndex];
   const currentPageId = currentPage?.id ?? '';
-  const pagePrompt = currentPage?.prompt ?? '';
   const pageStyle = currentPage?.artStyle || style;
   const coverPrompt = project.cover.prompt ?? '';
 
-  const isCurrentPageBusy = Boolean(currentPageId && generating.pages[currentPageId]);
+  const komas = currentPage?.komas ?? [];
+  const selectedKoma = komas.find((k) => k.id === selectedKomaId) ?? komas[0] ?? null;
+
+  const isSelectedKomaBusy = Boolean(selectedKoma && generating.komas[selectedKoma.id]);
   const isCoverBusy = generating.cover;
-  const currentPageError = currentPageId ? pageErrors[currentPageId] ?? '' : '';
+  const currentKomaError = selectedKoma ? komaErrors[selectedKoma.id] ?? '' : '';
 
-  const generatePage = async () => {
-    if (!currentPage) return;
+  const toggleKomaSetteiHandle = (handle: string, charId: string) => {
+    if (!currentPage || !selectedKoma) return;
+    const exists = selectedKoma.taggedHandles.some(
+      (h) => h.toLowerCase() === handle.toLowerCase(),
+    );
+    const nextHandles = exists
+      ? selectedKoma.taggedHandles.filter((h) => h.toLowerCase() !== handle.toLowerCase())
+      : [...selectedKoma.taggedHandles, handle];
+
+    updateKomaById(currentPage.id, selectedKoma.id, { taggedHandles: nextHandles });
+
+    const castSet = new Set(currentPage.castIds);
+    if (!exists) castSet.add(charId);
+    updatePageById(currentPage.id, { castIds: Array.from(castSet) });
+  };
+
+  const generateKomaInk = async () => {
+    if (!currentPage || !selectedKoma) return;
     const targetPageId = currentPage.id;
-    if (generating.pages[targetPageId]) return;
+    const targetKomaId = selectedKoma.id;
+    if (generating.komas[targetKomaId]) return;
 
-    setPageErrors((prev) => ({ ...prev, [targetPageId]: '' }));
-    setPageLoading(targetPageId, true);
-    const promptSnapshot = pagePrompt;
+    setKomaErrors((prev) => ({ ...prev, [targetKomaId]: '' }));
+    setKomaLoading(targetKomaId, true);
+
+    const promptSnapshot = selectedKoma.actionPrompt;
+    const cameraSnapshot = selectedKoma.cameraAngle || 'Plano Medio';
     const styleSnapshot = pageStyle;
+    const handlesSnapshot = selectedKoma.taggedHandles ?? [];
 
     try {
-      const cast = project.characters.filter((c) => currentPage.castIds.includes(c.id));
-      const charVisuals = cast
-        .map((c) => [c.name, c.appearance, c.clothing].filter(Boolean).join(': '))
+      const taggedSet = new Set(handlesSnapshot.map((h) => h.toLowerCase()));
+      const taggedEntities = project.characters.filter((c) => {
+        const handle = normalizeTagHandle(c.tagHandle || '', c.name).toLowerCase();
+        return taggedSet.has(handle);
+      });
+
+      const entityVisuals = taggedEntities
+        .map((c) => {
+          const handle = normalizeTagHandle(c.tagHandle || '', c.name);
+          const anchors = (c.visualAnchors ?? []).filter(Boolean);
+          return [
+            `${handle} (${c.name})`,
+            c.appearance,
+            c.clothing,
+            anchors.length > 0 ? `Anclas visuales obligatorias: ${anchors.join(', ')}` : '',
+            c.seedLocked && c.characterSeed ? `Seed: ${c.characterSeed}` : '',
+          ]
+            .filter(Boolean)
+            .join(' · ');
+        })
         .filter(Boolean)
-        .join('. ');
-      const referenceImageMediaIds = cast
+        .join(' | ');
+
+      const referenceImageMediaIds = taggedEntities
         .map((c) => c.referenceMediaId)
         .filter((id): id is string => Boolean(id));
-      const referenceImagesBase64 = cast
+      const referenceImagesBase64 = taggedEntities
         .map((c) => c.referenceBase64)
         .filter((img): img is string => Boolean(img));
-      const finalPrompt = `Professional manga page, high resolution, ${styleSnapshot} style, monochromatic ink, screentones. Scene: ${promptSnapshot}. Featuring: ${charVisuals}`;
+
+      const finalPrompt = [
+        `Professional single manga panel (Viñeta #${selectedKoma.panelIndex}), high contrast black and white Sumi ink, fine G-pen linework, screentones.`,
+        `Style: ${styleSnapshot}.`,
+        `Camera angle: ${cameraSnapshot}.`,
+        `Action: ${promptSnapshot.trim() || currentPage.chapterBeat || 'Dramatic manga moment'}.`,
+        entityVisuals ? `Strict Settei consistency: ${entityVisuals}.` : '',
+        'No speech bubbles, no text overlays, clean frameless interior panel art.',
+      ]
+        .filter(Boolean)
+        .join(' ');
 
       const result = await Flow.generate.image({
         prompt: finalPrompt,
         modelDisplayName: '🍌 Nano Banana Pro',
         mode: 'panel',
         aspectRatio: '3:4',
-        name: cast.map((c) => c.name).filter(Boolean).join(', ') || project.name || 'Página Manga',
-        details: charVisuals || undefined,
+        name:
+          taggedEntities.map((c) => c.name).filter(Boolean).join(', ') ||
+          `${project.name || 'Manga'} · Viñeta #${selectedKoma.panelIndex}`,
+        details: entityVisuals || undefined,
         style: styleSnapshot,
-        notes: promptSnapshot.trim() || `Interior manga page ${pageIndex + 1}`,
+        notes: `${cameraSnapshot} — ${promptSnapshot.trim() || `Viñeta #${selectedKoma.panelIndex}`}`,
         referenceImageMediaIds:
           referenceImageMediaIds.length > 0 ? referenceImageMediaIds : undefined,
         referenceImagesBase64:
           referenceImagesBase64.length > 0 ? referenceImagesBase64 : undefined,
       });
 
-      updatePageById(targetPageId, {
-        base64: result.dataUrl,
-        prompt: promptSnapshot,
-        artStyle: styleSnapshot,
+      const nextState: KomaState =
+        selectedKoma.state === 'LOCKED' ? 'LOCKED' : 'PEN_IRE';
+
+      updateKomaById(targetPageId, targetKomaId, {
+        inkRenderUrl: result.dataUrl,
+        state: nextState,
       });
     } catch (err) {
       console.error(err);
-      setPageErrors((prev) => ({
+      setKomaErrors((prev) => ({
         ...prev,
-        [targetPageId]:
-          err instanceof Error ? err.message : 'No se pudo generar la página interior.',
+        [targetKomaId]:
+          err instanceof Error
+            ? err.message
+            : `No se pudo entintar la Viñeta #${selectedKoma.panelIndex}.`,
       }));
     } finally {
-      setPageLoading(targetPageId, false);
+      setKomaLoading(targetKomaId, false);
     }
   };
 
@@ -657,7 +880,12 @@ function ViewControls({
 
     try {
       const charVisuals = project.characters
-        .map((c) => [c.name, c.appearance, c.clothing].filter(Boolean).join(': '))
+        .map((c) => {
+          const anchors = (c.visualAnchors ?? []).filter(Boolean).join(', ');
+          return [c.name, c.appearance, c.clothing, anchors ? `Anchors: ${anchors}` : '']
+            .filter(Boolean)
+            .join(': ');
+        })
         .filter(Boolean)
         .join('. ');
       const referenceImageMediaIds = project.characters
@@ -700,12 +928,41 @@ function ViewControls({
   };
 
   if (view === 'pages') {
+    const primaryDialogue = selectedKoma?.dialogues?.[0];
+    const primarySfx = selectedKoma?.sfxItems?.[0];
+
     return (
       <div className="gf-controls-stack animate-slide-in-right">
         <div className="gf-controls-group">
-          <SectionLabel>Ajustes de Página</SectionLabel>
+          <div className="gf-inspector-head">
+            <SectionLabel>
+              {selectedKoma ? `Inspector · Viñeta #${selectedKoma.panelIndex}` : 'Inspector de Viñeta'}
+            </SectionLabel>
+            {selectedKoma && (
+              <span className={`gf-koma-state-badge state-${selectedKoma.state.toLowerCase()}`}>
+                {selectedKoma.state}
+              </span>
+            )}
+          </div>
+
+          {/* Koma State Machine */}
+          {selectedKoma && currentPage && (
+            <div className="gf-state-machine" role="group" aria-label="Estado de la viñeta">
+              {KOMA_STATES.map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  className={`gf-state-step ${selectedKoma.state === st ? 'is-active' : ''}`}
+                  onClick={() => updateKomaById(currentPage.id, selectedKoma.id, { state: st })}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+          )}
+
           <FieldDropdown
-            label="Estilo de Dibujo"
+            label="Estilo de Tinta (Página)"
             value={pageStyle}
             options={ART_STYLES}
             onChange={(val) => {
@@ -716,64 +973,158 @@ function ViewControls({
             }}
           />
 
-          <div className="gf-cast-section">
-            <SectionLabel>Elenco Activo ({currentPage?.castIds?.length || 0})</SectionLabel>
-            <div className="gf-cast-chips">
-              {project.characters.length === 0 ? (
-                <span className="gf-cast-empty">
-                  Aún no hay personajes en «Settei y Personajes».
-                </span>
-              ) : (
-                project.characters.map((c) => {
-                  const selected = currentPage?.castIds?.includes(c.id) ?? false;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => {
-                        if (!currentPage) return;
-                        const cast = new Set(currentPage.castIds);
-                        if (cast.has(c.id)) cast.delete(c.id);
-                        else cast.add(c.id);
-                        updatePageById(currentPage.id, { castIds: Array.from(cast) });
-                      }}
-                      className={`gf-cast-chip ${selected ? 'is-active' : ''}`}
-                    >
-                      {c.name || 'Sin nombre'}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
+          {selectedKoma && currentPage && (
+            <>
+              <FieldDropdown
+                label="Ángulo de Cámara"
+                value={selectedKoma.cameraAngle || 'Plano Medio'}
+                options={CAMERA_ANGLES}
+                onChange={(val) =>
+                  updateKomaById(currentPage.id, selectedKoma.id, { cameraAngle: val })
+                }
+              />
 
-          <TextInput
-            value={pagePrompt}
-            onChange={(val) => {
-              if (currentPage) {
-                updatePageById(currentPage.id, { prompt: val });
-              }
-            }}
-            placeholder="Describe la acción, planos y viñetas de esta página..."
-          />
+              <div className="gf-cast-section">
+                <SectionLabel>
+                  Settei Etiquetados ({selectedKoma.taggedHandles.length})
+                </SectionLabel>
+                <div className="gf-cast-chips">
+                  {project.characters.length === 0 ? (
+                    <span className="gf-cast-empty">
+                      Crea fichas en «Settei y Personajes» para inyectar @handles y anclas visuales.
+                    </span>
+                  ) : (
+                    project.characters.map((c) => {
+                      const handle = normalizeTagHandle(c.tagHandle || '', c.name);
+                      const selected = selectedKoma.taggedHandles.some(
+                        (h) => h.toLowerCase() === handle.toLowerCase(),
+                      );
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => toggleKomaSetteiHandle(handle, c.id)}
+                          className={`gf-cast-chip ${selected ? 'is-active' : ''}`}
+                          title={
+                            (c.visualAnchors ?? []).length > 0
+                              ? `Anclas: ${(c.visualAnchors ?? []).join(', ')}`
+                              : c.name
+                          }
+                        >
+                          {handle}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="gf-controls-group">
+                <SectionLabel>Acción de Viñeta #{selectedKoma.panelIndex}</SectionLabel>
+                <TextInput
+                  value={selectedKoma.actionPrompt}
+                  onChange={(val) =>
+                    updateKomaById(currentPage.id, selectedKoma.id, {
+                      actionPrompt: val,
+                      state:
+                        selectedKoma.state === 'VACIO' && val.trim()
+                          ? 'NEMU'
+                          : selectedKoma.state,
+                    })
+                  }
+                  placeholder="Describe postura, expresión, fondo y foco dramático de esta viñeta..."
+                />
+              </div>
+
+              <div className="gf-koma-meta-fields">
+                <div className="gf-field-box">
+                  <label className="gf-field-label">Globo / Diálogo principal</label>
+                  <input
+                    type="text"
+                    className="gf-text-input gf-text-input-sm"
+                    value={primaryDialogue?.text ?? ''}
+                    onChange={(e) => {
+                      const nextText = e.target.value;
+                      const rest = selectedKoma.dialogues.slice(1);
+                      const nextDialogues = nextText.trim()
+                        ? [
+                            {
+                              id: primaryDialogue?.id || `${selectedKoma.id}-dlg-0`,
+                              speaker:
+                                primaryDialogue?.speaker ||
+                                selectedKoma.taggedHandles[0] ||
+                                'Voz',
+                              style: primaryDialogue?.style || 'normal',
+                              text: nextText,
+                            },
+                            ...rest,
+                          ]
+                        : rest;
+                      updateKomaById(currentPage.id, selectedKoma.id, {
+                        dialogues: nextDialogues,
+                      });
+                    }}
+                    placeholder="Texto del diálogo en esta viñeta..."
+                  />
+                </div>
+
+                <div className="gf-field-box">
+                  <label className="gf-field-label">SFX / Onomatopeya</label>
+                  <input
+                    type="text"
+                    className="gf-text-input gf-text-input-sm"
+                    value={primarySfx?.text ?? ''}
+                    onChange={(e) => {
+                      const nextText = e.target.value;
+                      const rest = selectedKoma.sfxItems.slice(1);
+                      const nextSfx = nextText.trim()
+                        ? [
+                            {
+                              id: primarySfx?.id || `${selectedKoma.id}-sfx-0`,
+                              text: nextText,
+                            },
+                            ...rest,
+                          ]
+                        : rest;
+                      updateKomaById(currentPage.id, selectedKoma.id, { sfxItems: nextSfx });
+                    }}
+                    placeholder="Ej. ドン! (DON!)"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <PillButton
-          variant="solid"
+          variant="filled"
           icon={
-            isCurrentPageBusy ? (
+            isSelectedKomaBusy ? (
               <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
             ) : (
               <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
             )
           }
-          onClick={generatePage}
-          disabled={isCurrentPageBusy || !currentPage}
+          onClick={generateKomaInk}
+          disabled={isSelectedKomaBusy || !currentPage || !selectedKoma}
         >
-          {isCurrentPageBusy ? 'Entintando Página...' : 'Generar Tinta Alta Res.'}
+          {isSelectedKomaBusy
+            ? `Entintando Viñeta #${selectedKoma?.panelIndex ?? 1}...`
+            : `Generar Tinta Alta Res. (Viñeta #${selectedKoma?.panelIndex ?? 1})`}
         </PillButton>
 
-        {currentPageError && <div className="gf-inline-error">{currentPageError}</div>}
+        {currentKomaError && <div className="gf-inline-error">{currentKomaError}</div>}
+
+        <div className="gf-controls-divider">
+          <SectionLabel>Guionización Asistida</SectionLabel>
+          <PillButton
+            variant="outline"
+            icon={<Sparkles size={15} strokeWidth={1.75} className="gf-icon-shrink" />}
+            onClick={onOpenKai}
+          >
+            Pedir Secuencia a KAI Sensei
+          </PillButton>
+        </div>
       </div>
     );
   }
@@ -830,9 +1181,16 @@ function ViewControls({
     <div className="gf-controls-empty">
       <Info size={28} strokeWidth={1.5} className="gf-controls-empty-icon gf-icon-shrink" />
       <span>
-        Selecciona «Portada Tankōbon» o «Páginas e Interiores» en la barra lateral para acceder a
-        los controles de generación IA.
+        Selecciona «Páginas e Interiores» para dirigir viñetas Koma-wari, o abre{' '}
+        <strong>KAI Sensei</strong> arriba para estructurar tu guion automáticamente.
       </span>
+      <PillButton
+        variant="outline"
+        icon={<Sparkles size={15} strokeWidth={1.75} className="gf-icon-shrink" />}
+        onClick={onOpenKai}
+      >
+        Abrir KAI Sensei
+      </PillButton>
     </div>
   );
 }

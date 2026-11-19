@@ -1,22 +1,75 @@
+import type { KomaLayoutId, PolygonPoint } from '@/lib/kai/schema';
+
 export type PaperType = 'white' | 'cream';
 
 export type StudioView = 'project' | 'characters' | 'cover' | 'pages';
+
+export type SetteiEntityType = 'character' | 'prop' | 'location' | 'lore_rule';
+
+export type KomaState = 'VACIO' | 'NEMU' | 'PEN_IRE' | 'TONE_FX' | 'SHIAGE' | 'LOCKED';
+
+export const KOMA_STATES: KomaState[] = [
+  'VACIO',
+  'NEMU',
+  'PEN_IRE',
+  'TONE_FX',
+  'SHIAGE',
+  'LOCKED',
+];
 
 export type GeneratingState = {
   cover: boolean;
   bundle: boolean;
   pages: Record<string, boolean>;
+  komas: Record<string, boolean>;
   characters: Record<string, boolean>;
 };
 
 export interface Character {
   id: string;
+  entityType?: SetteiEntityType;
+  tagHandle?: string;
   name: string;
   appearance: string;
   clothing: string;
   role: string;
+  visualAnchors?: string[];
+  seedLocked?: boolean;
+  characterSeed?: string;
   referenceMediaId?: string;
   referenceBase64?: string;
+}
+
+export interface KomaDialogue {
+  id: string;
+  speaker: string;
+  style: 'normal' | 'shout' | 'whisper' | 'thought' | 'narrator' | 'system';
+  text: string;
+  x?: number;
+  y?: number;
+}
+
+export interface KomaSfx {
+  id: string;
+  text: string;
+  x?: number;
+  y?: number;
+  rotation?: number;
+}
+
+export interface Koma {
+  id: string;
+  panelIndex: number;
+  state: KomaState;
+  polygonCoords: PolygonPoint[];
+  cameraAngle: string;
+  taggedHandles: string[];
+  actionPrompt: string;
+  nemuSketchUrl?: string;
+  inkRenderUrl?: string;
+  screentonePreset?: string;
+  dialogues: KomaDialogue[];
+  sfxItems: KomaSfx[];
 }
 
 export interface Page {
@@ -25,6 +78,9 @@ export interface Page {
   prompt: string;
   artStyle?: string;
   castIds: string[];
+  layoutTemplate?: KomaLayoutId;
+  chapterBeat?: string;
+  komas?: Koma[];
 }
 
 export interface Cover {
@@ -36,13 +92,24 @@ export interface Cover {
 }
 
 export interface Project {
+  id?: string;
   name: string;
   author: string;
   pageCount: number;
   paperType: PaperType;
+  readingDirection?: 'rtl' | 'ltr';
   characters: Character[];
   pages: Page[];
   cover: Cover;
+}
+
+export function normalizeTagHandle(raw: string, fallbackName = 'Settei'): string {
+  const source = (raw || fallbackName).trim().replace(/^@+/, '');
+  const clean = source
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9_]+/g, '');
+  return `@${clean || 'Settei'}`;
 }
 
 function inferImageMimeFromBase64(base64: string): string {

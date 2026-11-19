@@ -37,3 +37,12 @@ flowchart TD
   - `characters: Record<string, boolean>` aísla cada ficha de personaje por `character.id`.
 - **Navegación bidireccional y deep-linking (`/studio?tab=`):** La sección `04 / 05` de la landing enlaza directamente mediante `/studio?tab=<slug>` (`project`, `characters`, `cover`, `pages`, además de alias `lore`, `panels`, `print`), leído al montar en `app/studio/page.tsx` y sincronizado al cambiar de pestaña; el encabezado `MANGAI STUDIO` permite regresar a `/` en un clic.
 - **Modal `INSPECCIONAR TOMO ↗` (`03 / 05`):** El contenedor `.modal-cover-frame` fuerza proporción Tankōbon `2:3` con `object-fit: cover`, borde sutil y fallback visual tipográfico ante errores de carga.
+
+## Sprint 2 (P1) — Persistencia Supabase, Copiloto KAI Sensei y Motor Koma-wari
+
+- **Esquema SQL Supabase (`supabase/migrations/001_mangai_studio_schema.sql`):** Define 4 enums (`settei_entity_type`, `koma_state`, `reading_dir`, `paper_type`) y 5 tablas normalizadas (`profiles`, `projects`, `settei_entities`, `pages`, `komas`) con Row Level Security (RLS) por `auth.uid()`, índices de consulta y triggers `updated_at`.
+- **Repositorio dual (`lib/supabase/client.ts` + `lib/storage/studioRepository.ts`):** Sincroniza con Supabase si hay credenciales públicas y sesión activa; en modo invitado/demo persiste automáticamente en `localStorage` con indicador visible en la barra superior (`Local / Demo` vs `Supabase Sync`).
+- **Endpoint `POST /api/kai/script` + Zod (`lib/kai/schema.ts`):** Valida entrada y salida dual estricta (`KaiDualOutputSchema`: `reply` + `script_pages[]`). Usa Gemini/OpenAI server-side si existen llaves o degrada con cabecera `X-KAI-Mode: fallback` claramente etiquetada como plantilla editorial en `KaiCopilotDrawer.tsx`.
+- **Settei v2 y Motor Koma-wari (`CharacterLibrary.tsx`, `PageEditor.tsx`, `page.tsx`):**
+  - Entidades Settei con pestañas (`Personajes`, `Objetos (Props)`, `Escenarios y Lore`), `@tag_handle` único, chips de **Anclas Visuales** y `Seed Bloqueado`.
+  - 4 presets geométricos (`3_panel_dramatic`, `4_panel_classic`, `5_panel_action` con corte diagonal central, `splash_spread`), recorte CSS `clip-path` + bordes vectoriales SVG, selección interactiva de viñeta (`#4F46E5`), máquina de estados (`VACIO → NEMU → PEN_IRE → TONE_FX → SHIAGE → LOCKED`) y generación aislada por `komaId` (`generating.komas[komaId]`).
