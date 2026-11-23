@@ -3,7 +3,7 @@ import type { TrimFormatId } from '@/lib/print/presets';
 
 export type PaperType = 'white' | 'cream';
 
-export type StudioView = 'project' | 'characters' | 'cover' | 'pages';
+export type StudioView = 'project' | 'characters' | 'cover' | 'pages' | 'kai_canvas';
 
 export type SetteiEntityType = 'character' | 'prop' | 'location' | 'lore_rule';
 

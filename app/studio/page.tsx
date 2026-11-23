@@ -8,6 +8,7 @@ import {
   BookOpen,
   CheckCircle2,
   Cloud,
+  Columns2,
   Crown,
   Eye,
   EyeOff,
@@ -68,6 +69,7 @@ import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
 import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
+import { KaiSplitStudio } from './components/KaiSplitStudio';
 import { PageEditor } from './components/PageEditor';
 import { PreflightModal } from './components/PreflightModal';
 import { ProjectManager } from './components/ProjectManager';
@@ -153,6 +155,15 @@ function resolveTabParam(raw: string | null): StudioView | null {
   }
   if (slug === 'pages' || slug === 'panels' || slug === 'paginas' || slug === 'interiores') {
     return 'pages';
+  }
+  if (
+    slug === 'kai' ||
+    slug === 'canvas' ||
+    slug === 'split' ||
+    slug === 'kai_canvas' ||
+    slug === 'lienzo'
+  ) {
+    return 'kai_canvas';
   }
   return null;
 }
@@ -1026,7 +1037,7 @@ export default function StudioPage() {
         </div>
       </header>
 
-      <div className="manga-grid">
+      <div className={`manga-grid ${view === 'kai_canvas' ? 'is-split-workspace' : ''}`}>
         <aside className="gf-sidebar-left no-scrollbar">
           <div className="gf-sidebar-section">
             <Link
@@ -1062,6 +1073,12 @@ export default function StudioPage() {
                 icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
                 label="Páginas e Interiores"
                 onClick={() => handleSelectView('pages')}
+              />
+              <NavItem
+                active={view === 'kai_canvas'}
+                icon={<Columns2 size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Kai + Lienzo IA"
+                onClick={() => handleSelectView('kai_canvas')}
               />
             </div>
           </div>
@@ -1209,7 +1226,7 @@ export default function StudioPage() {
         </aside>
 
         <main className="gf-canvas-shell">
-          <div className="gf-canvas-scroll dark-scrollbar">
+          <div className={`gf-canvas-scroll dark-scrollbar ${view === 'kai_canvas' ? 'is-split-mode' : ''}`}>
             {view === 'pages' && (
               <PageEditor
                 project={project}
@@ -1253,40 +1270,45 @@ export default function StudioPage() {
             {view === 'project' && (
               <ProjectManager project={project} updateProject={updateProject} />
             )}
+            {view === 'kai_canvas' && (
+              <KaiSplitStudio project={project} onQuotaBlocked={openUpgradeModal} />
+            )}
           </div>
         </main>
 
-        <aside className="gf-sidebar-right dark-scrollbar">
-          <ViewControls
-            view={view}
-            project={project}
-            pageIndex={safePageIndex}
-            selectedKomaId={selectedKomaId}
-            selectedDialogueId={selectedDialogueId}
-            generating={generating}
-            quotaProfile={quotaProfile}
-            hdModelOn={hdModelOn}
-            renderPriorityOn={renderPriorityOn}
-            onToggleHdModel={handleToggleHdModel}
-            onToggleRenderPriority={handleToggleRenderPriority}
-            onQuotaBlocked={openUpgradeModal}
-            setTaskLoading={setTaskLoading}
-            setPageLoading={setPageLoading}
-            setKomaLoading={setKomaLoading}
-            updateProject={updateProject}
-            updatePageById={updatePageById}
-            updateKomaById={updateKomaById}
-            onToggleLayer={handleToggleLayer}
-            onLayerOpacity={handleLayerOpacity}
-            onAddBalloon={handleAddBalloon}
-            onSelectDialogue={setSelectedDialogueId}
-            onUpdateDialogue={handleUpdateDialogue}
-            onDeleteDialogue={handleDeleteDialogue}
-            updateCover={updateCover}
-            onExportCover={() => coverDesignerRef.current?.exportCover()}
-            onOpenKai={() => setKaiOpen(true)}
-          />
-        </aside>
+        {view !== 'kai_canvas' && (
+          <aside className="gf-sidebar-right dark-scrollbar">
+            <ViewControls
+              view={view}
+              project={project}
+              pageIndex={safePageIndex}
+              selectedKomaId={selectedKomaId}
+              selectedDialogueId={selectedDialogueId}
+              generating={generating}
+              quotaProfile={quotaProfile}
+              hdModelOn={hdModelOn}
+              renderPriorityOn={renderPriorityOn}
+              onToggleHdModel={handleToggleHdModel}
+              onToggleRenderPriority={handleToggleRenderPriority}
+              onQuotaBlocked={openUpgradeModal}
+              setTaskLoading={setTaskLoading}
+              setPageLoading={setPageLoading}
+              setKomaLoading={setKomaLoading}
+              updateProject={updateProject}
+              updatePageById={updatePageById}
+              updateKomaById={updateKomaById}
+              onToggleLayer={handleToggleLayer}
+              onLayerOpacity={handleLayerOpacity}
+              onAddBalloon={handleAddBalloon}
+              onSelectDialogue={setSelectedDialogueId}
+              onUpdateDialogue={handleUpdateDialogue}
+              onDeleteDialogue={handleDeleteDialogue}
+              updateCover={updateCover}
+              onExportCover={() => coverDesignerRef.current?.exportCover()}
+              onOpenKai={() => setKaiOpen(true)}
+            />
+          </aside>
+        )}
       </div>
 
       <KaiCopilotDrawer
