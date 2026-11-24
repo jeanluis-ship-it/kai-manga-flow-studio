@@ -209,3 +209,32 @@ test('Crease Carousel 0.1.0-prototype.1: preset validates contract, normalizes 1
     assert.ok(css.includes(`.${cls}`), `landing.css missing .${cls}`);
   }
 });
+
+test('Pinwheel Gallery 0.1.0-prototype.1: preset validates 10-panel rotor physics and connects to 10 Hero manga volumes', async () => {
+  const { default: pinwheel } = await import('../public/landing/pinwheel-gallery/preset.js');
+  const html = load('public/landing/index.html');
+  const css = load('public/landing/landing.css');
+  const js = load('public/landing/landing.js');
+
+  assert.equal(pinwheel.templateId, 'pinwheel-gallery');
+  assert.equal(pinwheel.imageCount, 10);
+  assert.equal(pinwheel.panels, 10);
+  assert.equal(pinwheel.hub, 24);
+  assert.equal(pinwheel.bend, 30);
+  assert.equal(pinwheel.corners, 12);
+  assert.equal(pinwheel.shade, 35);
+  assert.equal(pinwheel.pull, 70);
+  assert.equal(pinwheel.lean, 50);
+  assert.equal(pinwheel.pointerSpin, 6);
+  assert.equal(pinwheel.items.length, 10);
+
+  for (const item of pinwheel.items) {
+    assert.match(item.imageUrl, /^\/landing\/assets\/mangai-art-\d+\.svg$/);
+  }
+
+  const closedBooks = html.match(/class=["'][^"']*\bmanga-closed-book\b/g) || [];
+  assert.equal(closedBooks.length, 10, 'Hero Pinwheel must render 10 .manga-closed-book panels');
+  assert.match(html, /\bclass=["'][^"']*\bpinwheel-hub-ring\b/i);
+  assert.ok(css.includes('.pinwheel-hub-ring'));
+  assert.ok(js.includes('switchOpenBookTo'));
+});
