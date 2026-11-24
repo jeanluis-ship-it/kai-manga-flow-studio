@@ -115,6 +115,7 @@ export const KaiChatRequestSchema = z.object({
     .max(4000, 'El mensaje no puede superar 4000 caracteres.'),
   chatHistory: z.array(KaiChatHistoryTurnSchema).max(30).default([]),
   activeSettei: z.array(z.string().trim().min(1).max(1000)).max(20).optional(),
+  projectContext: z.string().trim().max(2400).optional(),
 });
 
 export const KaiCanvasGenerateRequestSchema = z.object({
@@ -125,6 +126,7 @@ export const KaiCanvasGenerateRequestSchema = z.object({
     .max(3000, 'El prompt del lienzo no puede superar 3000 caracteres.'),
   style: z.enum(['manga_ink', 'webtoon_color', 'cover_art', 'chibi_kai']).default('manga_ink'),
   aspectRatio: z.enum(['3:4', '9:16', '16:9', '1:1']).default('3:4'),
+  sketchDataUrl: z.string().max(8_000_000).optional(),
 });
 
 export type KaiChatRequest = z.infer<typeof KaiChatRequestSchema>;
@@ -166,9 +168,6 @@ function stripOuterQuotes(value: string): string {
   return current;
 }
 
-/**
- * Extracts the `[PROMPT VISUAL]:` block produced by Kai so it can be sent directly to the canvas.
- */
 export function extractVisualPrompt(text: string): string | null {
   if (!text) return null;
   const normalized = text.replace(/\r\n/g, '\n');
@@ -177,7 +176,6 @@ export function extractVisualPrompt(text: string): string | null {
 
   let block = match[1].trimStart();
 
-  // If wrapped in a fenced code block, prefer extracting its inner content cleanly.
   if (block.startsWith('```')) {
     const fenced = block.match(/^```(?:[a-zA-Z0-9_+-]*\n)?([\s\S]*?)\n?```/);
     if (fenced) {
@@ -197,9 +195,6 @@ export function extractVisualPrompt(text: string): string | null {
   return cleaned.length > 0 ? cleaned : null;
 }
 
-/**
- * Combines user scene prompt, selected manga/manhwa style modifier, and target aspect ratio.
- */
 export function buildFullCanvasPrompt(
   prompt: string,
   style: KaiCanvasStyleId,
@@ -244,12 +239,13 @@ async function postJson<TResponse>(
 export async function askKaiAssistant(
   userMessage: string,
   chatHistory: KaiChatHistoryTurn[] = [],
-  options?: { activeSettei?: string[] },
+  options?: { activeSettei?: string[]; projectContext?: string },
 ): Promise<{ reply: string; visualPrompt: string | null; model: string }> {
   const cleanSettei = options?.activeSettei?.map((s) => s.trim()).filter(Boolean);
   const cleanHistory = chatHistory.filter((turn) =>
     turn.parts.some((part) => part.text.trim().length > 0),
   );
+  const cleanProjectContext = options?.projectContext?.trim();
 
   return postJson<{ reply: string; visualPrompt: string | null; model: string }>(
     '/api/kai/chat',
@@ -257,6 +253,7 @@ export async function askKaiAssistant(
       userMessage,
       chatHistory: cleanHistory,
       ...(cleanSettei && cleanSettei.length > 0 ? { activeSettei: cleanSettei } : {}),
+      ...(cleanProjectContext ? { projectContext: cleanProjectContext } : {}),
     },
     'No se pudo conectar con el asistente Kai.',
   );
@@ -266,6 +263,7 @@ export async function generateMangaPanel(params: {
   prompt: string;
   style?: KaiCanvasStyleId;
   aspectRatio?: KaiCanvasAspectRatio;
+  sketchDataUrl?: string;
 }): Promise<{ image: string; mimeType: string; model: string; promptUsed: string }> {
   return postJson<{ image: string; mimeType: string; model: string; promptUsed: string }>(
     '/api/kai/canvas',
@@ -273,6 +271,7 @@ export async function generateMangaPanel(params: {
       prompt: params.prompt,
       style: params.style ?? 'manga_ink',
       aspectRatio: params.aspectRatio ?? '3:4',
+      ...(params.sketchDataUrl ? { sketchDataUrl: params.sketchDataUrl } : {}),
     },
     'No se pudo generar la ilustración en el lienzo.',
   );

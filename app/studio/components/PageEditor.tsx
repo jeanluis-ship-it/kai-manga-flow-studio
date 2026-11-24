@@ -257,6 +257,35 @@ export const PageEditor: React.FC<{
             style={{ opacity: opacity.L0_nemu / 100 }}
             aria-hidden="true"
           >
+            {komas.map((koma) => {
+              const nemuSrc = toDataImageSrc(koma.nemuSketchUrl);
+              if (!nemuSrc) return null;
+              const b = getPolygonBounds(koma.polygonCoords);
+              return (
+                <div
+                  key={`nemu-img-${koma.id}`}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    clipPath: polygonToClipPath(koma.polygonCoords),
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <img
+                    src={nemuSrc}
+                    alt=""
+                    style={{
+                      position: 'absolute',
+                      left: `${b.left}%`,
+                      top: `${b.top}%`,
+                      width: `${b.width}%`,
+                      height: `${b.height}%`,
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+              );
+            })}
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="gf-layer-svg">
               {komas.map((koma) => {
                 const b = getPolygonBounds(koma.polygonCoords);

@@ -138,25 +138,34 @@ test('Kai Split Studio: UI component provides Enviar al Lienzo, generation, and 
   assert.match(css, /@media\s*\(\s*max-width:\s*1024px\s*\)/);
 });
 
-test('Kai Split Studio: Studio types, page routing, and layout CSS wire kai_canvas cleanly', () => {
+test('Studio Workbench: 5-step nav removes Kai+Lienzo tab, adds Drawing Tablet, and docks KAI without opaque backdrop', () => {
   const types = load('app/studio/types.ts');
   const page = load('app/studio/page.tsx');
   const css = load('app/studio/studio.css');
+  const kaiDocked = load('app/studio/components/KaiCopilotDrawer.tsx');
+  const tablet = load('app/studio/components/DrawingTabletWorkbench.tsx');
 
-  assert.match(types, /export type StudioView\s*=\s*'project'\s*\|\s*'characters'\s*\|\s*'cover'\s*\|\s*'pages'\s*\|\s*'kai_canvas'/);
+  assert.match(
+    types,
+    /export type StudioView\s*=\s*'project'\s*\|\s*'characters'\s*\|\s*'cover'\s*\|\s*'pages'\s*\|\s*'drawing_tablet'/,
+  );
 
-  assert.match(page, /import\s+\{\s*KaiSplitStudio\s*\}\s+from\s+['"]\.\/components\/KaiSplitStudio['"]/);
-  for (const slug of ['kai', 'canvas', 'split', 'kai_canvas', 'lienzo']) {
-    assert.match(page, new RegExp(`['"]${slug}['"]`), `resolveTabParam missing alias: ${slug}`);
-  }
-  assert.match(page, /Kai \+ Lienzo IA/);
-  assert.match(page, /is-split-workspace/);
-  assert.match(page, /is-split-mode/);
-  assert.match(page, /<KaiSplitStudio\s+project=\{project\}\s+onQuotaBlocked=\{openUpgradeModal\}\s*\/>/);
-  assert.match(page, /view !== ['"]kai_canvas['"]/);
+  assert.doesNotMatch(page, /Kai \+ Lienzo IA/, 'Sidebar must not display disconnected Kai + Lienzo IA tab');
+  assert.match(page, /Tabla de Dibujo/, 'Sidebar must include Tabla de Dibujo module');
+  assert.match(page, /<DrawingTabletWorkbench/);
   assert.match(page, /<KaiCopilotDrawer/);
 
-  assert.match(css, /\.manga-grid\.is-split-workspace\s*\{\s*grid-template-columns:\s*276px\s+minmax\(0,\s*1fr\);/);
-  assert.match(css, /\.gf-canvas-scroll\.is-split-mode\s*\{[\s\S]*?padding:\s*0;[\s\S]*?overflow:\s*hidden;[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column;[\s\S]*?height:\s*100%;/);
-  assert.match(css, /@media\s*\(\s*max-width:\s*1120px\s*\)\s*\{[\s\S]*?\.manga-grid\.is-split-workspace\s*\{[\s\S]*?grid-template-columns:\s*1fr;/);
+  // Non-opaque docked KAI workspace requirement
+  assert.doesNotMatch(css, /\.gf-kai-backdrop\s*\{/, 'KAI must not render an opaque full-screen backdrop');
+  assert.match(css, /\.gf-kai-docked\s*\{/);
+  assert.match(kaiDocked, /STEP_PIPELINE/);
+  assert.match(kaiDocked, /KAI_TEXT_MODEL_DEFAULT/);
+  assert.match(kaiDocked, /KAI_IMAGE_MODEL_DEFAULT/);
+
+  // Digital drawing tablet hardware pressure & KAI sketch refinement
+  assert.match(tablet, /e\.pointerType/);
+  assert.match(tablet, /=== 'pen'/);
+  assert.match(tablet, /getCoalescedEvents/);
+  assert.match(tablet, /penOnlyMode/);
+  assert.match(tablet, /sketch_refine/);
 });

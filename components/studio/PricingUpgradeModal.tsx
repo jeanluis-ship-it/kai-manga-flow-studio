@@ -115,7 +115,7 @@ export const PricingUpgradeModal: React.FC<PricingUpgradeModalProps> = ({
             <div>
               <h3 className="gf-modal-title">Planes MANGAI Studio OS</h3>
               <p className="gf-preflight-sub">
-                Escala tus tomos, páginas mensuales, Nano Banana 2 HD y prioridad de render.
+                Escala tus tomos, páginas mensuales, Gemini 3.1 Flash Image HD y prioridad de render.
               </p>
             </div>
           </div>

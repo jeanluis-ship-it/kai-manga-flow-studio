@@ -1,45 +1,11 @@
-export const CLOUDFLARE_IMAGE_MODEL = 'flux-2-klein-4b-cloudflare';
+export const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image-preview';
+export const GEMINI_TEXT_MODEL = 'gemini-3-flash-preview';
 
 export const AI_MODELS = [
   {
-    id: 'flux-schnell-hf',
-    label: '⚡ FLUX.1 Schnell (Space compartido · puede estar ocupado)',
-    provider: 'huggingface',
-  },
-  {
-    id: CLOUDFLARE_IMAGE_MODEL,
-    label: 'FLUX.2 Klein 4B (Cloudflare · cuota de prueba y referencias)',
-    provider: 'cloudflare',
-  },
-  {
-    id: 'gemini-3-pro-image',
-    label: '🍌 Nano Banana Pro (Google Tier 1 / Video)',
+    id: GEMINI_IMAGE_MODEL,
+    label: 'Gemini 3.1 Flash Image (Oficial)',
     provider: 'google',
-  },
-  {
-    id: 'gemini-nano-banana-2.1',
-    label: '🍌 Nano Banana 2.1 (Google Tier 1 · Multi-Vista)',
-    provider: 'google',
-  },
-  {
-    id: 'gemini-3.1-flash-lite-image',
-    label: '⚡ Nano Banana 2 Lite (Boceto Rápido Google)',
-    provider: 'google',
-  },
-  {
-    id: 'imagen-3.0-generate-002',
-    label: '🎨 Google Imagen 3.0 HD',
-    provider: 'google',
-  },
-  {
-    id: 'gpt-image-2.5-flare',
-    label: 'GPT Imágenes · Flare (bocetos)',
-    provider: 'openai',
-  },
-  {
-    id: 'gpt-image-2.5-sunburst',
-    label: 'GPT Imágenes · Sunburst (edición con referencias)',
-    provider: 'openai',
   },
 ] as const;
 
@@ -66,13 +32,19 @@ export const IMAGE_MODES = [
     id: 'cover_wrap',
     label: '16:9 Paperback Full Wrap',
     instruction:
-      'Produce a wide 16:9 unified manga paperback wrap-around book cover (spread layout). RIGHT HALF = Front Cover featuring the main character illustration, dramatic atmosphere and stylized title ANACAONA. CENTER STRIP = narrow vertical spine divider band. LEFT HALF = Back Cover with cohesive environmental background, atmospheric composition, and space at bottom-left for a synopsis box and ISBN barcode. Vibrant editorial fantasy illustration.',
+      'Produce a wide 16:9 unified manga paperback wrap-around book cover (spread layout). RIGHT HALF = Front Cover featuring the main character illustration and dramatic atmosphere. CENTER STRIP = narrow vertical spine divider band. LEFT HALF = Back Cover with cohesive environmental background and clean space at bottom-left for synopsis and ISBN barcode. Vibrant editorial illustration.',
   },
   {
     id: 'panel',
-    label: '3:4 Interior Manga Page',
+    label: '3:4 Interior Manga Panel',
     instruction:
-      'Produce a complete black-and-white Japanese manga comic page divided dynamically into sequential story panels following the exact scene layout and panel numbers described. Crisp Sumi G-Pen ink linework, authentic halftone screentones, high-contrast chiaroscuro shadows, expressive dramatic framing, clean Japanese-style speech balloons containing the Spanish dialogue clearly legible when specified. No watermarks.',
+      'Produce an authentic Japanese manga interior illustration with crisp Sumi G-Pen ink linework, dynamic halftone screentones, high-contrast chiaroscuro shadows, and expressive dramatic framing. No speech bubbles, no watermarks.',
+  },
+  {
+    id: 'sketch_refine',
+    label: 'Drawing Tablet Nemu Sketch Refinement',
+    instruction:
+      'Use the attached hand-drawn digital sketch (Nemu draft) as the primary structural blueprint. Preserve the artist composition, character pose, camera angle, and silhouettes while upgrading and cleaning the draft into publication-grade Japanese manga lineart, refined anatomy, expressive ink weights, and clean screentones. No speech bubbles, no watermarks.',
   },
   {
     id: 'portrait',

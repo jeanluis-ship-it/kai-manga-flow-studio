@@ -250,7 +250,6 @@ export const CharacterLibrary: React.FC<{
         aspectRatio: '1:1',
         name: `${char.name || 'Settei'} (${handle})`,
         details,
-        modelDisplayName: '🍌 Nano Banana Pro',
       });
 
       const nextChars = project.characters.map((c) =>

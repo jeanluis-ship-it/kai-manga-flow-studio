@@ -1,7 +1,8 @@
 import { splitDataUrl, toDataImageSrc } from './types';
+import { KAI_IMAGE_MODEL_DEFAULT } from '@/lib/kai/studioCanvas';
 
 export type AspectRatio = '1:1' | '3:4' | '4:3' | '16:9' | '9:16';
-export type ImageMode = 'sheet' | 'cover_wrap' | 'panel' | 'portrait';
+export type ImageMode = 'sheet' | 'cover_wrap' | 'panel' | 'portrait' | 'sketch_refine';
 
 export interface GenerateImageParams {
   prompt: string;
@@ -65,28 +66,6 @@ function resolveMode(mode?: ImageMode, aspectRatio?: AspectRatio): ImageMode {
   return 'panel';
 }
 
-function resolvePreferredModel(modelDisplayName?: string): string {
-  const raw = modelDisplayName?.trim() ?? '';
-  if (!raw) return 'flux-schnell-hf';
-
-  if (
-    raw === 'flux-schnell-hf' ||
-    raw.startsWith('gemini-') ||
-    raw.startsWith('imagen-') ||
-    raw.startsWith('gpt-')
-  ) {
-    return raw;
-  }
-
-  // Google Flow's legacy display label maps to MANGAI's keyless FLUX fast-path unless Tier 1 is explicit.
-  if (raw.includes('Google Tier 1 / Video')) return 'gemini-3-pro-image';
-  if (raw.includes('Nano Banana 2.1')) return 'gemini-nano-banana-2.1';
-  if (raw.includes('Nano Banana 2 Lite')) return 'gemini-3.1-flash-lite-image';
-  if (raw.includes('Imagen 3.0')) return 'imagen-3.0-generate-002';
-  if (raw.includes('GPT-Image')) return 'gpt-image-2.5-flare';
-  return 'flux-schnell-hf';
-}
-
 function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
   const clean = base64.replace(/\s+/g, '');
   if (!clean) {
@@ -113,7 +92,6 @@ function dataUrlToReferenceFile(rawReference: string, index: number): File | nul
   if (!dataUrl || !dataUrl.startsWith('data:')) return null;
 
   const { mimeType, base64 } = splitDataUrl(dataUrl);
-  // Server route rejects non-raster reference types (such as SVG fallback drafts) with HTTP 400.
   if (!base64 || !ALLOWED_REFERENCE_MIME.has(mimeType)) {
     return null;
   }
@@ -140,8 +118,8 @@ function readOptionalStudioAccessToken(): string {
 }
 
 /**
- * Browser / Next.js adapter mimicking Google Flow SDK (`Flow.generate.image` and `Flow.download`)
- * backed by MANGAI Studio's `/api/images/generate` route.
+ * Unified MANGAI Studio SDK backed exclusively by `gemini-3.1-flash-image-preview`
+ * through `/api/images/generate`.
  */
 export const Flow = {
   media: {
@@ -163,7 +141,7 @@ export const Flow = {
     async image(params: GenerateImageParams): Promise<GenerateImageResult> {
       const aspectRatio: AspectRatio = params.aspectRatio ?? '3:4';
       const mode = resolveMode(params.mode, aspectRatio);
-      const preferredModel = resolvePreferredModel(params.modelDisplayName);
+      const preferredModel = KAI_IMAGE_MODEL_DEFAULT;
       const notes = (params.notes ?? params.prompt ?? '').trim();
       const name = (params.name ?? '').trim();
 
@@ -182,19 +160,19 @@ export const Flow = {
       const candidateUrls: string[] = [];
       const seen = new Set<string>();
 
-      for (const mediaId of params.referenceImageMediaIds ?? []) {
-        const stored = mediaStore.get(mediaId);
-        if (stored && !seen.has(stored)) {
-          seen.add(stored);
-          candidateUrls.push(stored);
-        }
-      }
-
       for (const rawBase64 of params.referenceImagesBase64 ?? []) {
         const normalized = toDataImageSrc(rawBase64);
         if (normalized && !seen.has(normalized)) {
           seen.add(normalized);
           candidateUrls.push(normalized);
+        }
+      }
+
+      for (const mediaId of params.referenceImageMediaIds ?? []) {
+        const stored = mediaStore.get(mediaId);
+        if (stored && !seen.has(stored)) {
+          seen.add(stored);
+          candidateUrls.push(stored);
         }
       }
 
@@ -239,7 +217,7 @@ export const Flow = {
             })
           : {};
       } catch {
-        throw new Error(`Invalid response from image generator (HTTP ${resp.status}).`);
+        throw new Error(`Respuesta inválida del generador de imágenes (HTTP ${resp.status}).`);
       }
 
       if (resp.status === 402 || payload.code === 'QUOTA_EXCEEDED') {
@@ -250,12 +228,12 @@ export const Flow = {
       }
 
       if (!resp.ok || !payload.image) {
-        throw new Error(payload.error || `Image generation failed (HTTP ${resp.status}).`);
+        throw new Error(payload.error || `Error generando imagen con Gemini (HTTP ${resp.status}).`);
       }
 
       const { mimeType, base64 } = splitDataUrl(payload.image);
       if (!base64) {
-        throw new Error('Image generation returned empty image data.');
+        throw new Error('El modelo devolvió datos de imagen vacíos.');
       }
 
       const dataUrl = `data:${mimeType};base64,${base64}`;

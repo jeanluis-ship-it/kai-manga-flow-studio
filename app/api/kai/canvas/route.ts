@@ -21,6 +21,16 @@ interface GeminiCandidatePart {
   inline_data?: GeminiInlineData;
 }
 
+function parseSketchInlineData(dataUrl?: string): { mimeType: string; data: string } | null {
+  if (!dataUrl) return null;
+  const match = dataUrl.trim().match(/^data:(image\/(?:png|jpeg|webp))(?:;[^,]*)?;base64,([\s\S]+)$/i);
+  if (!match) return null;
+  return {
+    mimeType: match[1].toLowerCase(),
+    data: match[2].replace(/\s+/g, ''),
+  };
+}
+
 function extractInlineImage(parts: GeminiCandidatePart[]): { data: string; mimeType: string } | null {
   for (const part of parts) {
     const inline = part.inlineData ?? part.inline_data;
@@ -54,7 +64,6 @@ export async function POST(req: NextRequest) {
 
   const input = parsed.data;
 
-  // Enforce trial expiry on authenticated Supabase accounts without blocking Guest mode.
   const serverQuota = await getServerQuotaContext();
   if (serverQuota) {
     const trialCheck = checkQuota(serverQuota.profile, serverQuota.usage, 'TRIAL_EXPIRED');
@@ -81,9 +90,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const fullPrompt = buildFullCanvasPrompt(input.prompt, input.style, input.aspectRatio);
+  const sketchInline = parseSketchInlineData(input.sketchDataUrl);
+  const fullPrompt = sketchInline
+    ? `Refine and upgrade the attached hand-drawn manga draft while strictly preserving the artist pose, framing, and composition: ${buildFullCanvasPrompt(input.prompt, input.style, input.aspectRatio)}`
+    : buildFullCanvasPrompt(input.prompt, input.style, input.aspectRatio);
+
   const model = (process.env.GEMINI_CANVAS_IMAGE_MODEL || KAI_IMAGE_MODEL_DEFAULT).trim();
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
+  const requestParts: Array<{
+    text?: string;
+    inlineData?: { mimeType: string; data: string };
+  }> = [{ text: fullPrompt }];
+  if (sketchInline) {
+    requestParts.push({ inlineData: sketchInline });
+  }
 
   try {
     const upstreamRes = await fetch(endpoint, {
@@ -96,7 +117,7 @@ export async function POST(req: NextRequest) {
         contents: [
           {
             role: 'user',
-            parts: [{ text: fullPrompt }],
+            parts: requestParts,
           },
         ],
         generationConfig: {
@@ -110,16 +131,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!upstreamRes.ok) {
-      console.error('Gemini Kai canvas upstream error', {
-        status: upstreamRes.status,
-        model,
-      });
-
       if (upstreamRes.status === 429) {
         return NextResponse.json(
           {
             error:
-              'Se alcanzó el límite temporal de generación de imágenes en Gemini. Prueba de nuevo más tarde.',
+              'Se alcanzó el límite temporal de generación de imágenes en Gemini 3.1 Flash Image. Prueba de nuevo más tarde.',
           },
           { status: 429 },
         );
@@ -128,7 +144,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'No se pudo generar la ilustración en Gemini. Verifica el modelo o la cuota de imágenes.',
+            'No se pudo generar la ilustración en Gemini 3.1 Flash Image. Verifica la cuota de imágenes.',
         },
         { status: 502 },
       );
@@ -147,7 +163,7 @@ export async function POST(req: NextRequest) {
 
     if (!imageResult) {
       return NextResponse.json(
-        { error: 'No se recibió imagen del modelo.' },
+        { error: 'No se recibió imagen del modelo Gemini 3.1 Flash Image.' },
         { status: 502 },
       );
     }
@@ -161,15 +177,11 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const isTimeout =
       err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError');
-    console.error('Gemini Kai canvas request failed', {
-      reason: isTimeout ? 'timeout' : 'network_or_parse_error',
-      model,
-    });
     return NextResponse.json(
       {
         error: isTimeout
           ? 'La generación de la ilustración superó el tiempo límite. Intenta de nuevo.'
-          : 'Error de conexión al generar la ilustración con Gemini.',
+          : 'Error de conexión al generar la ilustración con Gemini 3.1 Flash Image.',
       },
       { status: 502 },
     );

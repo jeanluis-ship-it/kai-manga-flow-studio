@@ -8,7 +8,6 @@ import {
   BookOpen,
   CheckCircle2,
   Cloud,
-  Columns2,
   Crown,
   Eye,
   EyeOff,
@@ -26,6 +25,7 @@ import {
   Plus,
   Printer,
   RefreshCw,
+  SlidersHorizontal,
   Sparkles,
   Sun,
   Trash2,
@@ -68,8 +68,8 @@ import { Flow, QuotaExceededError } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
+import { DrawingTabletWorkbench } from './components/DrawingTabletWorkbench';
 import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
-import { KaiSplitStudio } from './components/KaiSplitStudio';
 import { PageEditor } from './components/PageEditor';
 import { PreflightModal } from './components/PreflightModal';
 import { ProjectManager } from './components/ProjectManager';
@@ -157,13 +157,16 @@ function resolveTabParam(raw: string | null): StudioView | null {
     return 'pages';
   }
   if (
-    slug === 'kai' ||
-    slug === 'canvas' ||
-    slug === 'split' ||
-    slug === 'kai_canvas' ||
-    slug === 'lienzo'
+    slug === 'drawing_tablet' ||
+    slug === 'tablet' ||
+    slug === 'tabla' ||
+    slug === 'dibujo' ||
+    slug === 'sketch'
   ) {
-    return 'kai_canvas';
+    return 'drawing_tablet';
+  }
+  if (slug === 'kai' || slug === 'kai_canvas' || slug === 'canvas' || slug === 'lienzo') {
+    return 'project';
   }
   return null;
 }
@@ -185,7 +188,10 @@ export default function StudioPage() {
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
   const [selectedKomaId, setSelectedKomaId] = useState<string | null>(null);
   const [selectedDialogueId, setSelectedDialogueId] = useState<string | null>(null);
-  const [kaiOpen, setKaiOpen] = useState(false);
+  const [rightPanelTab, setRightPanelTab] = useState<'kai' | 'inspector'>('kai');
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [tabletPromptFromKai, setTabletPromptFromKai] = useState('');
+  const [kaiPendingMessage, setKaiPendingMessage] = useState('');
   const [preflightOpen, setPreflightOpen] = useState(false);
   const [quotaProfile, setQuotaProfile] = useState<UserQuotaProfile>(() =>
     createGuestQuotaProfile('trial'),
@@ -425,11 +431,21 @@ export default function StudioPage() {
 
   const handleSelectView = (nextView: StudioView) => {
     setView(nextView);
+    if (nextView === 'pages' || nextView === 'cover') {
+      // Keep current right tab so user can stay in KAI or switch to Inspector freely
+    } else if (nextView === 'project' || nextView === 'characters') {
+      setRightPanelTab('kai');
+    }
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.set('tab', nextView);
       window.history.replaceState({}, '', url.toString());
     }
+  };
+
+  const openDockedKai = () => {
+    setRightPanelCollapsed(false);
+    setRightPanelTab('kai');
   };
 
   const updateProject = (updates: Partial<Project>) => {
@@ -735,7 +751,6 @@ export default function StudioPage() {
     const firstKoma = generatedPages[0].komas?.[0] ?? null;
     setSelectedKomaId(firstKoma?.id ?? null);
     setSelectedDialogueId(firstKoma?.dialogues?.[0]?.id ?? null);
-    setKaiOpen(false);
     handleSelectView('pages');
     return true;
   };
@@ -961,12 +976,18 @@ export default function StudioPage() {
 
           <button
             type="button"
-            onClick={() => setKaiOpen(true)}
+            onClick={() => {
+              if (!rightPanelCollapsed && rightPanelTab === 'kai') {
+                setRightPanelCollapsed(true);
+              } else {
+                openDockedKai();
+              }
+            }}
             className="gf-kai-trigger-btn"
-            title="Abrir copiloto KAI Sensei de guion y Koma-wari"
+            title="Mostrar u ocultar el Espacio KAI acoplado a la derecha (sin opacar el proyecto)"
           >
             <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
-            <span>KAI Sensei</span>
+            <span>{!rightPanelCollapsed && rightPanelTab === 'kai' ? 'KAI Activo' : 'Espacio KAI'}</span>
           </button>
 
           {quotaProfile.isGuest ? (
@@ -1037,7 +1058,7 @@ export default function StudioPage() {
         </div>
       </header>
 
-      <div className={`manga-grid ${view === 'kai_canvas' ? 'is-split-workspace' : ''}`}>
+      <div className={`manga-grid ${rightPanelCollapsed ? 'is-right-collapsed' : ''}`}>
         <aside className="gf-sidebar-left no-scrollbar">
           <div className="gf-sidebar-section">
             <Link
@@ -1075,10 +1096,10 @@ export default function StudioPage() {
                 onClick={() => handleSelectView('pages')}
               />
               <NavItem
-                active={view === 'kai_canvas'}
-                icon={<Columns2 size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Kai + Lienzo IA"
-                onClick={() => handleSelectView('kai_canvas')}
+                active={view === 'drawing_tablet'}
+                icon={<PenTool size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Tabla de Dibujo"
+                onClick={() => handleSelectView('drawing_tablet')}
               />
             </div>
           </div>
@@ -1226,7 +1247,7 @@ export default function StudioPage() {
         </aside>
 
         <main className="gf-canvas-shell">
-          <div className={`gf-canvas-scroll dark-scrollbar ${view === 'kai_canvas' ? 'is-split-mode' : ''}`}>
+          <div className="gf-canvas-scroll dark-scrollbar">
             {view === 'pages' && (
               <PageEditor
                 project={project}
@@ -1270,54 +1291,101 @@ export default function StudioPage() {
             {view === 'project' && (
               <ProjectManager project={project} updateProject={updateProject} />
             )}
-            {view === 'kai_canvas' && (
-              <KaiSplitStudio project={project} onQuotaBlocked={openUpgradeModal} />
+            {view === 'drawing_tablet' && (
+              <DrawingTabletWorkbench
+                project={project}
+                activePageIndex={safePageIndex}
+                selectedKomaId={selectedKomaId}
+                externalPrompt={tabletPromptFromKai}
+                onConsumeExternalPrompt={() => setTabletPromptFromKai('')}
+                updateProject={updateProject}
+                onAskKaiForSketch={(note) => {
+                  openDockedKai();
+                  setKaiPendingMessage(note);
+                }}
+                onQuotaBlocked={openUpgradeModal}
+              />
             )}
           </div>
         </main>
 
-        {view !== 'kai_canvas' && (
-          <aside className="gf-sidebar-right dark-scrollbar">
-            <ViewControls
-              view={view}
-              project={project}
-              pageIndex={safePageIndex}
-              selectedKomaId={selectedKomaId}
-              selectedDialogueId={selectedDialogueId}
-              generating={generating}
-              quotaProfile={quotaProfile}
-              hdModelOn={hdModelOn}
-              renderPriorityOn={renderPriorityOn}
-              onToggleHdModel={handleToggleHdModel}
-              onToggleRenderPriority={handleToggleRenderPriority}
-              onQuotaBlocked={openUpgradeModal}
-              setTaskLoading={setTaskLoading}
-              setPageLoading={setPageLoading}
-              setKomaLoading={setKomaLoading}
-              updateProject={updateProject}
-              updatePageById={updatePageById}
-              updateKomaById={updateKomaById}
-              onToggleLayer={handleToggleLayer}
-              onLayerOpacity={handleLayerOpacity}
-              onAddBalloon={handleAddBalloon}
-              onSelectDialogue={setSelectedDialogueId}
-              onUpdateDialogue={handleUpdateDialogue}
-              onDeleteDialogue={handleDeleteDialogue}
-              updateCover={updateCover}
-              onExportCover={() => coverDesignerRef.current?.exportCover()}
-              onOpenKai={() => setKaiOpen(true)}
-            />
+        {!rightPanelCollapsed && (
+          <aside className="gf-sidebar-right gf-sidebar-right-docked">
+            {(view === 'pages' || view === 'cover') && (
+              <div className="gf-right-dock-tabs" role="tablist" aria-label="Panel lateral derecho">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={rightPanelTab === 'kai'}
+                  className={`gf-right-dock-tab ${rightPanelTab === 'kai' ? 'is-active' : ''}`}
+                  onClick={() => setRightPanelTab('kai')}
+                >
+                  <Sparkles size={13} strokeWidth={2} className="gf-icon-shrink" />
+                  <span>Espacio KAI</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={rightPanelTab === 'inspector'}
+                  className={`gf-right-dock-tab ${rightPanelTab === 'inspector' ? 'is-active' : ''}`}
+                  onClick={() => setRightPanelTab('inspector')}
+                >
+                  <SlidersHorizontal size={13} strokeWidth={2} className="gf-icon-shrink" />
+                  <span>{view === 'pages' ? 'Capas y Viñeta' : 'Ajustes Cubierta'}</span>
+                </button>
+              </div>
+            )}
+
+            <div className="gf-right-dock-body dark-scrollbar">
+              {rightPanelTab === 'kai' || (view !== 'pages' && view !== 'cover') ? (
+                <KaiCopilotDrawer
+                  project={project}
+                  activeView={view}
+                  activePageIndex={safePageIndex}
+                  selectedKomaId={selectedKomaId}
+                  pendingExternalMessage={kaiPendingMessage}
+                  onConsumeExternalMessage={() => setKaiPendingMessage('')}
+                  onNavigateView={handleSelectView}
+                  updateProject={updateProject}
+                  onApplyScript={handleApplyKaiScript}
+                  onSendPromptToTablet={(vp) => setTabletPromptFromKai(vp)}
+                  onQuotaBlocked={openUpgradeModal}
+                />
+              ) : (
+                <ViewControls
+                  view={view}
+                  project={project}
+                  pageIndex={safePageIndex}
+                  selectedKomaId={selectedKomaId}
+                  selectedDialogueId={selectedDialogueId}
+                  generating={generating}
+                  quotaProfile={quotaProfile}
+                  hdModelOn={hdModelOn}
+                  renderPriorityOn={renderPriorityOn}
+                  onToggleHdModel={handleToggleHdModel}
+                  onToggleRenderPriority={handleToggleRenderPriority}
+                  onQuotaBlocked={openUpgradeModal}
+                  setTaskLoading={setTaskLoading}
+                  setPageLoading={setPageLoading}
+                  setKomaLoading={setKomaLoading}
+                  updateProject={updateProject}
+                  updatePageById={updatePageById}
+                  updateKomaById={updateKomaById}
+                  onToggleLayer={handleToggleLayer}
+                  onLayerOpacity={handleLayerOpacity}
+                  onAddBalloon={handleAddBalloon}
+                  onSelectDialogue={setSelectedDialogueId}
+                  onUpdateDialogue={handleUpdateDialogue}
+                  onDeleteDialogue={handleDeleteDialogue}
+                  updateCover={updateCover}
+                  onExportCover={() => coverDesignerRef.current?.exportCover()}
+                  onOpenKai={openDockedKai}
+                />
+              )}
+            </div>
           </aside>
         )}
       </div>
-
-      <KaiCopilotDrawer
-        open={kaiOpen}
-        onClose={() => setKaiOpen(false)}
-        project={project}
-        onApplyScript={handleApplyKaiScript}
-        onQuotaBlocked={openUpgradeModal}
-      />
 
       <PreflightModal
         open={preflightOpen}
@@ -1527,7 +1595,6 @@ function ViewControls({
 
       const result = await Flow.generate.image({
         prompt: finalPrompt,
-        modelDisplayName: hdModelOn ? 'Nano Banana 2.1' : '🍌 Nano Banana Pro',
         useHdModel: hdModelOn,
         renderPriority: renderPriorityOn,
         mode: 'panel',
@@ -1594,7 +1661,6 @@ function ViewControls({
 
       const result = await Flow.generate.image({
         prompt: finalPrompt,
-        modelDisplayName: hdModelOn ? 'Nano Banana 2.1' : '🍌 Nano Banana Pro',
         useHdModel: hdModelOn,
         renderPriority: renderPriorityOn,
         mode: 'cover_wrap',
@@ -1758,7 +1824,7 @@ function ViewControls({
                     ) : (
                       <Lock size={12} strokeWidth={2.2} className="gf-icon-shrink" />
                     )}
-                    <span>Nano Banana 2 HD</span>
+                    <span>Gemini 3.1 Flash HD</span>
                   </span>
                   <span className="gf-engine-gate-pill">
                     {hdModelOn ? 'ON' : quotaProfile.hdRenderEnabled ? 'OFF' : 'PRO'}

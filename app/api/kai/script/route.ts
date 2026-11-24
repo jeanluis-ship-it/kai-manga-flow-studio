@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { KAI_TEXT_MODEL_DEFAULT } from '@/lib/kai/studioCanvas';
 import {
   KaiDualOutputSchema,
   KaiScriptRequestSchema,
@@ -86,93 +86,37 @@ async function tryGeminiScript(req: KaiScriptRequest): Promise<KaiDualOutput | n
   const apiKey = (process.env.GEMINI_API_KEY || '').trim();
   if (!apiKey) return null;
 
-  let candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
+  const model = (process.env.GEMINI_KAI_MODEL || KAI_TEXT_MODEL_DEFAULT).trim();
   try {
-    const listResp = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
-      headers: { 'x-goog-api-key': apiKey },
-      signal: AbortSignal.timeout(4_500),
-    });
-    if (listResp.ok) {
-      const listData = (await listResp.json()) as {
-        models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
-      };
-      const liveText = (listData.models ?? [])
-        .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
-        .map((m) => (m.name ?? '').replace(/^models\//, ''))
-        .filter(
-          (n) =>
-            (n.includes('flash') || n.includes('pro')) &&
-            !n.includes('image') &&
-            !n.includes('tts') &&
-            !n.includes('audio') &&
-            !n.includes('embedding'),
-        );
-      if (liveText.length > 0) {
-        candidateModels = Array.from(new Set([...liveText.slice(0, 2), ...candidateModels])).slice(0, 3);
-      }
-    }
-  } catch {
-    // Use defaults.
-  }
-
-  for (const model of candidateModels) {
-    try {
-      const resp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey,
-          },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            contents: [{ role: 'user', parts: [{ text: buildUserMessage(req) }] }],
-            generationConfig: {
-              temperature: 0.65,
-              responseMimeType: 'application/json',
-            },
-          }),
-          signal: AbortSignal.timeout(14_000),
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
         },
-      );
-      if (!resp.ok) continue;
-      const data = (await resp.json()) as {
-        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-      };
-      const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
-      if (!text) continue;
-      const parsed = KaiDualOutputSchema.safeParse(extractJsonObject(text));
-      if (parsed.success) return parsed.data;
-    } catch {
-      // Try next candidate.
-    }
-  }
-
-  return null;
-}
-
-async function tryOpenAiScript(req: KaiScriptRequest): Promise<KaiDualOutput | null> {
-  const apiKey = (process.env.OPENAI_API_KEY || '').trim();
-  if (!apiKey) return null;
-
-  try {
-    const client = new OpenAI({ apiKey, timeout: 18_000, maxRetries: 0 });
-    const completion = await client.chat.completions.create({
-      model: process.env.OPENAI_TEXT_MODEL || 'gpt-4o-mini',
-      temperature: 0.65,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildUserMessage(req) },
-      ],
-    });
-    const text = completion.choices[0]?.message?.content ?? '';
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: 'user', parts: [{ text: buildUserMessage(req) }] }],
+          generationConfig: {
+            temperature: 0.65,
+            responseMimeType: 'application/json',
+          },
+        }),
+        signal: AbortSignal.timeout(24_000),
+      },
+    );
+    if (!resp.ok) return null;
+    const data = (await resp.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
     if (!text) return null;
     const parsed = KaiDualOutputSchema.safeParse(extractJsonObject(text));
     if (parsed.success) return parsed.data;
   } catch {
-    // Fall back cleanly.
+    // Fall back cleanly to local structured template if Gemini is unreachable.
   }
 
   return null;
@@ -414,7 +358,7 @@ function buildFallbackDualOutput(req: KaiScriptRequest): KaiDualOutput {
   }
 
   return KaiDualOutputSchema.parse({
-    reply: `Estructuré tu idea en ${req.targetPages} ${req.targetPages === 1 ? 'página' : 'páginas'} con ritmo de lectura ${req.readingDirection === 'rtl' ? 'manga japonés (derecha a izquierda)' : 'occidental (izquierda a derecha)'}, integrando ${primaryHandle}${secondaryHandle ? ` y ${secondaryHandle}` : ''}. Pulsa «Aplicar al Manuscrito» para cargar las viñetas en estado NEMU y entintar cada panel de forma independiente.`,
+    reply: `Estructuré tu idea en ${req.targetPages} ${req.targetPages === 1 ? 'página' : 'páginas'} con ritmo de lectura ${req.readingDirection === 'rtl' ? 'manga japonés (derecha a izquierda)' : 'occidental (izquierda a derecha)'}, integrando ${primaryHandle}${secondaryHandle ? ` y ${secondaryHandle}` : ''}. Pulsa «Aplicar al Manuscrito» para cargar las viñetas en estado NEMU y entintar cada panel con Gemini 3.1 Flash Image.`,
     script_pages: pages,
   });
 }
@@ -440,7 +384,6 @@ export async function POST(req: NextRequest) {
 
   const input = parsedReq.data;
 
-  // Server-side quota validation when user is authenticated in Supabase
   const serverQuota = await getServerQuotaContext();
   if (serverQuota) {
     const pageCheck = checkQuota(
@@ -461,7 +404,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Try live LLM first when server credentials exist
   const geminiResult = await tryGeminiScript(input);
   if (geminiResult) {
     return NextResponse.json(geminiResult, {
@@ -469,14 +411,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const openaiResult = await tryOpenAiScript(input);
-  if (openaiResult) {
-    return NextResponse.json(openaiResult, {
-      headers: { 'X-KAI-Mode': 'openai' },
-    });
-  }
-
-  // Deterministic editorial fallback validated with Zod
   const fallback = buildFallbackDualOutput(input);
   return NextResponse.json(fallback, {
     headers: { 'X-KAI-Mode': 'fallback' },

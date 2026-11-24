@@ -9,7 +9,7 @@ export interface PlanConfig {
   periodLabel: string;
   maxProjects: number;
   maxPages: number;
-  hdModelEnabled: boolean; // Nano Banana 2 HD
+  hdModelEnabled: boolean; // Gemini 3.1 Flash Image HD
   renderPriority: boolean;
   highlighted?: boolean;
   features: string[];
@@ -61,7 +61,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
     features: [
       '10 proyectos activos',
       'Hasta 100 páginas totales',
-      'Motor Nano Banana 2 HD',
+      'Gemini 3.1 Flash Image HD',
       'Presets Tankōbon B6 y Canva B4',
     ],
   },
@@ -77,7 +77,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
     features: [
       '20 proyectos activos',
       'Hasta 200 páginas totales',
-      'Nano Banana 2 HD + Prioridad de Render',
+      'Gemini 3.1 Flash Image HD + Prioridad',
       'Empaque Tankōbon completo e ISBN',
     ],
   },
@@ -239,7 +239,7 @@ export function checkQuota(
         allowed: false,
         code: 'QUOTA_EXCEEDED',
         requiredPlan: 'pro',
-        reason: `El motor Nano Banana 2 HD requiere Plan Pro ($3.49/mes) o Master. Tu plan actual es ${plan.name}.`,
+        reason: `El modo Gemini 3.1 Flash Image HD requiere Plan Pro ($3.49/mes) o Master. Tu plan actual es ${plan.name}.`,
       };
     }
     return { allowed: true };

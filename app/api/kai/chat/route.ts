@@ -8,31 +8,32 @@ import {
 export const runtime = 'nodejs';
 export const maxDuration = 45;
 
-const BASE_SYSTEM_INSTRUCTION = `Eres Kai, director de arte de manga/manhwa y guionista editorial senior en Mangai Studio.
-Tu misión es asistir al creador en español, respetando siempre su autoría y el canon aprobado del proyecto.
+const BASE_SYSTEM_INSTRUCTION = `Eres Kai, director de arte de manga/manhwa y guionista editorial senior integrado directamente en el proyecto activo de MANGAI Studio.
+Tu misión es asistir al creador paso a paso en español (Configuración de Obra -> Settei y Personajes -> Portada Tankōbon -> Páginas e Interiores -> Tabla de Dibujo Digital), respetando su autoría y el canon aprobado.
 
-ÁREAS DE MENTORÍA Y DIRECCIÓN:
-- Guiones y estructura dramática por página o capítulo (ganchos, ritmo de lectura y giros).
-- Fichas de personaje (settei), vestuario, siluetas, rasgos distintivos y coherencia visual.
-- Ritmo de viñetas (koma-wari), ángulos de cámara (contrapicado, picado, plano detalle, plano general), iluminación y atmósfera.
-- Prompts visuales listos para producción en el lienzo generador.
+ÁREAS DE MENTORÍA Y DIRECCIÓN CONECTADAS AL PROYECTO:
+- Configuración y Lomo: títulos con fuerza comercial, sinopsis de contraportada, formato editorial y tono.
+- Settei y Personajes: fichas canónicas (@handles), siluetas, vestuario y anclas visuales inmutables.
+- Portada Tankōbon: composición envolvente 16:9 (contraportada, lomo y portada frontal).
+- Páginas e Interiores: ritmo Koma-wari, ángulos de cámara, diálogos breves e impacto de viñetas.
+- Tabla de Dibujo Digital: cómo pulir, entintar (G-Pen / Maru-Pen) y mejorar los bocetos Nemu dibujados con lápiz digital.
 
 REGLA DE PROMPT VISUAL:
-- SIEMPRE que el usuario te pida una idea visual, escena, viñeta, personaje, portada o ilustración (o cuando propongas una toma concreta), incluye al final un bloque claramente marcado que comience en su propia línea con:
+- SIEMPRE que propongas o refines un personaje, portada, viñeta o mejora de boceto de la Tabla de Dibujo, incluye al final en su propia línea:
 [PROMPT VISUAL]:
-- Dentro de ese bloque escribe un prompt ultra-detallado EN INGLÉS optimizado para generación de imagen: sujeto, pose, expresión facial, ropa/accesorios, entorno, encuadre/lente/ángulo de cámara, iluminación, contraste, atmósfera y sin globos de diálogo salvo indicación explícita.
-- No encierres la explicación en español dentro de [PROMPT VISUAL]:; deja la dirección creativa en español arriba y únicamente el prompt en inglés debajo de [PROMPT VISUAL]:.`;
+- Debajo de [PROMPT VISUAL]: escribe ÚNICAMENTE un prompt detallado EN INGLÉS optimizado para gemini-3.1-flash-image-preview (sujeto, pose, expresión, vestuario/anclas visuales, ángulo de cámara, iluminación, acabado de tinta/color, sin globos de texto).`;
 
-function buildSystemInstruction(activeSettei?: string[]): string {
-  if (!activeSettei || activeSettei.length === 0) {
-    return BASE_SYSTEM_INSTRUCTION;
+function buildSystemInstruction(activeSettei?: string[], projectContext?: string): string {
+  const blocks = [BASE_SYSTEM_INSTRUCTION];
+  if (projectContext) {
+    blocks.push(`ESTADO ACTUAL DEL PROYECTO EN ESTUDIO:\n${projectContext}`);
   }
-
-  const canonBlock = activeSettei.map((item) => `- ${item}`).join('\n');
-  return `${BASE_SYSTEM_INSTRUCTION}
-
-CANON ACTIVO DEL PROYECTO (SETTEI — mantener continuidad estricta):
-${canonBlock}`;
+  if (activeSettei && activeSettei.length > 0) {
+    blocks.push(
+      `CANON ACTIVO DEL PROYECTO (SETTEI — mantener continuidad estricta):\n${activeSettei.map((item) => `- ${item}`).join('\n')}`,
+    );
+  }
+  return blocks.join('\n\n');
 }
 
 export async function POST(req: NextRequest) {
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { userMessage, chatHistory, activeSettei } = parsed.data;
+  const { userMessage, chatHistory, activeSettei, projectContext } = parsed.data;
   const model = (process.env.GEMINI_KAI_MODEL || KAI_TEXT_MODEL_DEFAULT).trim();
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
@@ -78,30 +79,25 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: buildSystemInstruction(activeSettei) }],
+          parts: [{ text: buildSystemInstruction(activeSettei, projectContext) }],
         },
         contents: [
           ...chatHistory,
           { role: 'user', parts: [{ text: userMessage }] },
         ],
         generationConfig: {
-          temperature: 0.8,
+          temperature: 0.75,
         },
       }),
       signal: AbortSignal.timeout(35_000),
     });
 
     if (!upstreamRes.ok) {
-      console.error('Gemini Kai chat upstream error', {
-        status: upstreamRes.status,
-        model,
-      });
-
       if (upstreamRes.status === 429) {
         return NextResponse.json(
           {
             error:
-              'Se alcanzó el límite temporal de solicitudes de Gemini. Intenta de nuevo en unos segundos.',
+              'Se alcanzó el límite temporal de solicitudes de Gemini 3 Flash. Intenta de nuevo en unos segundos.',
           },
           { status: 429 },
         );
@@ -110,7 +106,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'No se pudo obtener respuesta de Kai desde Gemini. Verifica el modelo o la cuota de la API.',
+            'No se pudo obtener respuesta de Kai desde Gemini 3 Flash. Verifica la cuota de la API.',
         },
         { status: 502 },
       );
@@ -131,7 +127,7 @@ export async function POST(req: NextRequest) {
 
     if (!reply) {
       return NextResponse.json(
-        { error: 'Gemini devolvió una respuesta vacía para Kai.' },
+        { error: 'Gemini 3 Flash devolvió una respuesta vacía para Kai.' },
         { status: 502 },
       );
     }
@@ -141,15 +137,11 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const isTimeout =
       err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError');
-    console.error('Gemini Kai chat request failed', {
-      reason: isTimeout ? 'timeout' : 'network_or_parse_error',
-      model,
-    });
     return NextResponse.json(
       {
         error: isTimeout
           ? 'La consulta a Kai superó el tiempo límite. Intenta con una instrucción más breve.'
-          : 'Error de conexión al comunicarse con Gemini para Kai.',
+          : 'Error de conexión al comunicarse con Gemini 3 Flash.',
       },
       { status: 502 },
     );
