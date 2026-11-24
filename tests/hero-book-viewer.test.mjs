@@ -183,3 +183,29 @@ test('Studio Deep-Link: KaiSplitStudio.tsx parses URLSearchParams to preload vol
   assert.match(ui, /isWelcome/);
   assert.match(ui, /\[PROMPT VISUAL\]:/);
 });
+
+test('Crease Carousel 0.1.0-prototype.1: preset validates contract, normalizes 1280x720 curl:60, and wires double-sided 3D leaf', async () => {
+  const { default: runtimeOptions } = await import('../public/landing/crease-carousel/preset.js');
+  const html = load('public/landing/index.html');
+  const css = load('public/landing/landing.css');
+
+  assert.equal(runtimeOptions.templateId, 'crease-carousel');
+  assert.equal(runtimeOptions.cardCount, 4);
+  assert.equal(runtimeOptions.cardWidth, 1280);
+  assert.equal(runtimeOptions.cardHeight, 720);
+  assert.equal(runtimeOptions.cornerRadius, 12);
+  assert.equal(runtimeOptions.curl, 60);
+  assert.equal(runtimeOptions.duration, 0.9);
+  assert.equal(runtimeOptions.showDots, true);
+  assert.equal(runtimeOptions.slots.length, 8);
+
+  for (const slot of runtimeOptions.slots) {
+    assert.match(slot.left.imageUrl, /^\/landing\/assets\/mangai-art-\d+\.svg$/);
+    assert.match(slot.right.imageUrl, /^\/landing\/assets\/mangai-art-\d+\.svg$/);
+  }
+
+  for (const cls of ['crease-spine-fold', 'crease-cast-shadow', 'leaf-face-front', 'leaf-face-back', 'crease-dots']) {
+    assert.match(html, new RegExp(`\\bclass=["'][^"']*\\b${cls}\\b`, 'i'), `index.html missing .${cls}`);
+    assert.ok(css.includes(`.${cls}`), `landing.css missing .${cls}`);
+  }
+});

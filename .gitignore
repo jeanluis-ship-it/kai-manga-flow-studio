@@ -18,4 +18,6 @@ coverage/
 .DS_Store
 Thumbs.db
 *.pdf
+*.mp4
 gemini-code-*.sql
+prompt_antigravity_*.md

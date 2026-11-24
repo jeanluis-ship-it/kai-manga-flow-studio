@@ -1,3 +1,5 @@
+import creaseCarouselOptions from './crease-carousel/preset.js';
+
 const BOOKS = [
   {
     id: 'anacaona-vol1',
@@ -20,24 +22,64 @@ const BOOKS = [
         left: {
           title: 'Capítulo 1: El Despertar de Quisqueya',
           text: 'Trazos iniciales de entintado y composición atmosférica para el primer acto.',
-          image: '/landing/assets/mangai-art-12.svg',
+          image: creaseCarouselOptions.slots[0]?.left.imageUrl || '/landing/assets/mangai-art-12.svg',
+          focalX: creaseCarouselOptions.slots[0]?.left.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[0]?.left.focalY ?? 50,
         },
         right: {
           title: 'Duelo en la Selva',
           text: 'Perspectiva dramática y contraste de tinta sumi sobre papel Genkō.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: creaseCarouselOptions.slots[0]?.right.imageUrl || '/landing/assets/mangai-art-19.svg',
+          focalX: creaseCarouselOptions.slots[0]?.right.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[0]?.right.focalY ?? 50,
         },
       },
       {
         left: {
           title: 'Settei de Personaje · Canon',
           text: 'Expresiones, silueta ceremonial y anclas visuales bloqueadas para el tomo.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: creaseCarouselOptions.slots[1]?.left.imageUrl || '/landing/assets/mangai-art-21.svg',
+          focalX: creaseCarouselOptions.slots[1]?.left.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[1]?.left.focalY ?? 50,
         },
         right: {
           title: 'Edición Coleccionista Tankōbon',
           text: 'Maquetación de cubierta conceptual lista para exportación editorial.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: creaseCarouselOptions.slots[1]?.right.imageUrl || '/landing/assets/mangai-art-22.svg',
+          focalX: creaseCarouselOptions.slots[1]?.right.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[1]?.right.focalY ?? 50,
+        },
+      },
+      {
+        left: {
+          title: 'Areíto bajo la Lluvia',
+          text: 'Ritmo secuencial en cinco viñetas con líneas cinéticas y tramas tradicionales.',
+          image: creaseCarouselOptions.slots[2]?.left.imageUrl || '/landing/assets/mangai-art-14.svg',
+          focalX: creaseCarouselOptions.slots[2]?.left.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[2]?.left.focalY ?? 50,
+        },
+        right: {
+          title: 'Juramento de Oro y Coral',
+          text: 'Doble página de clímax narrativo asistida por Kai con sangrado KDP.',
+          image: creaseCarouselOptions.slots[2]?.right.imageUrl || '/landing/assets/mangai-art-20.svg',
+          focalX: creaseCarouselOptions.slots[2]?.right.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[2]?.right.focalY ?? 50,
+        },
+      },
+      {
+        left: {
+          title: ' Epílogo: Semilla de Fuego',
+          text: 'Cierre de capítulo con iluminación dramática y globos vectoriales Fukidashi.',
+          image: creaseCarouselOptions.slots[6]?.left.imageUrl || '/landing/assets/mangai-art-06.svg',
+          focalX: creaseCarouselOptions.slots[6]?.left.focalX ?? 50,
+          focalY: creaseCarouselOptions.slots[6]?.left.focalY ?? 50,
+        },
+        right: {
+          title: 'Ficha Técnica de Imprenta',
+          text: 'Revisión Pre-Flight a 300 DPI lista para publicación física y digital.',
+          image: '/landing/assets/mangai-art-11.svg',
+          focalX: 50,
+          focalY: 50,
         },
       },
     ],
@@ -83,6 +125,30 @@ const BOOKS = [
           image: '/landing/assets/mangai-art-16.svg',
         },
       },
+      {
+        left: {
+          title: 'Meridiano de Ceniza',
+          text: 'Planos arquitectónicos imposibles generados manteniendo el canon del mundo.',
+          image: '/landing/assets/mangai-art-18.svg',
+        },
+        right: {
+          title: 'El Relojero sin Sombra',
+          text: 'Encuentro clave en la torre sumergida con contraluces cian.',
+          image: '/landing/assets/mangai-art-15.svg',
+        },
+      },
+      {
+        left: {
+          title: 'Índice de Regiones Borradas',
+          text: 'Mapa conceptual de lore sincronizado con la Biblia del Universo.',
+          image: '/landing/assets/mangai-art-07.svg',
+        },
+        right: {
+          title: 'Última Coordenada',
+          text: 'Gancho final del primer tomo preparado para continuar en Estudio.',
+          image: '/landing/assets/mangai-art-22.svg',
+        },
+      },
     ],
   },
   {
@@ -124,6 +190,30 @@ const BOOKS = [
           title: 'Señal Interceptada',
           text: 'Primer plano con globo de diálogo y composición de alto impacto.',
           image: '/landing/assets/mangai-art-19.svg',
+        },
+      },
+      {
+        left: {
+          title: 'Protocolo Fantasma',
+          text: 'Infiltración en el núcleo orbital con hologramas en tinta carmesí.',
+          image: '/landing/assets/mangai-art-08.svg',
+        },
+        right: {
+          title: 'Pulso Magnético',
+          text: 'Doble splash page con efectos Kakimoji integrados en capa vectorial.',
+          image: '/landing/assets/mangai-art-20.svg',
+        },
+      },
+      {
+        left: {
+          title: 'Archivo de Personajes · Nox',
+          text: 'Hoja de referencia cibernética con visor y proporciones bloqueadas.',
+          image: '/landing/assets/mangai-art-21.svg',
+        },
+        right: {
+          title: 'Fin de Transmisión',
+          text: 'Cierre de volumen listo para lectura vertical Webtoon o Tankōbon.',
+          image: '/landing/assets/mangai-art-03.svg',
         },
       },
     ],
@@ -169,6 +259,30 @@ const BOOKS = [
           image: '/landing/assets/mangai-art-12.svg',
         },
       },
+      {
+        left: {
+          title: 'Bajo la Linterna Rota',
+          text: 'Secuencia muda de tensión psicológica trabajada con plumilla G-Pen.',
+          image: '/landing/assets/mangai-art-09.svg',
+        },
+        right: {
+          title: 'La Carta Sellada',
+          text: 'Detalle narrativo de utilería registrado como entidad Settei.',
+          image: '/landing/assets/mangai-art-14.svg',
+        },
+      },
+      {
+        left: {
+          title: 'Desenlace en Nieve',
+          text: 'Alto contraste blanco y negro puro listo para impresión offset.',
+          image: '/landing/assets/mangai-art-04.svg',
+        },
+        right: {
+          title: 'Avance del Volumen II',
+          text: 'Página final de adelanto editorial generada dentro de MANGAI Studio.',
+          image: '/landing/assets/mangai-art-19.svg',
+        },
+      },
     ],
   },
   {
@@ -212,28 +326,87 @@ const BOOKS = [
           image: '/landing/assets/mangai-art-22.svg',
         },
       },
+      {
+        left: {
+          title: 'Ciudadela de Ceniza',
+          text: 'Escenario monumental Dark Fantasy con acentos en laca roja Akai.',
+          image: '/landing/assets/mangai-art-10.svg',
+        },
+        right: {
+          title: 'El Pacto de Hierro',
+          text: 'Composición diagonal dinámica de cinco viñetas para combate.',
+          image: '/landing/assets/mangai-art-16.svg',
+        },
+      },
+      {
+        left: {
+          title: 'Armamento Ceremonial',
+          text: 'Lámina extra de diseño de props y emblemas para el lector.',
+          image: '/landing/assets/mangai-art-21.svg',
+        },
+        right: {
+          title: 'Cubierta Integral KDP',
+          text: 'Maqueta con lomo, sangrado de 3.5 mm y código EAN-13 vectorial.',
+          image: '/landing/assets/mangai-art-05.svg',
+        },
+      },
     ],
   },
 ];
 
-const STUDIO_BASE64 = ''; // Legacy iframe disabled. Studio is served at /studio.
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let currentBook = 0;
 let isBookOpen = false;
 let spreadIndex = 0;
 let isFlipping = false;
 let flipTimer = null;
+let autoplayTimer = null;
 
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-function toast(message) {
-  const el = $('#toast');
-  if (!el) return;
-  el.textContent = message;
-  el.classList.add('show');
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => el.classList.remove('show'), 2900);
+function applyCreaseCarouselConfig() {
+  const openBookEl = $('#mangaOpenBook');
+  const stageEl = $('#bookStage');
+  if (stageEl && creaseCarouselOptions.ariaLabel) {
+    stageEl.setAttribute('aria-label', creaseCarouselOptions.ariaLabel);
+  }
+  if (!openBookEl) return;
+  const tiltDeg = ((creaseCarouselOptions.curl / 100) * 5.6).toFixed(2);
+  openBookEl.style.setProperty('--crease-radius', `${creaseCarouselOptions.cornerRadius}px`);
+  openBookEl.style.setProperty('--crease-duration', `${creaseCarouselOptions.duration}s`);
+  openBookEl.style.setProperty('--crease-curl', String(creaseCarouselOptions.curl));
+  openBookEl.style.setProperty('--crease-tilt', `${tiltDeg}deg`);
+  openBookEl.style.setProperty(
+    'aspect-ratio',
+    `${creaseCarouselOptions.cardWidth} / ${creaseCarouselOptions.cardHeight}`,
+  );
+}
+
+function getActiveSpreads(book) {
+  const list = book.spreads || [];
+  return list.slice(0, creaseCarouselOptions.cardCount || list.length);
+}
+
+function populatePageSide(prefix, pageData, pageNumber, book) {
+  if (!pageData) return;
+  const numEl = $(`#${prefix}Num`);
+  const volEl = $(`#${prefix}Vol`);
+  const imgEl = $(`#${prefix}Img`);
+  const titleEl = $(`#${prefix}Title`);
+  const textEl = $(`#${prefix}Text`);
+
+  if (numEl) numEl.textContent = 'PÁG. ' + String(pageNumber).padStart(2, '0');
+  if (volEl) volEl.textContent = book.volume;
+  if (imgEl) {
+    imgEl.src = pageData.image;
+    imgEl.alt = prefix.startsWith('leaf') ? '' : `${pageData.title} — ${book.title}`;
+    const fx = pageData.focalX ?? 50;
+    const fy = pageData.focalY ?? 50;
+    imgEl.style.objectPosition = `${fx}% ${fy}%`;
+  }
+  if (titleEl) titleEl.textContent = pageData.title;
+  if (textEl) textEl.textContent = pageData.text;
 }
 
 function wrapIndex(i) {
@@ -258,13 +431,55 @@ function cancelFlip() {
   isFlipping = false;
   const openBookEl = $('#mangaOpenBook');
   const leaf = $('#turningLeaf');
+  const shadow = $('#creaseCastShadow');
   if (openBookEl) openBookEl.classList.remove('flipping-next', 'flipping-prev');
   if (leaf) leaf.hidden = true;
+  if (shadow) shadow.hidden = true;
+}
+
+function renderCreaseDots(spreadsCount) {
+  const dotsEl = $('#creaseDots');
+  if (!dotsEl) return;
+
+  if (!creaseCarouselOptions.showDots) {
+    dotsEl.hidden = true;
+    return;
+  }
+
+  dotsEl.hidden = false;
+  const total = isBookOpen ? spreadsCount : BOOKS.length;
+  const activeIdx = isBookOpen ? spreadIndex : currentBook;
+
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i += 1) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'crease-dot' + (i === activeIdx ? ' is-active' : '');
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', i === activeIdx ? 'true' : 'false');
+    btn.setAttribute(
+      'aria-label',
+      isBookOpen
+        ? `Ir al pliego ${i + 1} de ${total}`
+        : `Seleccionar tomo ${BOOKS[i]?.title || i + 1}`,
+    );
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isBookOpen) {
+        jumpToSpread(i);
+      } else if (i === currentBook) {
+        openBook(i);
+      } else {
+        selectBook(i);
+      }
+    });
+    dotsEl.appendChild(btn);
+  }
 }
 
 function renderHeroBookViewer() {
   const book = BOOKS[currentBook] || BOOKS[0];
-  const spreads = book.spreads || [];
+  const spreads = getActiveSpreads(book);
   spreadIndex = Math.max(0, Math.min(spreadIndex, Math.max(0, spreads.length - 1)));
   const spread = spreads[spreadIndex] || spreads[0];
 
@@ -278,7 +493,7 @@ function renderHeroBookViewer() {
   if (heroBookTitle) heroBookTitle.textContent = book.title;
   if (heroBookSubtitle) {
     heroBookSubtitle.textContent = isBookOpen
-      ? 'Pliego ' + (spreadIndex + 1) + ' de ' + spreads.length + ' — Haz clic en los bordes para pasar página'
+      ? 'Pliego ' + (spreadIndex + 1) + ' de ' + spreads.length + ' — Haz clic o desliza los bordes para curvar la hoja en 3D'
       : 'Haz clic en el tomo activo para abrirlo y explorar sus páginas en 3D';
   }
   if (heroIndex) {
@@ -312,39 +527,15 @@ function renderHeroBookViewer() {
     if (active && !isBookOpen && shelf && shelf.scrollWidth > shelf.clientWidth) {
       const cardRect = card.getBoundingClientRect();
       const shelfRect = shelf.getBoundingClientRect();
-      const targetLeft = shelf.scrollLeft + (cardRect.left - shelfRect.left) - (shelfRect.width - cardRect.width) / 2;
+      const targetLeft =
+        shelf.scrollLeft + (cardRect.left - shelfRect.left) - (shelfRect.width - cardRect.width) / 2;
       shelf.scrollTo({ left: Math.max(0, targetLeft), behavior: reducedMotion ? 'auto' : 'smooth' });
     }
   });
 
   if (spread) {
-    const leftNum = $('#leftPageNum');
-    const rightNum = $('#rightPageNum');
-    const leftVol = $('#leftPageVol');
-    const rightVol = $('#rightPageVol');
-    const leftImg = $('#leftPageImg');
-    const rightImg = $('#rightPageImg');
-    const leftTitle = $('#leftPageTitle');
-    const rightTitle = $('#rightPageTitle');
-    const leftText = $('#leftPageText');
-    const rightText = $('#rightPageText');
-
-    if (leftNum) leftNum.textContent = 'PÁG. ' + String(spreadIndex * 2 + 1).padStart(2, '0');
-    if (rightNum) rightNum.textContent = 'PÁG. ' + String(spreadIndex * 2 + 2).padStart(2, '0');
-    if (leftVol) leftVol.textContent = book.volume;
-    if (rightVol) rightVol.textContent = book.volume;
-    if (leftImg) {
-      leftImg.src = spread.left.image;
-      leftImg.alt = spread.left.title + ' — ' + book.title;
-    }
-    if (rightImg) {
-      rightImg.src = spread.right.image;
-      rightImg.alt = spread.right.title + ' — ' + book.title;
-    }
-    if (leftTitle) leftTitle.textContent = spread.left.title;
-    if (leftText) leftText.textContent = spread.left.text;
-    if (rightTitle) rightTitle.textContent = spread.right.title;
-    if (rightText) rightText.textContent = spread.right.text;
+    populatePageSide('leftPage', spread.left, spreadIndex * 2 + 1, book);
+    populatePageSide('rightPage', spread.right, spreadIndex * 2 + 2, book);
   }
 
   const atLastSpread = spreadIndex >= spreads.length - 1;
@@ -356,9 +547,64 @@ function renderHeroBookViewer() {
   if (openPageLeft) {
     openPageLeft.setAttribute(
       'aria-label',
-      spreadIndex === 0 ? 'Cerrar tomo y volver a la estantería' : 'Página anterior'
+      spreadIndex === 0 ? 'Cerrar tomo y volver a la estantería' : 'Página anterior',
     );
   }
+
+  renderCreaseDots(spreads.length);
+}
+
+function transitionToSpread(targetIdx) {
+  if (!isBookOpen || isFlipping) return;
+  const book = BOOKS[currentBook] || BOOKS[0];
+  const spreads = getActiveSpreads(book);
+  if (targetIdx < 0 || targetIdx >= spreads.length || targetIdx === spreadIndex) return;
+
+  const goingForward = targetIdx > spreadIndex;
+  const currentSpread = spreads[spreadIndex];
+  const destinationSpread = spreads[targetIdx];
+  if (!currentSpread || !destinationSpread) return;
+
+  isFlipping = true;
+  const openBookEl = $('#mangaOpenBook');
+  const leaf = $('#turningLeaf');
+  const shadow = $('#creaseCastShadow');
+
+  if (goingForward) {
+    // Leaf lifts from the right carrying current right page on front, destination left page on back.
+    populatePageSide('leafFront', currentSpread.right, spreadIndex * 2 + 2, book);
+    populatePageSide('leafBack', destinationSpread.left, targetIdx * 2 + 1, book);
+    // Expose destination right page underneath immediately as the leaf peels away.
+    populatePageSide('rightPage', destinationSpread.right, targetIdx * 2 + 2, book);
+  } else {
+    // Leaf lifts from the left carrying current left page on front, destination right page on back.
+    populatePageSide('leafFront', currentSpread.left, spreadIndex * 2 + 1, book);
+    populatePageSide('leafBack', destinationSpread.right, targetIdx * 2 + 2, book);
+    // Expose destination left page underneath immediately as the leaf peels away.
+    populatePageSide('leftPage', destinationSpread.left, targetIdx * 2 + 1, book);
+  }
+
+  if (openBookEl) {
+    openBookEl.classList.remove('flipping-next', 'flipping-prev');
+    openBookEl.classList.add(goingForward ? 'flipping-next' : 'flipping-prev');
+  }
+  if (leaf) leaf.hidden = false;
+  if (shadow) shadow.hidden = false;
+
+  const duration = reducedMotion ? 20 : creaseCarouselOptions.durationMs;
+  flipTimer = setTimeout(() => {
+    flipTimer = null;
+    spreadIndex = targetIdx;
+    isFlipping = false;
+    if (openBookEl) openBookEl.classList.remove('flipping-next', 'flipping-prev');
+    if (leaf) leaf.hidden = true;
+    if (shadow) shadow.hidden = true;
+    renderHeroBookViewer();
+  }, duration);
+}
+
+function jumpToSpread(targetIdx) {
+  transitionToSpread(targetIdx);
 }
 
 function selectBook(index) {
@@ -393,7 +639,7 @@ function closeBook() {
       activeEl.matches &&
       activeEl.matches(':focus-visible') &&
       activeEl.closest &&
-      (activeEl.closest('#mangaOpenBook') || activeEl.closest('#dockOpenControls'))
+      (activeEl.closest('#mangaOpenBook') || activeEl.closest('#dockOpenControls')),
   );
   cancelFlip();
   isBookOpen = false;
@@ -406,26 +652,9 @@ function closeBook() {
 function nextSpread() {
   if (!isBookOpen || isFlipping) return;
   const book = BOOKS[currentBook] || BOOKS[0];
-  if (spreadIndex >= book.spreads.length - 1) return;
-
-  isFlipping = true;
-  const openBookEl = $('#mangaOpenBook');
-  const leaf = $('#turningLeaf');
-  if (openBookEl) {
-    openBookEl.classList.remove('flipping-prev');
-    openBookEl.classList.add('flipping-next');
-  }
-  if (leaf) leaf.hidden = false;
-
-  const duration = reducedMotion ? 20 : 320;
-  flipTimer = setTimeout(() => {
-    flipTimer = null;
-    spreadIndex += 1;
-    isFlipping = false;
-    if (openBookEl) openBookEl.classList.remove('flipping-next');
-    if (leaf) leaf.hidden = true;
-    renderHeroBookViewer();
-  }, duration);
+  const spreads = getActiveSpreads(book);
+  if (spreadIndex >= spreads.length - 1) return;
+  transitionToSpread(spreadIndex + 1);
 }
 
 function prevSpread() {
@@ -434,36 +663,47 @@ function prevSpread() {
     closeBook();
     return;
   }
-
-  isFlipping = true;
-  const openBookEl = $('#mangaOpenBook');
-  const leaf = $('#turningLeaf');
-  if (openBookEl) {
-    openBookEl.classList.remove('flipping-next');
-    openBookEl.classList.add('flipping-prev');
-  }
-  if (leaf) leaf.hidden = false;
-
-  const duration = reducedMotion ? 20 : 320;
-  flipTimer = setTimeout(() => {
-    flipTimer = null;
-    spreadIndex = Math.max(0, spreadIndex - 1);
-    isFlipping = false;
-    if (openBookEl) openBookEl.classList.remove('flipping-prev');
-    if (leaf) leaf.hidden = true;
-    renderHeroBookViewer();
-  }, duration);
+  transitionToSpread(spreadIndex - 1);
 }
 
-$('#prevBook')?.addEventListener('click', e => {
+function setupCreaseAutoplay() {
+  if (!creaseCarouselOptions.autoplay || reducedMotion) return;
+  const clearAuto = () => {
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
+      autoplayTimer = null;
+    }
+  };
+  const startAuto = () => {
+    clearAuto();
+    autoplayTimer = setInterval(() => {
+      if (isFlipping) return;
+      if (isBookOpen) {
+        const spreads = getActiveSpreads(BOOKS[currentBook] || BOOKS[0]);
+        const nextIdx = (spreadIndex + 1) % spreads.length;
+        transitionToSpread(nextIdx);
+      } else {
+        spin(1);
+      }
+    }, creaseCarouselOptions.intervalMs);
+  };
+  const stage = $('#heroBookStage');
+  stage?.addEventListener('pointerenter', clearAuto);
+  stage?.addEventListener('pointerleave', startAuto);
+  stage?.addEventListener('focusin', clearAuto);
+  stage?.addEventListener('focusout', startAuto);
+  startAuto();
+}
+
+$('#prevBook')?.addEventListener('click', (e) => {
   e.stopPropagation();
   spin(-1);
 });
-$('#nextBook')?.addEventListener('click', e => {
+$('#nextBook')?.addEventListener('click', (e) => {
   e.stopPropagation();
   spin(1);
 });
-$('#openActiveBookBtn')?.addEventListener('click', e => {
+$('#openActiveBookBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   openBook(currentBook);
 });
@@ -471,7 +711,7 @@ $('#openActiveBookBtn')?.addEventListener('click', e => {
 let didSwipe = false;
 
 $$('.manga-closed-book').forEach((card, i) => {
-  card.addEventListener('click', e => {
+  card.addEventListener('click', (e) => {
     e.stopPropagation();
     if (didSwipe) {
       didSwipe = false;
@@ -486,7 +726,7 @@ $$('.manga-closed-book').forEach((card, i) => {
   });
 });
 
-$('#openPageRight')?.addEventListener('click', e => {
+$('#openPageRight')?.addEventListener('click', (e) => {
   e.stopPropagation();
   if (didSwipe) {
     didSwipe = false;
@@ -494,7 +734,7 @@ $('#openPageRight')?.addEventListener('click', e => {
   }
   nextSpread();
 });
-$('#openPageLeft')?.addEventListener('click', e => {
+$('#openPageLeft')?.addEventListener('click', (e) => {
   e.stopPropagation();
   if (didSwipe) {
     didSwipe = false;
@@ -502,27 +742,29 @@ $('#openPageLeft')?.addEventListener('click', e => {
   }
   prevSpread();
 });
-$('#nextSpreadBtn')?.addEventListener('click', e => {
+$('#nextSpreadBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   nextSpread();
 });
-$('#prevSpreadBtn')?.addEventListener('click', e => {
+$('#prevSpreadBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   prevSpread();
 });
-$('#closeBookBtn')?.addEventListener('click', e => {
+$('#closeBookBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   closeBook();
 });
 
 const heroBookStage = $('#heroBookStage');
 if (heroBookStage) {
-  heroBookStage.addEventListener('click', e => {
+  heroBookStage.addEventListener('click', (e) => {
     if (!isBookOpen) return;
     const target = e.target;
     if (
       target instanceof Element &&
-      (target.closest('#mangaOpenBook') || target.closest('#mangaiDockControls'))
+      (target.closest('#mangaOpenBook') ||
+        target.closest('#mangaiDockControls') ||
+        target.closest('#creaseDots'))
     ) {
       return;
     }
@@ -534,7 +776,7 @@ const bookStage = $('#bookStage');
 if (bookStage) {
   bookStage.addEventListener(
     'wheel',
-    e => {
+    (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.4) {
         e.preventDefault();
         const dir = Math.sign(e.deltaX);
@@ -546,16 +788,16 @@ if (bookStage) {
         }
       }
     },
-    { passive: false }
+    { passive: false },
   );
 
   let downX = null;
-  bookStage.addEventListener('pointerdown', e => {
+  bookStage.addEventListener('pointerdown', (e) => {
     downX = e.clientX;
     didSwipe = false;
   });
-  bookStage.addEventListener('pointerup', e => {
-    if (downX != null && Math.abs(e.clientX - downX) > 50) {
+  bookStage.addEventListener('pointerup', (e) => {
+    if (downX != null && Math.abs(e.clientX - downX) > 44) {
       didSwipe = true;
       setTimeout(() => {
         didSwipe = false;
@@ -572,34 +814,11 @@ if (bookStage) {
   });
 }
 
+applyCreaseCarouselConfig();
 renderHeroBookViewer();
+setupCreaseAutoplay();
 
 const modal = $('#modal');
-function openModal(i) {
-  if (!modal) return;
-  const c = BOOKS[i] || BOOKS[0];
-  const img = $('#modalArt');
-  const fb = $('#modalArtFallback');
-  if (fb) {
-    fb.hidden = true;
-    $('#modalFallbackVol').textContent = c.volume;
-    $('#modalFallbackTitle').textContent = c.series;
-    $('#modalFallbackGenre').textContent = c.genre.toUpperCase();
-  }
-  img.hidden = false;
-  img.onerror = () => {
-    img.hidden = true;
-    if (fb) fb.hidden = false;
-  };
-  img.alt = 'Portada conceptual de ' + c.series;
-  img.src = c.art;
-  $('#modalTitle').textContent = c.series + ' — ' + c.subtitle;
-  $('#modalTag').textContent = c.genre.toUpperCase() + ' · ' + c.volume + ' · OBRA DEMO';
-  $('#modalDesc').textContent = c.desc;
-  modal.hidden = false;
-  document.body.style.overflow = 'hidden';
-}
-
 function closeModal() {
   if (!modal) return;
   modal.hidden = true;
@@ -608,29 +827,23 @@ function closeModal() {
 
 $('#modalClose')?.addEventListener('click', closeModal);
 $('#modalExplore')?.addEventListener('click', closeModal);
-modal?.addEventListener('click', e => {
+modal?.addEventListener('click', (e) => {
   if (e.target === modal) closeModal();
 });
 
 function startStudio() {
   window.location.assign('/studio');
 }
-function exitStudio() {
-  window.location.assign('/');
-}
 
-$$('[data-open-studio]').forEach(b => b.addEventListener('click', startStudio));
-$('#backLanding')?.addEventListener('click', exitStudio);
+$$('[data-open-studio]').forEach((b) => b.addEventListener('click', startStudio));
 
-window.addEventListener('keydown', e => {
-  const studioOpen = $('#studioScreen')?.classList.contains('show');
+window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (studioOpen) exitStudio();
-    else if (modal && !modal.hidden) closeModal();
+    if (modal && !modal.hidden) closeModal();
     else if (isBookOpen) closeBook();
     return;
   }
-  if ((modal && !modal.hidden) || studioOpen) return;
+  if (modal && !modal.hidden) return;
 
   const activeEl = document.activeElement;
   const inHero = Boolean(activeEl && activeEl.closest && activeEl.closest('.hero'));
@@ -657,21 +870,21 @@ $('#menuToggle')?.addEventListener('click', () => {
   const on = m.classList.toggle('show');
   $('#menuToggle').setAttribute('aria-expanded', String(on));
 });
-$$('#mobileDropdown a').forEach(a =>
-  a.addEventListener('click', () => $('#mobileDropdown')?.classList.remove('show'))
+$$('#mobileDropdown a').forEach((a) =>
+  a.addEventListener('click', () => $('#mobileDropdown')?.classList.remove('show')),
 );
 
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(
-    entries =>
-      entries.forEach(e => {
+    (entries) =>
+      entries.forEach((e) => {
         if (e.isIntersecting) e.target.classList.add('in-view');
       }),
-    { threshold: 0.12 }
+    { threshold: 0.12 },
   );
-  $$('.fadeup, .reveal-card').forEach(e => observer.observe(e));
+  $$('.fadeup, .reveal-card').forEach((e) => observer.observe(e));
 } else {
-  $$('.fadeup, .reveal-card').forEach(e => e.classList.add('in-view'));
+  $$('.fadeup, .reveal-card').forEach((e) => e.classList.add('in-view'));
 }
 
 function trackHeroWatermark() {
@@ -738,9 +951,9 @@ function initSumiStoryFlow() {
   updateStoryScroll();
 
   const folioCards = $$('#collectionFanStack .folio-card');
-  folioCards.forEach(card => {
+  folioCards.forEach((card) => {
     card.addEventListener('click', () => {
-      folioCards.forEach(item => {
+      folioCards.forEach((item) => {
         const focused = item === card;
         item.classList.toggle('is-focused', focused);
         item.setAttribute('aria-pressed', focused ? 'true' : 'false');
@@ -752,7 +965,7 @@ function initSumiStoryFlow() {
   const finishButtons = $$('#kaiBrushCard .brush-finish-btn[data-finish]');
   const finishClasses = ['finish-gpen', 'finish-tone', 'finish-crimson'];
 
-  finishButtons.forEach(btn => {
+  finishButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       const finishClass = 'finish-' + btn.dataset.finish;
       if (!finishClasses.includes(finishClass)) return;
@@ -762,7 +975,7 @@ function initSumiStoryFlow() {
         kaiBrushCard.classList.add(finishClass);
       }
 
-      finishButtons.forEach(item => {
+      finishButtons.forEach((item) => {
         const active = item === btn;
         item.classList.toggle('is-active', active);
         item.setAttribute('aria-pressed', active ? 'true' : 'false');
