@@ -1,15 +1,13 @@
 import { randomInt } from 'node:crypto';
 import { EventSourceParserStream } from 'eventsource-parser/stream';
 import sharp from 'sharp';
+import { fluxDimensions } from './fluxFormats';
 import { ImageServiceError, type GenerateImageResultPayload } from './geminiImage';
 
 // Public testing space maintained by the model authors. Keep upstream URLs server-owned.
 const origin = 'https://black-forest-labs-flux-2-klein-4b.hf.space';
 const api = origin + '/gradio_api';
-const dimensions: Record<string, [number, number]> = {
-  '1:1': [1024, 1024], '3:4': [768, 1024], '4:3': [1024, 768],
-  '16:9': [1280, 720], '9:16': [720, 1280],
-};
+
 
 function serviceFailure(message: string, status?: number) {
   if (status === 429 || /quota|rate limit/i.test(message)) {
@@ -46,7 +44,7 @@ export async function generateFluxImage(
 ): Promise<GenerateImageResultPayload> {
   const timeout = AbortSignal.timeout(145_000);
   const signal = clientSignal ? AbortSignal.any([timeout, clientSignal]) : timeout;
-  const [width, height] = dimensions[ratio] || dimensions['3:4'];
+  const [width, height] = fluxDimensions[ratio] || fluxDimensions['3:4'];
   try {
     const images = await Promise.all(references.map(ref => uploadReference(ref, signal)));
     const seedNumber = seed ? Number(seed.slice(-9)) : randomInt(0, 2 ** 31 - 1);

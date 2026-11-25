@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Download, LoaderCircle, Sparkles } from 'lucide-react';
+import { fluxDimensions } from '@/lib/kai/fluxFormats';
 import { Flow } from '../flow-sdk';
 import type { Project } from '../types';
 import './FluxStudio.css';
@@ -113,7 +114,7 @@ export function FluxStudio({ project, updateProject }: {
     <header><h1 id="flux-title">Ilustrar con FLUX</h1><p>Crea una escena o usa una imagen para conservar los rasgos de tu personaje.</p></header>
     <form onSubmit={e => { e.preventDefault(); void generate(); }}>
       <label>Formato<select value={format} onChange={e => setFormat(e.target.value as Format)}>
-        {Object.entries(formats).map(([id, f]) => <option key={id} value={id}>{f.title} · {f.ratio}</option>)}
+        {Object.entries(formats).map(([id, f]) => <option key={id} value={id}>{f.title} · {f.ratio} ({fluxDimensions[f.ratio].join(' × ')} px)</option>)}
       </select></label>
       <label>Referencia opcional<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload} /></label>
       {reference && <div className="flux-ref"><img src={reference} alt="Referencia seleccionada" />
