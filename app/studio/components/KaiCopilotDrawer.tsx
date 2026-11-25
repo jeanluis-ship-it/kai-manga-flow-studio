@@ -334,6 +334,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
       if (err instanceof KaiServiceError && (err.status === 402 || err.code === 'QUOTA_EXCEEDED')) {
         onQuotaBlocked?.(err.message, err.requiredPlan as PlanTier | undefined);
       }
+      if (!overrideText) setPrompt(cleanPrompt);
+      setMessages((prev) => prev.filter((msg) => msg.id !== userMsg.id));
       setError(err instanceof Error ? err.message : 'Error al conectar con KAI.');
     } finally {
       setLoading(false);
@@ -774,6 +776,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         <div className="gf-kai-input-wrap">
           <textarea
             className="gf-kai-textarea"
+            maxLength={mode === 'script' ? 3000 : 4000}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { KAI_IMAGE_MODEL_DEFAULT } from '@/lib/kai/studioCanvas';
+import { generateGeminiImage, imageErrorResponse } from '@/lib/kai/geminiImage';
 import { IMAGE_MODES } from '@/lib/prompts';
 import { checkQuota } from '@/lib/plans/quotas';
 import { getServerQuotaContext } from '@/lib/plans/serverAuth';
@@ -12,17 +13,6 @@ const MAX_FILE_BYTES = 6 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
 const VALID_ASPECTS = new Set(['1:1', '3:4', '4:3', '16:9', '9:16']);
 
-interface GeminiInlineData {
-  mimeType?: string;
-  mime_type?: string;
-  data?: string;
-}
-
-interface GeminiPart {
-  inlineData?: GeminiInlineData;
-  inline_data?: GeminiInlineData;
-}
-
 const safeCompare = (received: string, expected: string) => {
   const a = Buffer.from(received);
   const b = Buffer.from(expected);
@@ -31,18 +21,6 @@ const safeCompare = (received: string, expected: string) => {
 
 const read = (form: FormData, name: string, max = 2600) =>
   String(form.get(name) ?? '').trim().slice(0, max);
-
-function extractInlineImage(parts: GeminiPart[]): { data: string; mimeType: string } | null {
-  for (const part of parts) {
-    const inline = part.inlineData ?? part.inline_data;
-    if (inline?.data) {
-      const mimeType =
-        (inline.mimeType || inline.mime_type || 'image/png').trim() || 'image/png';
-      return { data: inline.data, mimeType };
-    }
-  }
-  return null;
-}
 
 export async function POST(req: NextRequest) {
   const enforceToken =
@@ -149,7 +127,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'Falta GEMINI_API_KEY en el servidor (.env.local / Vercel) para usar gemini-3.1-flash-image-preview.',
+            'Falta GEMINI_API_KEY en el servidor (.env.local / Vercel) para usar el motor de imágenes.',
         },
         { status: 503 },
       );
@@ -213,79 +191,11 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n');
 
-    const model = (process.env.GEMINI_CANVAS_IMAGE_MODEL || KAI_IMAGE_MODEL_DEFAULT).trim();
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-
-    const requestParts: Array<{
-      text?: string;
-      inlineData?: { mimeType: string; data: string };
-    }> = [{ text: prompt }];
-    for (const ref of encodedRefs) {
-      requestParts.push({ inlineData: { mimeType: ref.mimeType, data: ref.data } });
-    }
-
-    const upstreamRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: requestParts }],
-        generationConfig: {
-          responseModalities: ['IMAGE'],
-          imageConfig: { aspectRatio },
-        },
-      }),
-      signal: AbortSignal.timeout(52_000),
-    });
-
-    if (!upstreamRes.ok) {
-      if (upstreamRes.status === 429) {
-        return NextResponse.json(
-          {
-            error:
-              'Se alcanzó el límite temporal de generación de imágenes en Gemini 3.1 Flash Image. Intenta en unos segundos.',
-          },
-          { status: 429 },
-        );
-      }
-      return NextResponse.json(
-        {
-          error: `Gemini (${model}) devolvió HTTP ${upstreamRes.status} al generar la ilustración.`,
-        },
-        { status: 502 },
-      );
-    }
-
-    const data = (await upstreamRes.json()) as {
-      candidates?: Array<{ content?: { parts?: GeminiPart[] } }>;
-    };
-    const outParts = data.candidates?.[0]?.content?.parts ?? [];
-    const hit = extractInlineImage(outParts);
-    if (!hit) {
-      return NextResponse.json(
-        { error: 'Gemini no devolvió datos de imagen para esta descripción.' },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json({
-      image: `data:${hit.mimeType};base64,${hit.data}`,
-      mode: modeData.id,
-      model,
-      providerStatus: 'official-ai',
-    });
-  } catch (err) {
-    const isTimeout =
-      err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError');
-    return NextResponse.json(
-      {
-        error: isTimeout
-          ? 'La generación con Gemini 3.1 Flash Image superó el tiempo límite. Intenta nuevamente.'
-          : 'Error de conexión al generar la imagen con Gemini.',
-      },
-      { status: 502 },
-    );
+    const result = await generateGeminiImage(apiKey, [
+      { text: prompt }, ...encodedRefs.map((inlineData) => ({ inlineData })),
+    ], aspectRatio, !useHdModel);
+    return NextResponse.json({ ...result, mode: modeData.id, providerStatus: 'official-ai' });
+  } catch (error) {
+    return imageErrorResponse(error);
   }
 }

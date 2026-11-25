@@ -118,7 +118,7 @@ function readOptionalStudioAccessToken(): string {
 }
 
 /**
- * Unified MANGAI Studio SDK backed exclusively by `gemini-3.1-flash-image-preview`
+ * Unified MANGAI Studio SDK backed exclusively by `gemini-3.1-flash-image`
  * through `/api/images/generate`.
  */
 export const Flow = {
