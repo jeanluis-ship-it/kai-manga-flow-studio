@@ -7,14 +7,23 @@ import {
   Eraser,
   ImagePlus,
   Layers,
+  Maximize2,
+  Minimize2,
   PenTool,
   RefreshCw,
   RotateCcw,
   RotateCw,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Trash2,
 } from 'lucide-react';
+import {
+  KOMA_SKETCH_BRIDGE_EVENT,
+  clearPendingKomaSketch,
+  readPendingKomaSketch,
+  type KomaSketchBridgeDetail,
+} from '@/lib/kai/setteiBridge';
 import { KAI_IMAGE_MODEL_DEFAULT } from '@/lib/kai/studioCanvas';
 import type { PlanTier } from '@/lib/plans/quotas';
 import { Flow, QuotaExceededError } from '../flow-sdk';
@@ -44,7 +53,7 @@ interface BrushPreset {
 const BRUSHES: readonly BrushPreset[] = [
   {
     id: 'nemu_blue',
-    label: 'Lápiz Nemu (#00AEEF)',
+    label: 'Lápiz',
     color: '#00aeef',
     minFactor: 0.45,
     maxFactor: 1.05,
@@ -52,7 +61,7 @@ const BRUSHES: readonly BrushPreset[] = [
   },
   {
     id: 'g_pen',
-    label: 'Plumilla G-Pen',
+    label: 'G-Pen',
     color: '#111111',
     minFactor: 0.22,
     maxFactor: 1.45,
@@ -60,7 +69,7 @@ const BRUSHES: readonly BrushPreset[] = [
   },
   {
     id: 'maru_pen',
-    label: 'Maru-Pen Fina',
+    label: 'Tinta',
     color: '#111111',
     minFactor: 0.35,
     maxFactor: 0.75,
@@ -129,17 +138,24 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const settingsRef = useRef<HTMLDivElement | null>(null);
   const isDrawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const smoothedPointRef = useRef<{ x: number; y: number } | null>(null);
+  const pendingBridgeImageRef = useRef<string | null>(null);
 
   const [canvasAspect, setCanvasAspect] = useState<'3:4' | '16:9' | '1:1'>('3:4');
   const [brushId, setBrushId] = useState<BrushId>('nemu_blue');
+  const [inkVariant, setInkVariant] = useState<'maru_pen' | 'akai_crimson'>('maru_pen');
   const [brushSize, setBrushSize] = useState<number>(6);
   const [stabilizer, setStabilizer] = useState<number>(45);
   const [penOnlyMode, setPenOnlyMode] = useState<boolean>(false);
   const [showGuides, setShowGuides] = useState<boolean>(true);
   const [underlaySrc, setUnderlaySrc] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [fullscreenKaiOpen, setFullscreenKaiOpen] = useState<boolean>(false);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [bridgeBanner, setBridgeBanner] = useState<string>('');
 
   // Live hardware stylus telemetry
   const [stylusDetected, setStylusDetected] = useState<boolean>(false);
@@ -151,6 +167,8 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
   // Undo / Redo snapshots (ImageData dataURLs)
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const historyIndexRef = useRef<number>(-1);
+  historyIndexRef.current = historyIndex;
 
   // KAI Sketch Refinement state
   const [refineModeId, setRefineModeId] = useState<string>('clean_ink');
@@ -194,12 +212,40 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     if (!canvas) return;
     const snap = canvas.toDataURL('image/png');
     setHistory((prev) => {
-      const sliced = prev.slice(0, historyIndex + 1).slice(-24);
+      const sliced = prev.slice(0, historyIndexRef.current + 1).slice(-24);
       const next = [...sliced, snap];
       setHistoryIndex(next.length - 1);
       return next;
     });
-  }, [historyIndex]);
+  }, []);
+
+  const drawImageOntoCanvas = useCallback(
+    (src: string) => {
+      const normalized = toDataImageSrc(src);
+      if (!normalized) return;
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext('2d');
+      if (!canvas || !ctx) {
+        pendingBridgeImageRef.current = normalized;
+        return;
+      }
+      const img = new Image();
+      if (!normalized.startsWith('data:') && !normalized.startsWith('blob:')) {
+        img.crossOrigin = 'anonymous';
+      }
+      img.onload = () => {
+        const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+        setStrokeCount((c) => c + 1);
+        pushSnapshot();
+      };
+      img.src = normalized;
+    },
+    [pushSnapshot],
+  );
 
   // Initialize blank transparent layer on mount or aspect change
   useEffect(() => {
@@ -212,7 +258,63 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     setHistory([initial]);
     setHistoryIndex(0);
     setStrokeCount(0);
-  }, [canvasDims.width, canvasDims.height]);
+
+    if (pendingBridgeImageRef.current) {
+      const pending = pendingBridgeImageRef.current;
+      pendingBridgeImageRef.current = null;
+      drawImageOntoCanvas(pending);
+    }
+  }, [canvasDims.width, canvasDims.height, drawImageOntoCanvas]);
+
+  const applyKomaBridgePayload = useCallback(
+    (detail: KomaSketchBridgeDetail) => {
+      const safePage = Math.min(
+        Math.max(0, detail.pageIndex),
+        Math.max(0, project.pages.length - 1),
+      );
+      setDestination('koma');
+      setTargetPageIdx(safePage);
+      if (detail.komaId) {
+        setTargetKomaId(detail.komaId);
+      }
+      if (detail.taggedHandle?.trim()) {
+        setSelectedSetteiHandle(normalizeTagHandle(detail.taggedHandle));
+      }
+      if (detail.actionPrompt?.trim()) {
+        setRefinePrompt(detail.actionPrompt.trim());
+      }
+      if (detail.nemuSketchUrl) {
+        drawImageOntoCanvas(detail.nemuSketchUrl);
+      }
+      const panelNum =
+        project.pages[safePage]?.komas?.find((k) => k.id === detail.komaId)?.panelIndex;
+      setBridgeBanner(
+        panelNum
+          ? `Conectado a Página ${safePage + 1} · Viñeta #${panelNum}`
+          : `Conectado a Página ${safePage + 1}`,
+      );
+    },
+    [drawImageOntoCanvas, project.pages],
+  );
+
+  // Consume pending Koma bridge from sessionStorage and listen for live bridge events
+  useEffect(() => {
+    const pending = readPendingKomaSketch();
+    if (pending) {
+      clearPendingKomaSketch();
+      applyKomaBridgePayload(pending);
+    }
+
+    const onBridge = (evt: Event) => {
+      const customEvt = evt as CustomEvent<KomaSketchBridgeDetail>;
+      if (!customEvt.detail?.komaId) return;
+      clearPendingKomaSketch();
+      applyKomaBridgePayload(customEvt.detail);
+    };
+
+    window.addEventListener(KOMA_SKETCH_BRIDGE_EVENT, onBridge);
+    return () => window.removeEventListener(KOMA_SKETCH_BRIDGE_EVENT, onBridge);
+  }, [applyKomaBridgePayload]);
 
   const restoreSnapshot = useCallback((idx: number, stack: string[]) => {
     const canvas = canvasRef.current;
@@ -242,8 +344,19 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     restoreSnapshot(nextIdx, history);
   }, [historyIndex, history, restoreSnapshot]);
 
+  // Keyboard shortcuts: Ctrl/Cmd+Z, Ctrl/Cmd+Y, and Escape to close popover or exit fullscreen
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (settingsOpen) {
+          setSettingsOpen(false);
+          return;
+        }
+        if (isFullscreen) {
+          setIsFullscreen(false);
+          return;
+        }
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         if (e.shiftKey) {
           e.preventDefault();
@@ -259,7 +372,18 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleUndo, handleRedo]);
+  }, [handleUndo, handleRedo, isFullscreen, settingsOpen]);
+
+  // Close Ajustes popover when clicking outside
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const onPointerDownOutside = (evt: MouseEvent) => {
+      if (!settingsRef.current || settingsRef.current.contains(evt.target as Node)) return;
+      setSettingsOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDownOutside);
+    return () => document.removeEventListener('mousedown', onPointerDownOutside);
+  }, [settingsOpen]);
 
   const getCanvasCoords = (e: { clientX: number; clientY: number }) => {
     const canvas = canvasRef.current;
@@ -274,6 +398,8 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
   };
 
   const activeBrush = BRUSHES.find((b) => b.id === brushId) ?? BRUSHES[0];
+  const isInkActive = brushId === 'maru_pen' || brushId === 'akai_crimson';
+  const activeInkPreset = BRUSHES.find((b) => b.id === inkVariant) ?? BRUSHES[2];
 
   const drawSegment = (
     from: { x: number; y: number },
@@ -422,28 +548,15 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
 
   const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = typeof reader.result === 'string' ? reader.result : '';
       if (!dataUrl) return;
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext('2d');
-      if (!canvas || !ctx) return;
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-        const w = img.width * scale;
-        const h = img.height * scale;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-        setStrokeCount((c) => c + 1);
-        pushSnapshot();
-      };
-      img.src = dataUrl;
+      drawImageOntoCanvas(dataUrl);
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
   };
 
   const handleRefineWithKai = async () => {
@@ -451,6 +564,9 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     setRefineError('');
     setAppliedToast('');
     setIsRefining(true);
+    if (isFullscreen) {
+      setFullscreenKaiOpen(true);
+    }
 
     try {
       const sketchPng = exportCompositeSketchPng();
@@ -470,6 +586,9 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
             linkedChar.clothing,
             (linkedChar.visualAnchors ?? []).length > 0
               ? `Anclas visuales: ${(linkedChar.visualAnchors ?? []).join(', ')}`
+              : '',
+            linkedChar.seedLocked && linkedChar.characterSeed
+              ? `Seed: ${linkedChar.characterSeed}`
               : '',
           ]
             .filter(Boolean)
@@ -600,54 +719,68 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     setAppliedToast('Arte mejorado colocado como calco inferior para seguir dibujando encima.');
   };
 
+  const canvasRatioValue = canvasDims.width / canvasDims.height;
+
   return (
-    <div className="gf-tablet-wrap animate-slide-in-right">
-      <div className="gf-tablet-header">
-        <div>
-          <h1 className="gf-page-title">Tabla de Dibujo Digital + KAI</h1>
-          <p className="gf-page-subtitle">
-            Conecta tu tableta gráfica o lápiz digital (Wacom, Huion, XP-Pen, Apple Pencil), dibuja
-            tu borrador Nemu con presión real y mejóralo junto a KAI con{' '}
-            <code>{KAI_IMAGE_MODEL_DEFAULT}</code>.
-          </p>
+    <div
+      className={`gf-tablet-wrap ${isFullscreen ? 'is-fullscreen' : 'animate-slide-in-right'}`}
+    >
+      {!isFullscreen && (
+        <div className="gf-tablet-header">
+          <div>
+            <h1 className="gf-page-title">Tabla de Dibujo Digital + KAI</h1>
+            <p className="gf-page-subtitle">
+              Dibuja con presión real (Wacom, Huion, Apple Pencil o mouse) y mejora tu boceto junto
+              a KAI con <code>{KAI_IMAGE_MODEL_DEFAULT}</code>.
+            </p>
+          </div>
+          {bridgeBanner && <span className="gf-tablet-bridge-pill">{bridgeBanner}</span>}
         </div>
+      )}
 
-        <div className={`gf-stylus-badge ${stylusDetected ? 'is-pen' : ''}`}>
-          <span className="gf-stylus-dot" aria-hidden="true" />
-          <PenTool size={13} strokeWidth={2} className="gf-icon-shrink" />
-          <span>
-            {stylusDetected
-              ? `Lápiz Digital Activo · Presión ${Math.round(livePressure * 100)}%`
-              : `Entrada: ${pointerKind === 'touch' ? 'Táctil' : 'Mouse'} (toca con tu lápiz digital para activar presión)`}
-          </span>
-        </div>
-      </div>
-
-      {/* Digital Pen & Brush Toolbar */}
+      {/* Minimalist Toolbar: Essentials Only + Ajustes Popover */}
       <div className="gf-tablet-toolbar">
-        <div className="gf-brush-group" role="toolbar" aria-label="Pinceles de manga">
-          {BRUSHES.map((b) => (
-            <button
-              key={b.id}
-              type="button"
-              className={`gf-brush-btn ${brushId === b.id ? 'is-active' : ''}`}
-              onClick={() => setBrushId(b.id)}
-            >
-              {b.isEraser ? (
-                <Eraser size={13} strokeWidth={2} className="gf-icon-shrink" />
-              ) : (
-                <span
-                  className="gf-brush-swatch"
-                  style={{ background: b.color }}
-                  aria-hidden="true"
-                />
-              )}
-              <span>{b.label}</span>
-            </button>
-          ))}
-        </div>
+        <div className="gf-brush-group" role="toolbar" aria-label="Herramientas esenciales">
+          <button
+            type="button"
+            className={`gf-brush-btn ${brushId === 'nemu_blue' ? 'is-active' : ''}`}
+            onClick={() => setBrushId('nemu_blue')}
+          >
+            <span className="gf-brush-swatch" style={{ background: '#00aeef' }} aria-hidden="true" />
+            <span>Lápiz</span>
+          </button>
 
-        <div className="gf-brush-group">
+          <button
+            type="button"
+            className={`gf-brush-btn ${brushId === 'g_pen' ? 'is-active' : ''}`}
+            onClick={() => setBrushId('g_pen')}
+          >
+            <span className="gf-brush-swatch" style={{ background: '#111111' }} aria-hidden="true" />
+            <span>G-Pen</span>
+          </button>
+
+          <button
+            type="button"
+            className={`gf-brush-btn ${isInkActive ? 'is-active' : ''}`}
+            onClick={() => setBrushId(inkVariant)}
+          >
+            <span
+              className="gf-brush-swatch"
+              style={{ background: activeInkPreset.color }}
+              aria-hidden="true"
+            />
+            <span>Tinta</span>
+          </button>
+
+          <button
+            type="button"
+            className={`gf-brush-btn ${brushId === 'eraser' ? 'is-active' : ''}`}
+            onClick={() => setBrushId('eraser')}
+          >
+            <Eraser size={13} strokeWidth={2} className="gf-icon-shrink" />
+            <span>Borrador</span>
+          </button>
+
           <label className="gf-slider-inline">
             <span>Grosor {brushSize}px</span>
             <input
@@ -658,35 +791,16 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
               onChange={(e) => setBrushSize(Number(e.target.value))}
             />
           </label>
+        </div>
 
-          <label className="gf-slider-inline">
-            <span>Estabilizador {stabilizer}%</span>
-            <input
-              type="range"
-              min={0}
-              max={85}
-              step={5}
-              value={stabilizer}
-              onChange={(e) => setStabilizer(Number(e.target.value))}
-            />
-          </label>
-
-          <button
-            type="button"
-            className={`gf-palm-toggle ${penOnlyMode ? 'is-on' : ''}`}
-            onClick={() => setPenOnlyMode((v) => !v)}
-            title="Ignora toques de la mano en pantallas táctiles y dibuja solo con lápiz digital"
-          >
-            <ShieldCheck size={13} strokeWidth={2} className="gf-icon-shrink" />
-            <span>Rechazo Palma {penOnlyMode ? 'ON' : 'OFF'}</span>
-          </button>
-
+        <div className="gf-brush-group">
           <button
             type="button"
             className="gf-brush-btn"
             onClick={handleUndo}
             disabled={historyIndex <= 0}
             title="Deshacer trazo (Ctrl+Z)"
+            aria-label="Deshacer"
           >
             <RotateCcw size={13} strokeWidth={2} />
           </button>
@@ -696,16 +810,18 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
             onClick={handleRedo}
             disabled={historyIndex >= history.length - 1}
             title="Rehacer trazo (Ctrl+Y)"
+            aria-label="Rehacer"
           >
             <RotateCw size={13} strokeWidth={2} />
           </button>
+
           <button
             type="button"
             className="gf-brush-btn"
             onClick={() => uploadInputRef.current?.click()}
             title="Importar boceto o foto de papel"
           >
-            <ImagePlus size={13} strokeWidth={2} />
+            <ImagePlus size={13} strokeWidth={2} className="gf-icon-shrink" />
             <span>Importar Boceto</span>
           </button>
           <input
@@ -715,295 +831,423 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
             style={{ display: 'none' }}
             onChange={handleUploadImage}
           />
+
           <button
             type="button"
-            className="gf-brush-btn"
-            onClick={handleClearCanvas}
-            title="Limpiar lienzo"
+            className="gf-brush-btn is-accent"
+            onClick={() => void handleRefineWithKai()}
+            disabled={isRefining}
           >
-            <Trash2 size={13} strokeWidth={2} />
+            {isRefining ? (
+              <RefreshCw size={13} strokeWidth={2} className="gf-spin gf-icon-shrink" />
+            ) : (
+              <Sparkles size={13} strokeWidth={2} className="gf-icon-shrink" />
+            )}
+            <span>{isRefining ? 'Mejorando...' : 'Mejorar con KAI'}</span>
           </button>
+
+          {isFullscreen && (
+            <button
+              type="button"
+              className={`gf-brush-btn ${fullscreenKaiOpen ? 'is-active' : ''}`}
+              onClick={() => setFullscreenKaiOpen((v) => !v)}
+              title="Mostrar / ocultar panel KAI y destino"
+            >
+              <Layers size={13} strokeWidth={2} className="gf-icon-shrink" />
+              <span>KAI / Destino</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            className={`gf-brush-btn is-fullscreen-btn ${isFullscreen ? 'is-active' : ''}`}
+            onClick={() => setIsFullscreen((v) => !v)}
+            title={isFullscreen ? 'Salir de pantalla completa (Esc)' : 'Ampliar al 100%'}
+          >
+            {isFullscreen ? (
+              <Minimize2 size={14} strokeWidth={2} className="gf-icon-shrink" />
+            ) : (
+              <Maximize2 size={14} strokeWidth={2} className="gf-icon-shrink" />
+            )}
+            <span>{isFullscreen ? 'Salir 100%' : 'Ampliar 100%'}</span>
+          </button>
+
+          <div ref={settingsRef} className="gf-tablet-settings-anchor">
+            <button
+              type="button"
+              className={`gf-brush-btn ${settingsOpen ? 'is-active' : ''}`}
+              aria-expanded={settingsOpen}
+              aria-haspopup="dialog"
+              onClick={() => setSettingsOpen((v) => !v)}
+            >
+              <SlidersHorizontal size={13} strokeWidth={2} className="gf-icon-shrink" />
+              <span>Ajustes</span>
+            </button>
+
+            {settingsOpen && (
+              <div className="gf-tablet-settings-popover" role="dialog" aria-label="Ajustes de la Tabla de Dibujo">
+                <div className="gf-tablet-popover-section">
+                  <span className="gf-tablet-popover-label">Tipo de Tinta</span>
+                  <div className="gf-tablet-preset-chips">
+                    <button
+                      type="button"
+                      className={`gf-tablet-chip ${inkVariant === 'maru_pen' ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setInkVariant('maru_pen');
+                        if (isInkActive) setBrushId('maru_pen');
+                      }}
+                    >
+                      Maru-Pen Negra
+                    </button>
+                    <button
+                      type="button"
+                      className={`gf-tablet-chip ${inkVariant === 'akai_crimson' ? 'is-active' : ''}`}
+                      onClick={() => {
+                        setInkVariant('akai_crimson');
+                        if (isInkActive) setBrushId('akai_crimson');
+                      }}
+                    >
+                      Tinta Akai (#DC2626)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gf-tablet-popover-section">
+                  <div className="gf-tablet-popover-row">
+                    <span className="gf-tablet-popover-label">Estabilizador</span>
+                    <span className="gf-tablet-popover-label">{stabilizer}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={85}
+                    step={5}
+                    value={stabilizer}
+                    onChange={(e) => setStabilizer(Number(e.target.value))}
+                  />
+                </div>
+
+                <div className="gf-tablet-popover-section">
+                  <span className="gf-tablet-popover-label">Aspecto de Lienzo</span>
+                  <div className="gf-tablet-preset-chips">
+                    {(['3:4', '1:1', '16:9'] as const).map((ratio) => (
+                      <button
+                        key={ratio}
+                        type="button"
+                        className={`gf-tablet-chip ${canvasAspect === ratio ? 'is-active' : ''}`}
+                        onClick={() => setCanvasAspect(ratio)}
+                      >
+                        {ratio === '3:4' ? '3:4 Página' : ratio === '1:1' ? '1:1 Settei' : '16:9 Portada'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="gf-tablet-popover-row">
+                  <button
+                    type="button"
+                    className={`gf-palm-toggle ${penOnlyMode ? 'is-on' : ''}`}
+                    onClick={() => setPenOnlyMode((v) => !v)}
+                    title="Ignora toques de la mano en pantallas táctiles y dibuja solo con lápiz digital"
+                  >
+                    <ShieldCheck size={13} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>Rechazo Palma {penOnlyMode ? 'ON' : 'OFF'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`gf-palm-toggle ${showGuides ? 'is-on' : ''}`}
+                    onClick={() => setShowGuides((g) => !g)}
+                  >
+                    <span>Guías {showGuides ? 'ON' : 'OFF'}</span>
+                  </button>
+                </div>
+
+                <div className="gf-tablet-telemetry">
+                  <div className="gf-stylus-badge is-compact">
+                    <span className="gf-stylus-dot" aria-hidden="true" />
+                    <PenTool size={12} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>
+                      {stylusDetected
+                        ? `Stylus activo · ${Math.round(livePressure * 100)}%`
+                        : `Entrada: ${pointerKind === 'touch' ? 'Táctil' : 'Mouse'}`}
+                    </span>
+                  </div>
+                  <span>
+                    Presión: <strong>{Math.round(livePressure * 100)}%</strong> · Inclinación:{' '}
+                    {liveTilt.x}°, {liveTilt.y}° · Trazos: {strokeCount}
+                  </span>
+                  <span className="gf-pressure-bar" aria-hidden="true">
+                    <span
+                      className="gf-pressure-fill"
+                      style={{ width: `${Math.round(livePressure * 100)}%` }}
+                    />
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="gf-brush-btn is-danger"
+                  onClick={() => {
+                    handleClearCanvas();
+                    setSettingsOpen(false);
+                  }}
+                >
+                  <Trash2 size={13} strokeWidth={2} className="gf-icon-shrink" />
+                  <span>Limpiar Lienzo</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="gf-tablet-stage-grid">
-        {/* Left: Pressure-sensitive Genkō Drawing Board */}
+        {/* Pressure-sensitive Genkō Drawing Board */}
         <div className="gf-tablet-board-card">
-          <div className="gf-inspector-head">
-            <SectionLabel>
-              Mesa de Luz Genkō · {canvasDims.width}×{canvasDims.height} px ({canvasAspect})
-            </SectionLabel>
-            <div className="gf-brush-group">
-              {(['3:4', '1:1', '16:9'] as const).map((ratio) => (
-                <button
-                  key={ratio}
-                  type="button"
-                  className={`gf-tablet-chip ${canvasAspect === ratio ? 'is-active' : ''}`}
-                  onClick={() => setCanvasAspect(ratio)}
-                >
-                  {ratio === '3:4' ? '3:4 Página' : ratio === '1:1' ? '1:1 Settei' : '16:9 Portada'}
-                </button>
-              ))}
-              <button
-                type="button"
-                className={`gf-tablet-chip ${showGuides ? 'is-active' : ''}`}
-                onClick={() => setShowGuides((g) => !g)}
-              >
-                Guías
-              </button>
+          <div className="gf-tablet-canvas-stage">
+            <div
+              className="gf-tablet-canvas-frame"
+              style={
+                {
+                  aspectRatio: `${canvasDims.width} / ${canvasDims.height}`,
+                  '--gf-canvas-ratio': `${canvasRatioValue}`,
+                } as React.CSSProperties
+              }
+            >
+              {underlaySrc && (
+                <img src={toDataImageSrc(underlaySrc)} alt="" className="gf-tablet-underlay-img" />
+              )}
+              {showGuides && <div className="gf-tablet-canvas-grid" aria-hidden="true" />}
+              <canvas
+                ref={canvasRef}
+                width={canvasDims.width}
+                height={canvasDims.height}
+                className="gf-tablet-canvas"
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={finishStroke}
+                onPointerCancel={finishStroke}
+                aria-label="Lienzo digital sensible a presión para boceto manga"
+              />
             </div>
-          </div>
-
-          <div
-            className="gf-tablet-canvas-frame"
-            style={{ aspectRatio: `${canvasDims.width} / ${canvasDims.height}` }}
-          >
-            {underlaySrc && (
-              <img src={toDataImageSrc(underlaySrc)} alt="" className="gf-tablet-underlay-img" />
-            )}
-            {showGuides && <div className="gf-tablet-canvas-grid" aria-hidden="true" />}
-            <canvas
-              ref={canvasRef}
-              width={canvasDims.width}
-              height={canvasDims.height}
-              className="gf-tablet-canvas"
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={finishStroke}
-              onPointerCancel={finishStroke}
-              aria-label="Lienzo digital sensible a presión para boceto manga"
-            />
-          </div>
-
-          <div className="gf-tablet-telemetry">
-            <span>
-              Presión Stylus:{' '}
-              <strong>{Math.round(livePressure * 100)}%</strong>
-              <span className="gf-pressure-bar" aria-hidden="true">
-                <span
-                  className="gf-pressure-fill"
-                  style={{ width: `${Math.round(livePressure * 100)}%` }}
-                />
-              </span>
-            </span>
-            <span>
-              Inclinación: {liveTilt.x}°, {liveTilt.y}° · Trazos: {strokeCount}
-            </span>
           </div>
         </div>
 
         {/* Right: Co-Creation & Enhancement Bridge with KAI */}
-        <div className="gf-tablet-kai-panel">
-          <div className="gf-inspector-head">
-            <SectionLabel>Mejora de Boceto en Conjunto con KAI</SectionLabel>
-            <span className="gf-handle-badge">{KAI_IMAGE_MODEL_DEFAULT}</span>
-          </div>
-
-          <div className="gf-tablet-preset-chips">
-            {REFINE_MODES.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                className={`gf-tablet-chip ${refineModeId === m.id ? 'is-active' : ''}`}
-                onClick={() => setRefineModeId(m.id)}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-
-          {project.characters.length > 0 && (
-            <div className="gf-field-box">
-              <label className="gf-field-label" htmlFor="gf-tablet-settei">
-                Vincular Identidad @Settei al Boceto
-              </label>
-              <select
-                id="gf-tablet-settei"
-                className="gf-select-native"
-                value={selectedSetteiHandle}
-                onChange={(e) => setSelectedSetteiHandle(e.target.value)}
-              >
-                <option value="">Sin personaje fijo (libre)</option>
-                {project.characters.map((c) => {
-                  const h = normalizeTagHandle(c.tagHandle || '', c.name);
-                  return (
-                    <option key={c.id} value={h}>
-                      {h} — {c.name}
-                    </option>
-                  );
-                })}
-              </select>
+        {(!isFullscreen || fullscreenKaiOpen) && (
+          <div className="gf-tablet-kai-panel dark-scrollbar">
+            <div className="gf-inspector-head">
+              <SectionLabel>Mejora de Boceto en Conjunto con KAI</SectionLabel>
+              <span className="gf-handle-badge">{KAI_IMAGE_MODEL_DEFAULT}</span>
             </div>
-          )}
 
-          <div className="gf-field-box">
-            <label className="gf-field-label" htmlFor="gf-tablet-prompt">
-              Instrucción de Mejora sobre tu Dibujo
-            </label>
-            <textarea
-              id="gf-tablet-prompt"
-              className="gf-synopsis-textarea"
-              rows={3}
-              value={refinePrompt}
-              onChange={(e) => setRefinePrompt(e.target.value)}
-              placeholder="Ej. Respeta la postura de mi boceto, define armadura taína, mirada intensa y entintado G-Pen..."
-            />
-          </div>
-
-          <div className="gf-controls-actions">
-            <PillButton
-              variant="filled"
-              icon={
-                isRefining ? (
-                  <RefreshCw size={15} strokeWidth={2} className="gf-spin gf-icon-shrink" />
-                ) : (
-                  <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
-                )
-              }
-              onClick={handleRefineWithKai}
-              disabled={isRefining}
-            >
-              {isRefining
-                ? 'KAI está entintando y mejorando tu boceto...'
-                : 'Mejorar mi Boceto con KAI'}
-            </PillButton>
-
-            <PillButton
-              variant="outline"
-              icon={<Sparkles size={14} strokeWidth={1.75} className="gf-icon-shrink" />}
-              onClick={() =>
-                onAskKaiForSketch(
-                  `Estoy dibujando en la Tabla de Dibujo (${canvasAspect}, ${strokeCount} trazos${selectedSetteiHandle ? `, con ${selectedSetteiHandle}` : ''}). Ayúdame a pulir el diseño y dame un [PROMPT VISUAL]: para mejorar mi borrador: ${refinePrompt}`,
-                )
-              }
-            >
-              Consultar Dirección de Diseño con KAI →
-            </PillButton>
-          </div>
-
-          {refineError && <div className="gf-inline-error">{refineError}</div>}
-
-          {refinedDataUrl && (
-            <div className="gf-tablet-result-box">
-              <SectionLabel>Diseño Mejorado desde tu Boceto</SectionLabel>
-              <img
-                src={refinedDataUrl}
-                alt="Boceto mejorado con KAI"
-                className="gf-tablet-result-img"
-              />
-              <div className="gf-controls-actions">
-                <PillButton
-                  variant="outline"
-                  icon={<Layers size={14} strokeWidth={1.75} />}
-                  onClick={handleLoadRefinedOntoBoard}
+            <div className="gf-tablet-preset-chips">
+              {REFINE_MODES.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className={`gf-tablet-chip ${refineModeId === m.id ? 'is-active' : ''}`}
+                  onClick={() => setRefineModeId(m.id)}
                 >
-                  Usar como Calco para Seguir Dibujando Encima
-                </PillButton>
-                <PillButton
-                  variant="outline"
-                  icon={<Download size={14} strokeWidth={1.75} />}
-                  onClick={() =>
-                    Flow.download({
-                      base64: refinedDataUrl,
-                      mimeType: 'image/png',
-                      filename: `${(project.name || 'mangai').replace(/\s+/g, '_')}_boceto_kai.png`,
-                    })
-                  }
-                >
-                  Descargar PNG Mejorado
-                </PillButton>
-              </div>
-            </div>
-          )}
-
-          {/* Save Sketch or Refined Art Directly into Active Project */}
-          <div className="gf-tablet-target-box">
-            <SectionLabel>Enviar al Proyecto Activo</SectionLabel>
-            <div className="gf-field-box">
-              <label className="gf-field-label" htmlFor="gf-tablet-dest">
-                Destino en «{project.name || 'Manga'}»
-              </label>
-              <select
-                id="gf-tablet-dest"
-                className="gf-select-native"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value as ApplyDestination)}
-              >
-                <option value="koma">Viñeta de Página Interior (L0 Boceto + L2 Tinta)</option>
-                <option value="settei">Ficha Settei / Personaje</option>
-                <option value="cover">Portada Tankōbon</option>
-              </select>
+                  {m.label}
+                </button>
+              ))}
             </div>
 
-            {destination === 'koma' && activeTargetPage && (
-              <div className="gf-grid-2">
-                <div className="gf-field-box">
-                  <label className="gf-field-label" htmlFor="gf-tablet-page">
-                    Página
-                  </label>
-                  <select
-                    id="gf-tablet-page"
-                    className="gf-select-native"
-                    value={targetPageIdx}
-                    onChange={(e) => setTargetPageIdx(Number(e.target.value))}
-                  >
-                    {project.pages.map((p, idx) => (
-                      <option key={p.id} value={idx}>
-                        Página {idx + 1}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="gf-field-box">
-                  <label className="gf-field-label" htmlFor="gf-tablet-koma">
-                    Viñeta
-                  </label>
-                  <select
-                    id="gf-tablet-koma"
-                    className="gf-select-native"
-                    value={effectiveKoma?.id || ''}
-                    onChange={(e) => setTargetKomaId(e.target.value)}
-                  >
-                    {targetKomas.map((k) => (
-                      <option key={k.id} value={k.id}>
-                        Viñeta #{k.panelIndex} ({k.state})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {destination === 'settei' && (
+            {project.characters.length > 0 && (
               <div className="gf-field-box">
-                <label className="gf-field-label" htmlFor="gf-tablet-charname">
-                  Nombre de Ficha Settei
+                <label className="gf-field-label" htmlFor="gf-tablet-settei">
+                  Vincular Identidad @Settei al Boceto
                 </label>
-                <input
-                  id="gf-tablet-charname"
-                  type="text"
-                  className="gf-text-input gf-text-input-sm"
-                  value={newSetteiName}
-                  onChange={(e) => setNewSetteiName(e.target.value)}
-                  placeholder="Ej. Anacaona o Espada Ceremonial"
-                />
+                <select
+                  id="gf-tablet-settei"
+                  className="gf-select-native"
+                  value={selectedSetteiHandle}
+                  onChange={(e) => setSelectedSetteiHandle(e.target.value)}
+                >
+                  <option value="">Sin personaje fijo (libre)</option>
+                  {project.characters.map((c) => {
+                    const h = normalizeTagHandle(c.tagHandle || '', c.name);
+                    return (
+                      <option key={c.id} value={h}>
+                        {h} — {c.name}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
             )}
 
-            <PillButton
-              variant="solid"
-              icon={<Check size={15} strokeWidth={2} className="gf-icon-shrink" />}
-              onClick={handleApplyToProject}
-            >
-              {refinedDataUrl
-                ? 'Aplicar Diseño Mejorado al Proyecto'
-                : 'Guardar Boceto Directo en el Proyecto'}
-            </PillButton>
+            <div className="gf-field-box">
+              <label className="gf-field-label" htmlFor="gf-tablet-prompt">
+                Instrucción de Mejora sobre tu Dibujo
+              </label>
+              <textarea
+                id="gf-tablet-prompt"
+                className="gf-synopsis-textarea"
+                rows={3}
+                value={refinePrompt}
+                onChange={(e) => setRefinePrompt(e.target.value)}
+                placeholder="Ej. Respeta la postura de mi boceto, define armadura taína, mirada intensa y entintado G-Pen..."
+              />
+            </div>
 
-            {appliedToast && <p className="gf-helper-copy">{appliedToast}</p>}
+            <div className="gf-controls-actions">
+              <PillButton
+                variant="filled"
+                icon={
+                  isRefining ? (
+                    <RefreshCw size={15} strokeWidth={2} className="gf-spin gf-icon-shrink" />
+                  ) : (
+                    <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
+                  )
+                }
+                onClick={() => void handleRefineWithKai()}
+                disabled={isRefining}
+              >
+                {isRefining
+                  ? 'KAI está entintando y mejorando tu boceto...'
+                  : 'Mejorar mi Boceto con KAI'}
+              </PillButton>
+
+              <PillButton
+                variant="outline"
+                icon={<Sparkles size={14} strokeWidth={1.75} className="gf-icon-shrink" />}
+                onClick={() =>
+                  onAskKaiForSketch(
+                    `Estoy dibujando en la Tabla de Dibujo (${canvasAspect}, ${strokeCount} trazos${selectedSetteiHandle ? `, con ${selectedSetteiHandle}` : ''}). Ayúdame a pulir el diseño y dame un [PROMPT VISUAL]: para mejorar mi borrador: ${refinePrompt}`,
+                  )
+                }
+              >
+                Consultar Dirección de Diseño con KAI →
+              </PillButton>
+            </div>
+
+            {refineError && <div className="gf-inline-error">{refineError}</div>}
+
+            {refinedDataUrl && (
+              <div className="gf-tablet-result-box">
+                <SectionLabel>Diseño Mejorado desde tu Boceto</SectionLabel>
+                <img
+                  src={refinedDataUrl}
+                  alt="Boceto mejorado con KAI"
+                  className="gf-tablet-result-img"
+                />
+                <div className="gf-controls-actions">
+                  <PillButton
+                    variant="outline"
+                    icon={<Layers size={14} strokeWidth={1.75} />}
+                    onClick={handleLoadRefinedOntoBoard}
+                  >
+                    Usar como Calco para Seguir Dibujando Encima
+                  </PillButton>
+                  <PillButton
+                    variant="outline"
+                    icon={<Download size={14} strokeWidth={1.75} />}
+                    onClick={() =>
+                      Flow.download({
+                        base64: refinedDataUrl,
+                        mimeType: 'image/png',
+                        filename: `${(project.name || 'mangai').replace(/\s+/g, '_')}_boceto_kai.png`,
+                      })
+                    }
+                  >
+                    Descargar PNG Mejorado
+                  </PillButton>
+                </div>
+              </div>
+            )}
+
+            {/* Save Sketch or Refined Art Directly into Active Project */}
+            <div className="gf-tablet-target-box">
+              <SectionLabel>Enviar al Proyecto Activo</SectionLabel>
+              <div className="gf-field-box">
+                <label className="gf-field-label" htmlFor="gf-tablet-dest">
+                  Destino en «{project.name || 'Manga'}»
+                </label>
+                <select
+                  id="gf-tablet-dest"
+                  className="gf-select-native"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value as ApplyDestination)}
+                >
+                  <option value="koma">Viñeta de Página Interior (L0 Boceto + L2 Tinta)</option>
+                  <option value="settei">Ficha Settei / Personaje</option>
+                  <option value="cover">Portada Tankōbon</option>
+                </select>
+              </div>
+
+              {destination === 'koma' && activeTargetPage && (
+                <div className="gf-grid-2">
+                  <div className="gf-field-box">
+                    <label className="gf-field-label" htmlFor="gf-tablet-page">
+                      Página
+                    </label>
+                    <select
+                      id="gf-tablet-page"
+                      className="gf-select-native"
+                      value={targetPageIdx}
+                      onChange={(e) => setTargetPageIdx(Number(e.target.value))}
+                    >
+                      {project.pages.map((p, idx) => (
+                        <option key={p.id} value={idx}>
+                          Página {idx + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="gf-field-box">
+                    <label className="gf-field-label" htmlFor="gf-tablet-koma">
+                      Viñeta
+                    </label>
+                    <select
+                      id="gf-tablet-koma"
+                      className="gf-select-native"
+                      value={effectiveKoma?.id || ''}
+                      onChange={(e) => setTargetKomaId(e.target.value)}
+                    >
+                      {targetKomas.map((k) => (
+                        <option key={k.id} value={k.id}>
+                          Viñeta #{k.panelIndex} ({k.state})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {destination === 'settei' && (
+                <div className="gf-field-box">
+                  <label className="gf-field-label" htmlFor="gf-tablet-charname">
+                    Nombre de Ficha Settei
+                  </label>
+                  <input
+                    id="gf-tablet-charname"
+                    type="text"
+                    className="gf-text-input gf-text-input-sm"
+                    value={newSetteiName}
+                    onChange={(e) => setNewSetteiName(e.target.value)}
+                    placeholder="Ej. Anacaona o Espada Ceremonial"
+                  />
+                </div>
+              )}
+
+              <PillButton
+                variant="solid"
+                icon={<Check size={15} strokeWidth={2} className="gf-icon-shrink" />}
+                onClick={handleApplyToProject}
+              >
+                {refinedDataUrl
+                  ? 'Aplicar Diseño Mejorado al Proyecto'
+                  : 'Guardar Boceto Directo en el Proyecto'}
+              </PillButton>
+
+              {appliedToast && <p className="gf-helper-copy">{appliedToast}</p>}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
