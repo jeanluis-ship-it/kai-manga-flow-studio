@@ -3,6 +3,10 @@ import type { TrimFormatId } from '@/lib/print/presets';
 
 export type PaperType = 'white' | 'cream';
 
+export type ColorMode = 'bw' | 'color';
+
+export type BindingType = 'rustica_pegada' | 'tapa_dura' | 'grapa';
+
 export type StudioView = 'project' | 'characters' | 'cover' | 'pages' | 'drawing_tablet';
 
 export type SetteiEntityType = 'character' | 'prop' | 'location' | 'lore_rule';
@@ -138,11 +142,17 @@ export interface Character {
   appearance: string;
   clothing: string;
   role: string;
+  activeInCanon?: boolean;
   visualAnchors?: string[];
   seedLocked?: boolean;
   characterSeed?: string;
   referenceMediaId?: string;
   referenceBase64?: string;
+  referenceViews?: {
+    turnaround?: string;
+    front?: string;
+    detail?: string;
+  };
 }
 
 export type DialogueStyle = 'normal' | 'shout' | 'whisper' | 'thought' | 'narrator' | 'system';
@@ -218,10 +228,13 @@ export interface Cover {
 
 export interface Project {
   id?: string;
+  volumeSlug?: string;
   name: string;
   author: string;
   pageCount: number;
   paperType: PaperType;
+  colorMode?: ColorMode;
+  bindingType?: BindingType;
   trimFormat?: TrimFormatId;
   readingDirection?: 'rtl' | 'ltr';
   characters: Character[];

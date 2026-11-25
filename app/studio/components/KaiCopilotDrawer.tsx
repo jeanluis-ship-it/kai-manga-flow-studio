@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Send,
   Sparkles,
+  UserCheck,
   Users,
 } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ import {
   type Character,
   type KomaState,
   type Project,
+  type SetteiEntityType,
   type StudioView,
 } from '../types';
 import { PillButton } from './Primitives';
@@ -45,11 +47,25 @@ interface KaiMessage {
   actionBusy?: boolean;
 }
 
+export interface SetteiDraftDetail {
+  open: boolean;
+  draft: {
+    id: string;
+    name: string;
+    tagHandle: string;
+    entityType: string;
+    appearance: string;
+    clothing: string;
+    visualAnchors: string[];
+  } | null;
+}
+
 const STEP_PIPELINE: Array<{
   id: StudioView;
   stepNum: number;
   shortLabel: string;
   title: string;
+  tip: string;
   icon: React.ReactNode;
 }> = [
   {
@@ -57,6 +73,7 @@ const STEP_PIPELINE: Array<{
     stepNum: 1,
     shortLabel: '1. Obra',
     title: 'Configuración y Lomo',
+    tip: 'Define título, sinopsis editorial y tono del tomo para rellenar la ficha de obra en 1 clic.',
     icon: <Printer size={12} strokeWidth={2} />,
   },
   {
@@ -64,6 +81,7 @@ const STEP_PIPELINE: Array<{
     stepNum: 2,
     shortLabel: '2. Settei',
     title: 'Settei y Personajes',
+    tip: 'Co-diseña rasgos, vestuario y anclas visuales; si tienes una ficha abierta, aplícalo en vivo.',
     icon: <Users size={12} strokeWidth={2} />,
   },
   {
@@ -71,32 +89,35 @@ const STEP_PIPELINE: Array<{
     stepNum: 3,
     shortLabel: '3. Portada',
     title: 'Portada Tankōbon',
+    tip: 'Redacta el prompt envolvente 16:9, aplícalo a la cubierta o genera el arte Tankōbon.',
     icon: <BookOpen size={12} strokeWidth={2} />,
   },
   {
     id: 'pages',
     stepNum: 4,
-    shortLabel: '4. Páginas',
-    title: 'Páginas e Interiores',
+    shortLabel: '4. Viñetas',
+    title: 'Viñetas e Interiores',
+    tip: 'Guioniza secuencias Koma-wari o entinta la viñeta activa con tu Settei en canon.',
     icon: <BookMarked size={12} strokeWidth={2} />,
   },
   {
     id: 'drawing_tablet',
     stepNum: 5,
-    shortLabel: '5. Tabla',
+    shortLabel: '5. Tabla de Dibujo',
     title: 'Tabla de Dibujo Digital',
+    tip: 'Pide guías de anatomía, perspectiva o un [PROMPT VISUAL]: para refinar tu boceto Nemu.',
     icon: <PenTool size={12} strokeWidth={2} />,
   },
 ];
 
 const STEP_SUGGESTIONS: Record<StudioView, string[]> = {
   project: [
-    'Propón un título potente, tono editorial y sinopsis de contraportada para mi manga.',
+    'Propón Título, Autor/Tono y Sinopsis de contraportada lista para mi manga.',
     'Ayúdame a estructurar el primer volumen de fantasía oscura en formato Tankōbon B6.',
   ],
   characters: [
-    'Diseña al protagonista principal con rasgos únicos, vestuario icónico y anclas visuales.',
-    'Crea un antagonista memorable con silueta contrastante lista para ficha Settei.',
+    'Diseña un protagonista con Nombre, @Handle, Rasgos, Vestuario y 3 Anclas Visuales claras.',
+    'Crea un antagonista o reliquia icónica lista para rellenar mi ficha Settei.',
   ],
   cover: [
     'Diseña la composición envolvente 16:9 de portada, lomo y contraportada para este tomo.',
@@ -112,12 +133,88 @@ const STEP_SUGGESTIONS: Record<StudioView, string[]> = {
   ],
 };
 
+function parseSetteiAutofillFromMessage(
+  msg: KaiMessage,
+  fallbackEntityType?: string,
+): {
+  name?: string;
+  tagHandle?: string;
+  entityType?: SetteiEntityType;
+  appearance?: string;
+  clothing?: string;
+  visualAnchors?: string[];
+} {
+  const fullText = `${msg.text}\n${msg.visualPrompt || ''}`;
+  const cleanLine = (raw?: string) =>
+    raw?.replace(/[*_`«»"]/g, '').trim() || '';
+
+  const nameMatch = fullText.match(
+    /(?:Nombre|Personaje|Protagonista|Objeto|Escenario|Entidad)\s*:\s*([^\n.;]+)/i,
+  );
+  const handleMatch = fullText.match(
+    /(?:@Handle|Handle|Tag)\s*:\s*(@?[a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]+)/i,
+  ) ?? fullText.match(/(@[a-zA-Z0-9_]{2,28})/);
+  const appearanceMatch = fullText.match(
+    /(?:Rasgos|Apariencia|Silueta|Descripción|Aspecto)\s*:\s*([^\n]+)/i,
+  );
+  const clothingMatch = fullText.match(
+    /(?:Vestuario|Atuendo|Ropa|Equipamiento)\s*:\s*([^\n]+)/i,
+  );
+  const anchorsMatch = fullText.match(
+    /(?:Anclas\s*Visuales|Anclas)\s*:\s*([^\n]+)/i,
+  );
+
+  let entityType: SetteiEntityType | undefined;
+  const lower = fullText.toLowerCase();
+  if (/tipo\s*:\s*prop|objeto\s*\(prop\)/i.test(lower)) entityType = 'prop';
+  else if (/tipo\s*:\s*escenario|location/i.test(lower)) entityType = 'location';
+  else if (/tipo\s*:\s*lore|regla de lore/i.test(lower)) entityType = 'lore_rule';
+  else if (
+    fallbackEntityType === 'character' ||
+    fallbackEntityType === 'prop' ||
+    fallbackEntityType === 'location' ||
+    fallbackEntityType === 'lore_rule'
+  ) {
+    entityType = fallbackEntityType;
+  }
+
+  const parsedName = cleanLine(nameMatch?.[1]).slice(0, 48);
+  const rawHandle = cleanLine(handleMatch?.[1]);
+  const parsedHandle = rawHandle
+    ? normalizeTagHandle(rawHandle, parsedName || 'Settei')
+    : parsedName
+    ? normalizeTagHandle('', parsedName)
+    : undefined;
+
+  const parsedAppearance =
+    cleanLine(appearanceMatch?.[1]) ||
+    (msg.visualPrompt ? msg.visualPrompt.trim().slice(0, 260) : '');
+  const parsedClothing = cleanLine(clothingMatch?.[1]);
+  const parsedAnchors = anchorsMatch?.[1]
+    ? anchorsMatch[1]
+        .split(/[,;|•]/)
+        .map((s) => cleanLine(s))
+        .filter((s) => s.length >= 2)
+        .slice(0, 5)
+    : undefined;
+
+  return {
+    ...(parsedName ? { name: parsedName } : {}),
+    ...(parsedHandle ? { tagHandle: parsedHandle } : {}),
+    ...(entityType ? { entityType } : {}),
+    ...(parsedAppearance ? { appearance: parsedAppearance } : {}),
+    ...(parsedClothing ? { clothing: parsedClothing } : {}),
+    ...(parsedAnchors && parsedAnchors.length > 0 ? { visualAnchors: parsedAnchors } : {}),
+  };
+}
+
 export interface KaiCopilotDrawerProps {
   project: Project;
   activeView: StudioView;
   activePageIndex: number;
   selectedKomaId: string | null;
   pendingExternalMessage?: string;
+  pendingExternalMode?: 'mentor' | 'script';
   onConsumeExternalMessage?: () => void;
   onNavigateView: (view: StudioView) => void;
   updateProject: (updates: Partial<Project>) => void;
@@ -132,6 +229,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
   activePageIndex,
   selectedKomaId,
   pendingExternalMessage,
+  pendingExternalMode,
   onConsumeExternalMessage,
   onNavigateView,
   updateProject,
@@ -144,36 +242,64 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
   const [targetPages, setTargetPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [setteiDraft, setSetteiDraft] = useState<SetteiDraftDetail>({
+    open: false,
+    draft: null,
+  });
   const [messages, setMessages] = useState<KaiMessage[]>([
     {
       id: 'kai-welcome',
       role: 'assistant',
-      text: 'Soy KAI, conectado en vivo a cada paso de tu proyecto con Gemini 3 Flash. Todo lo que diseñemos aquí se aplica directo a tu Configuración, fichas @Settei, Portada Tankōbon, Páginas Koma-wari o tu Tabla de Dibujo.',
+      text: 'Soy KAI, conectado en vivo a cada paso de tu proyecto con Gemini 3 Flash. Todo lo que diseñemos aquí se aplica directo a tu Configuración, fichas @Settei, Portada Tankōbon, Viñetas Koma-wari o tu Tabla de Dibujo.',
     },
   ]);
 
   const feedEndRef = useRef<HTMLDivElement | null>(null);
   const consumedUrlRef = useRef(false);
 
+  // Listen to live Settei editor draft events
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleSetteiDraft = (evt: Event) => {
+      const custom = evt as CustomEvent<SetteiDraftDetail>;
+      if (!custom.detail) return;
+      setSetteiDraft({
+        open: Boolean(custom.detail.open),
+        draft: custom.detail.draft ?? null,
+      });
+    };
+    window.addEventListener('mangai-settei-draft', handleSetteiDraft);
+    return () => window.removeEventListener('mangai-settei-draft', handleSetteiDraft);
+  }, []);
+
+  // Active canon characters (activeInCanon !== false)
+  const activeCharacters = useMemo(
+    () => project.characters.filter((c) => c.activeInCanon !== false),
+    [project.characters],
+  );
+
   const activeSetteiPayload = useMemo(
     () =>
-      project.characters.map((c) => ({
+      activeCharacters.map((c) => ({
         tag_handle: normalizeTagHandle(c.tagHandle || '', c.name),
         name: c.name || 'Sin nombre',
         entity_type: c.entityType || 'character',
         visual_anchors: c.visualAnchors ?? [],
       })),
-    [project.characters],
+    [activeCharacters],
   );
 
   const activeSetteiStrings = useMemo(
     () =>
-      project.characters.map((c) => {
+      activeCharacters.map((c) => {
         const handle = normalizeTagHandle(c.tagHandle || '', c.name);
         const anchors = (c.visualAnchors ?? []).join(', ');
-        return `${handle} (${c.name}): ${c.appearance} ${c.clothing} ${anchors ? `[Anclas: ${anchors}]` : ''}`.trim();
+        const seedStr = c.seedLocked && c.characterSeed ? ` [Seed: ${c.characterSeed}]` : '';
+        return `${handle} (${c.name}): ${c.appearance} ${c.clothing} ${
+          anchors ? `[Anclas: ${anchors}]` : ''
+        }${seedStr}`.trim();
       }),
-    [project.characters],
+    [activeCharacters],
   );
 
   const currentPage = project.pages[activePageIndex];
@@ -182,27 +308,59 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     currentPage?.komas?.[0] ??
     null;
 
+  const activeStepMeta = useMemo(
+    () => STEP_PIPELINE.find((s) => s.id === activeView) ?? STEP_PIPELINE[0],
+    [activeView],
+  );
+
   const projectContextSummary = useMemo(() => {
-    const stepMeta = STEP_PIPELINE.find((s) => s.id === activeView);
+    const draftLine =
+      setteiDraft.open && setteiDraft.draft
+        ? `Ficha Settei abierta en edición: "${setteiDraft.draft.name || 'Sin nombre'}" (${
+            setteiDraft.draft.tagHandle || '@Nuevo'
+          }, tipo ${setteiDraft.draft.entityType}). Rasgos actuales: ${
+            setteiDraft.draft.appearance || 'vacío'
+          }. Vestuario: ${setteiDraft.draft.clothing || 'vacío'}. Anclas: ${
+            (setteiDraft.draft.visualAnchors ?? []).join(', ') || 'ninguna'
+          }.`
+        : '';
+
     return [
-      `Paso actual del usuario: ${stepMeta?.title || activeView}.`,
+      `Paso actual del usuario: ${activeStepMeta.shortLabel} — ${activeStepMeta.title}.`,
       `Título del proyecto: "${project.name || 'Manga sin título'}" por ${project.author || 'Autor'}.`,
-      `Formato: ${project.trimFormat || 'tankobon_b6'}, Lectura: ${(project.readingDirection || 'rtl').toUpperCase()}, Fichas Settei: ${project.characters.length}, Páginas en manuscrito: ${project.pages.length}.`,
+      `Modo de color: ${project.colorMode === 'color' ? 'Color' : 'Blanco y Negro (Sumi)'}. Encuadernación: ${
+        project.bindingType || 'rustica_pegada'
+      }.`,
+      `Formato: ${project.trimFormat || 'tankobon_b6'}, Lectura: ${(
+        project.readingDirection || 'rtl'
+      ).toUpperCase()}, Fichas Settei activas: ${activeCharacters.length}/${
+        project.characters.length
+      }, Páginas en manuscrito: ${project.pages.length}.`,
       selectedKoma && activeView === 'pages'
         ? `Viñeta seleccionada: Página ${activePageIndex + 1}, Viñeta #${selectedKoma.panelIndex} (${selectedKoma.cameraAngle}).`
         : '',
+      draftLine,
     ]
       .filter(Boolean)
       .join(' ');
-  }, [activeView, project, activePageIndex, selectedKoma]);
+  }, [
+    activeStepMeta,
+    activeView,
+    project,
+    activeCharacters.length,
+    activePageIndex,
+    selectedKoma,
+    setteiDraft,
+  ]);
 
   // Read deep-link parameters from Landing Hero (?volume=...&title=...&prompt=...)
   useEffect(() => {
     if (consumedUrlRef.current || typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
+    const incomingVolume = params.get('volume')?.trim();
     const incomingTitle = params.get('title')?.trim();
     const incomingPrompt = params.get('prompt')?.trim();
-    if (!incomingTitle && !incomingPrompt) return;
+    if (!incomingTitle && !incomingPrompt && !incomingVolume) return;
     consumedUrlRef.current = true;
 
     if (
@@ -219,14 +377,14 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
       });
     }
 
-    if (incomingPrompt) {
+    if (incomingPrompt || incomingVolume) {
       setMessages((prev) => [
         ...prev,
         {
           id: `kai-deeplink-${Date.now()}`,
           role: 'assistant',
-          text: `Cargué el universo «${incomingTitle || project.name}» en tu proyecto. Usa los botones de abajo para generar su protagonista en @Settei, su Portada 16:9, enviarlo a tu Tabla de Dibujo o estructurar su primera página.`,
-          visualPrompt: incomingPrompt,
+          text: `Cargué el universo «${incomingTitle || project.name}» en tu proyecto. Usa las acciones contextuales para expandir @Settei, generar tu Portada 16:9, enviarlo a la Tabla de Dibujo o guionizar Viñetas.`,
+          visualPrompt: incomingPrompt || project.cover.prompt || null,
         },
       ]);
     }
@@ -235,9 +393,10 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
   useEffect(() => {
     if (!pendingExternalMessage?.trim()) return;
     const msg = pendingExternalMessage.trim();
+    const nextMode = pendingExternalMode ?? 'mentor';
     onConsumeExternalMessage?.();
-    setMode('mentor');
-    void handleSendMessage(msg, 'mentor');
+    setMode(nextMode);
+    void handleSendMessage(msg, nextMode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingExternalMessage]);
 
@@ -275,9 +434,14 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
 
     try {
       if (effectiveMode === 'script') {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (typeof window !== 'undefined') {
+          const savedKey = window.localStorage?.getItem('mangai-google-key-v1')?.trim();
+          if (savedKey) headers['x-mangai-llave'] = savedKey;
+        }
         const response = await fetch('/api/kai/script', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             userPrompt: cleanPrompt,
             activeSettei: activeSetteiPayload,
@@ -352,15 +516,23 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     );
   };
 
+  const handleAutofillOpenSettei = (msg: KaiMessage) => {
+    if (typeof window === 'undefined') return;
+    const detail = parseSetteiAutofillFromMessage(msg, setteiDraft.draft?.entityType);
+    window.dispatchEvent(new CustomEvent('mangai-settei-autofill', { detail }));
+    setMsgBusy(msg.id, false, true);
+  };
+
   const handleCreateSetteiFromKai = async (msg: KaiMessage) => {
     if (!msg.visualPrompt || msg.actionBusy) return;
     setError('');
     setMsgBusy(msg.id, true);
     try {
       const charNum = project.characters.length + 1;
-      const inferredNameMatch = msg.text.match(/(?:Nombre|Personaje|Protagonista)\s*:\s*([^\n.,*]+)/i);
-      const nameClean = inferredNameMatch?.[1]?.trim().slice(0, 36) || `Personaje ${charNum}`;
-      const handle = normalizeTagHandle('', nameClean);
+      const parsed = parseSetteiAutofillFromMessage(msg);
+      const nameClean = parsed.name || `Personaje ${charNum}`;
+      const handle = parsed.tagHandle || normalizeTagHandle('', nameClean);
+      const seedCode = `SEED-${Math.floor(100000 + Math.random() * 900000)}`;
 
       const generated = await Flow.generate.image({
         prompt: `Character turnaround reference sheet, clean white background, front and side views: ${msg.visualPrompt}`,
@@ -368,19 +540,22 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         aspectRatio: '1:1',
         name: `${nameClean} (${handle})`,
         details: msg.visualPrompt,
+        canon: `Seed: ${seedCode}`,
+        style: project.colorMode === 'color' ? 'Manhwa Color' : 'Manga Entintado B/N',
       });
 
       const newChar: Character = {
         id: crypto.randomUUID(),
-        entityType: 'character',
+        entityType: parsed.entityType || 'character',
         tagHandle: handle,
         name: nameClean,
-        appearance: msg.visualPrompt,
-        clothing: '',
+        appearance: parsed.appearance || msg.visualPrompt,
+        clothing: parsed.clothing || '',
         role: 'Diseñado con KAI',
-        visualAnchors: [],
+        activeInCanon: true,
+        visualAnchors: parsed.visualAnchors ?? [],
         seedLocked: true,
-        characterSeed: `SEED-${Math.floor(100000 + Math.random() * 900000)}`,
+        characterSeed: seedCode,
         referenceBase64: generated.dataUrl,
         referenceMediaId: generated.mediaId,
       };
@@ -397,23 +572,51 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     }
   };
 
+  const handleApplyPromptToCover = (msg: KaiMessage) => {
+    const promptText = (msg.visualPrompt || msg.text).trim().slice(0, 600);
+    updateProject({
+      cover: {
+        ...project.cover,
+        prompt: promptText,
+      },
+    });
+    setMsgBusy(msg.id, false, true);
+    onNavigateView('cover');
+  };
+
   const handleGenerateCoverFromKai = async (msg: KaiMessage) => {
-    if (!msg.visualPrompt || msg.actionBusy) return;
+    const coverPrompt = (msg.visualPrompt || msg.text).trim();
+    if (!coverPrompt || msg.actionBusy) return;
     setError('');
     setMsgBusy(msg.id, true);
     try {
+      const seeds = activeCharacters
+        .map((c) => c.characterSeed)
+        .filter((s): s is string => Boolean(s))
+        .join(', ');
+      const refs = activeCharacters
+        .map((c) => c.referenceBase64)
+        .filter((img): img is string => Boolean(img));
+      const colorStyle =
+        project.colorMode === 'color'
+          ? 'Vibrant full color Tankobon wraparound cover'
+          : 'High-contrast Sumi ink monochrome with Akai crimson accent Tankobon wraparound cover';
+
       const generated = await Flow.generate.image({
-        prompt: `Wide 16:9 manga wraparound Tankobon book cover: ${msg.visualPrompt}`,
+        prompt: `Wide 16:9 manga wraparound Tankobon book cover: ${coverPrompt}`,
         mode: 'cover_wrap',
         aspectRatio: '16:9',
         name: project.name || 'Manga',
-        notes: msg.visualPrompt,
+        style: colorStyle,
+        canon: seeds ? `Seeds: ${seeds}` : undefined,
+        notes: coverPrompt,
+        referenceImagesBase64: refs.length > 0 ? refs : undefined,
       });
 
       updateProject({
         cover: {
           ...project.cover,
-          prompt: msg.visualPrompt,
+          prompt: coverPrompt,
           fullWrapBase64: generated.dataUrl,
           frontBase64: generated.dataUrl,
           backBase64: generated.dataUrl,
@@ -435,12 +638,31 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     setError('');
     setMsgBusy(msg.id, true);
     try {
+      const taggedSet = new Set((selectedKoma.taggedHandles ?? []).map((h) => h.toLowerCase()));
+      const matchingSettei = activeCharacters.filter((c) =>
+        taggedSet.size > 0
+          ? taggedSet.has(normalizeTagHandle(c.tagHandle || '', c.name).toLowerCase())
+          : true,
+      );
+      const seeds = matchingSettei
+        .map((c) => (c.seedLocked && c.characterSeed ? `${c.name}: ${c.characterSeed}` : ''))
+        .filter(Boolean)
+        .join(' | ');
+      const refs = matchingSettei
+        .map((c) => c.referenceBase64)
+        .filter((img): img is string => Boolean(img));
+      const colorModeLabel =
+        project.colorMode === 'color' ? 'Full Color Editorial Manga' : 'Blanco y Negro (Sumi Ink)';
+
       const generated = await Flow.generate.image({
-        prompt: msg.visualPrompt,
+        prompt: `${msg.visualPrompt} (${colorModeLabel})`,
         mode: 'panel',
         aspectRatio: '3:4',
         name: `${project.name || 'Manga'} · Viñeta #${selectedKoma.panelIndex}`,
+        style: `${currentPage.artStyle || 'Classic Shonen'} · ${colorModeLabel}`,
+        canon: seeds || undefined,
         notes: msg.visualPrompt,
+        referenceImagesBase64: refs.length > 0 ? refs : undefined,
       });
 
       const nextPages = project.pages.map((p) => {
@@ -472,14 +694,26 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     }
   };
 
-  const handleApplySynopsisToProject = (msg: KaiMessage) => {
+  const handleAutocompleteProjectFromKai = (msg: KaiMessage) => {
     const titleMatch = msg.text.match(/(?:Título|Obra)\s*:\s*["«*]*([^"\n»*]+)/i);
-    const cleanSynopsis = msg.text.replace(/\[PROMPT\s+VISUAL\][\s\S]*$/i, '').trim().slice(0, 360);
+    const authorMatch = msg.text.match(/(?:Autor|Mangaka)\s*:\s*["«*]*([^"\n»*]+)/i);
+    const synopsisMatch = msg.text.match(/(?:Sinopsis|Contraportada)\s*:\s*([\s\S]+?)(?:\n\n|\[PROMPT|$)/i);
+    const cleanSynopsis = (
+      synopsisMatch?.[1] ||
+      msg.text.replace(/\[PROMPT\s+VISUAL\][\s\S]*$/i, '')
+    )
+      .replace(/[*_`]/g, '')
+      .trim()
+      .slice(0, 360);
+    const nextTitle = titleMatch?.[1]?.trim();
+    const nextAuthor = authorMatch?.[1]?.trim();
+
     updateProject({
-      ...(titleMatch?.[1]?.trim() ? { name: titleMatch[1].trim() } : {}),
+      ...(nextTitle ? { name: nextTitle } : {}),
+      ...(nextAuthor ? { author: nextAuthor } : {}),
       cover: {
         ...project.cover,
-        ...(titleMatch?.[1]?.trim() ? { spineTitle: titleMatch[1].trim() } : {}),
+        ...(nextTitle ? { spineTitle: nextTitle } : {}),
         backSynopsis: cleanSynopsis,
       },
     });
@@ -512,7 +746,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
           const isCompleted =
             (step.id === 'project' && project.name && project.name !== 'Manga sin título') ||
             (step.id === 'characters' && project.characters.length > 0) ||
-            (step.id === 'cover' && Boolean(project.cover.fullWrapBase64)) ||
+            (step.id === 'cover' &&
+              Boolean(project.cover.fullWrapBase64 || project.cover.frontBase64)) ||
             (step.id === 'pages' &&
               project.pages.some((p) => (p.komas ?? []).some((k) => Boolean(k.inkRenderUrl))));
 
@@ -532,6 +767,30 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
           );
         })}
       </div>
+
+      {/* Contextual Active Section Badge & Tip */}
+      <div className="gf-kai-section-banner">
+        <div className="gf-kai-section-badge-row">
+          <span className="gf-kai-section-badge">
+            {activeStepMeta.icon}
+            <span>Contexto: {activeStepMeta.shortLabel}</span>
+          </span>
+          <span className="gf-kai-dir-pill">
+            {project.colorMode === 'color' ? 'Color' : 'B/N'} ·{' '}
+            {(project.readingDirection || 'rtl').toUpperCase()}
+          </span>
+        </div>
+        <p className="gf-kai-section-tip">{activeStepMeta.tip}</p>
+      </div>
+
+      {/* Live Settei Draft Indicator */}
+      {setteiDraft.open && setteiDraft.draft && (
+        <div className="gf-kai-settei-draft-banner" role="status">
+          <span>
+            Editando Ficha Settei: {setteiDraft.draft.name || setteiDraft.draft.tagHandle || 'Nueva ficha'}
+          </span>
+        </div>
+      )}
 
       {/* Mode Switcher: Conversational Co-Design vs Multi-Page Koma-wari Script */}
       <div className="gf-kai-mode-switch" role="tablist" aria-label="Modo de trabajo con KAI">
@@ -643,6 +902,63 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
               </div>
             )}
 
+            {/* Open Settei Form Autofill Button */}
+            {msg.role === 'assistant' &&
+              msg.id !== 'kai-welcome' &&
+              !msg.scriptOutput &&
+              setteiDraft.open && (
+                <PillButton
+                  variant="filled"
+                  icon={<UserCheck size={14} strokeWidth={2} />}
+                  onClick={() => handleAutofillOpenSettei(msg)}
+                >
+                  {msg.applied ? 'Ficha Settei Rellenada ✓' : 'Rellenar Ficha Settei Abierta'}
+                </PillButton>
+              )}
+
+            {/* Step 1: Project Title + Synopsis 1-Click Autocomplete */}
+            {msg.role === 'assistant' &&
+              msg.id !== 'kai-welcome' &&
+              !msg.scriptOutput &&
+              activeView === 'project' && (
+                <PillButton
+                  variant="outline"
+                  icon={<Check size={13} strokeWidth={2} />}
+                  onClick={() => handleAutocompleteProjectFromKai(msg)}
+                >
+                  {msg.applied
+                    ? 'Obra y Sinopsis Aplicadas ✓'
+                    : 'Autocompletar Obra (Título + Sinopsis)'}
+                </PillButton>
+              )}
+
+            {/* Step 3: Cover Quick Actions even without [PROMPT VISUAL] tag */}
+            {msg.role === 'assistant' &&
+              msg.id !== 'kai-welcome' &&
+              !msg.scriptOutput &&
+              activeView === 'cover' &&
+              !msg.visualPrompt && (
+                <div className="gf-kai-action-card">
+                  <div className="gf-controls-actions">
+                    <PillButton
+                      variant="outline"
+                      icon={<Check size={13} strokeWidth={2} />}
+                      onClick={() => handleApplyPromptToCover(msg)}
+                    >
+                      Aplicar Prompt a Portada
+                    </PillButton>
+                    <PillButton
+                      variant="filled"
+                      disabled={Boolean(msg.actionBusy)}
+                      icon={<BookOpen size={14} strokeWidth={1.75} />}
+                      onClick={() => handleGenerateCoverFromKai(msg)}
+                    >
+                      Generar Portada 16:9
+                    </PillButton>
+                  </div>
+                </div>
+              )}
+
             {/* Direct Project Execution Bridge when KAI generates a [PROMPT VISUAL]: */}
             {msg.role === 'assistant' && msg.visualPrompt && (
               <div className="gf-kai-action-card">
@@ -652,33 +968,45 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
                 </div>
 
                 <div className="gf-controls-actions">
-                  <PillButton
-                    variant="filled"
-                    disabled={Boolean(msg.actionBusy)}
-                    icon={
-                      msg.actionBusy ? (
-                        <RefreshCw size={14} strokeWidth={2} className="gf-spin" />
-                      ) : (
-                        <Users size={14} strokeWidth={1.75} />
-                      )
-                    }
-                    onClick={() => handleCreateSetteiFromKai(msg)}
-                  >
-                    Crear Ficha @Settei + Hoja 1:1
-                  </PillButton>
+                  {(activeView === 'characters' || activeView === 'project') && (
+                    <PillButton
+                      variant="filled"
+                      disabled={Boolean(msg.actionBusy)}
+                      icon={
+                        msg.actionBusy ? (
+                          <RefreshCw size={14} strokeWidth={2} className="gf-spin" />
+                        ) : (
+                          <Users size={14} strokeWidth={1.75} />
+                        )
+                      }
+                      onClick={() => handleCreateSetteiFromKai(msg)}
+                    >
+                      Crear Ficha @Settei + Hoja 1:1
+                    </PillButton>
+                  )}
+
+                  {activeView === 'cover' && (
+                    <PillButton
+                      variant="outline"
+                      icon={<Check size={13} strokeWidth={2} />}
+                      onClick={() => handleApplyPromptToCover(msg)}
+                    >
+                      Aplicar Prompt a Portada
+                    </PillButton>
+                  )}
 
                   <PillButton
-                    variant="outline"
+                    variant={activeView === 'cover' ? 'filled' : 'outline'}
                     disabled={Boolean(msg.actionBusy)}
                     icon={<BookOpen size={14} strokeWidth={1.75} />}
                     onClick={() => handleGenerateCoverFromKai(msg)}
                   >
-                    Generar Portada 16:9 del Proyecto
+                    Generar Portada 16:9
                   </PillButton>
 
                   {selectedKoma && (
                     <PillButton
-                      variant="outline"
+                      variant={activeView === 'pages' ? 'filled' : 'outline'}
                       disabled={Boolean(msg.actionBusy)}
                       icon={<BookMarked size={14} strokeWidth={1.75} />}
                       onClick={() => handleGenerateActiveKomaFromKai(msg)}
@@ -700,20 +1028,6 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
                 </div>
               </div>
             )}
-
-            {/* Project Metadata Helper on Step 1 */}
-            {msg.role === 'assistant' &&
-              msg.id !== 'kai-welcome' &&
-              !msg.scriptOutput &&
-              activeView === 'project' && (
-                <PillButton
-                  variant="outline"
-                  icon={<Check size={13} strokeWidth={2} />}
-                  onClick={() => handleApplySynopsisToProject(msg)}
-                >
-                  {msg.applied ? 'Sinopsis Aplicada ✓' : 'Guardar Sinopsis en Contraportada'}
-                </PillButton>
-              )}
           </div>
         ))}
 

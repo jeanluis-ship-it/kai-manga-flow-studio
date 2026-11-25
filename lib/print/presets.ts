@@ -101,10 +101,140 @@ export function getPrintPreset(id?: string): PrintPresetSpec {
   return PRINT_PRESETS.tankobon_b6;
 }
 
-export function computeSpineInches(pageCount: number, paperType: 'white' | 'cream'): number {
+export function computeSpineInches(
+  pageCount: number,
+  paperType: 'white' | 'cream',
+  colorMode: 'bw' | 'color' = 'bw',
+  bindingType: 'rustica_pegada' | 'tapa_dura' | 'grapa' = 'rustica_pegada',
+): number {
   const safePages = Number.isFinite(pageCount) && pageCount > 0 ? pageCount : 100;
-  const factor = paperType === 'cream' ? 0.0025 : 0.002252;
-  return Math.max(0.1, safePages * factor);
+  let factor = paperType === 'cream' ? 0.0025 : 0.002252;
+  if (colorMode === 'color') {
+    // Coated color stock is slightly denser than uncoated B/W manga paper
+    factor = paperType === 'cream' ? 0.00268 : 0.00242;
+  }
+  if (bindingType === 'grapa') {
+    return Math.max(0.06, Number((safePages * factor * 0.45).toFixed(4)));
+  }
+  const boardAllowance = bindingType === 'tapa_dura' ? 0.14 : 0;
+  return Math.max(0.1, Number((safePages * factor + boardAllowance).toFixed(4)));
+}
+
+export interface PrintBudgetInput {
+  trimFormat?: TrimFormatId | string;
+  pageCount: number;
+  paperType: 'white' | 'cream';
+  colorMode?: 'bw' | 'color';
+  bindingType?: 'rustica_pegada' | 'tapa_dura' | 'grapa';
+  copies: number;
+}
+
+export interface PrintBudgetResult {
+  preset: PrintPresetSpec;
+  spineInches: number;
+  spineMm: number;
+  sheetsCount: number;
+  unitWeightGrams: number;
+  unitCostUsd: number;
+  batchTotalUsd: number;
+  discountPct: number;
+  suggestedPvpUsd: number;
+  breakdown: {
+    bindingLabel: string;
+    colorLabel: string;
+    paperLabel: string;
+    bindingCostPerUnitUsd: number;
+    paperCostPerUnitUsd: number;
+    colorCostPerUnitUsd: number;
+  };
+}
+
+const BINDING_LABELS: Record<'rustica_pegada' | 'tapa_dura' | 'grapa', string> = {
+  rustica_pegada: 'Rústica Pegada (PUR)',
+  tapa_dura: 'Tapa Dura (Cartoné)',
+  grapa: 'Grapa (Revista / One-Shot)',
+};
+
+const BINDING_BASE_COST: Record<'rustica_pegada' | 'tapa_dura' | 'grapa', number> = {
+  rustica_pegada: 1.15,
+  tapa_dura: 4.1,
+  grapa: 0.65,
+};
+
+const BINDING_COVER_WEIGHT_G: Record<'rustica_pegada' | 'tapa_dura' | 'grapa', number> = {
+  rustica_pegada: 34,
+  tapa_dura: 145,
+  grapa: 18,
+};
+
+function getBatchDiscountRate(copies: number): number {
+  if (copies >= 500) return 0.44;
+  if (copies >= 100) return 0.32;
+  if (copies >= 50) return 0.22;
+  if (copies >= 10) return 0.1;
+  return 0;
+}
+
+export function computePrintBudget(input: PrintBudgetInput): PrintBudgetResult {
+  const preset = getPrintPreset(input.trimFormat);
+  const safePages = Math.max(8, Math.min(800, Math.round(Number(input.pageCount) || 100)));
+  const colorMode: 'bw' | 'color' = input.colorMode === 'color' ? 'color' : 'bw';
+  const bindingType: 'rustica_pegada' | 'tapa_dura' | 'grapa' =
+    input.bindingType === 'tapa_dura' || input.bindingType === 'grapa'
+      ? input.bindingType
+      : 'rustica_pegada';
+  const safeCopies = Math.max(1, Math.min(10000, Math.round(Number(input.copies) || 1)));
+
+  const spineInches = computeSpineInches(safePages, input.paperType, colorMode, bindingType);
+  const spineMm = Number((spineInches * 25.4).toFixed(2));
+  const sheetsCount = Math.ceil(safePages / 2);
+
+  // Trim area ratio relative to Tankōbon B6 (128x182mm = 23,296 mm²)
+  const areaFactor = (preset.trimWidthMm * preset.trimHeightMm) / (128 * 182);
+  const paperGsm = colorMode === 'color' ? 115 : input.paperType === 'cream' ? 90 : 80;
+  const sheetAreaSqM = (preset.trimWidthMm / 1000) * (preset.trimHeightMm / 1000);
+  const interiorWeightG = sheetsCount * sheetAreaSqM * paperGsm;
+  const unitWeightGrams = Math.round(interiorWeightG + BINDING_COVER_WEIGHT_G[bindingType]);
+
+  const discountRate = getBatchDiscountRate(safeCopies);
+  const scaleFactor = 1 - discountRate;
+
+  const baseBinding = BINDING_BASE_COST[bindingType] * (0.75 + 0.25 * areaFactor);
+  const perPagePaper = (input.paperType === 'cream' ? 0.0085 : 0.0072) * areaFactor;
+  const perPageColor = colorMode === 'color' ? 0.038 * areaFactor : 0.0075 * areaFactor;
+
+  const bindingCostPerUnitUsd = Number((baseBinding * scaleFactor).toFixed(2));
+  const paperCostPerUnitUsd = Number((safePages * perPagePaper * scaleFactor).toFixed(2));
+  const colorCostPerUnitUsd = Number((safePages * perPageColor * scaleFactor).toFixed(2));
+
+  const unitCostUsd = Number(
+    (bindingCostPerUnitUsd + paperCostPerUnitUsd + colorCostPerUnitUsd).toFixed(2),
+  );
+  const batchTotalUsd = Number((unitCostUsd * safeCopies).toFixed(2));
+
+  // Retail suggested PVP based on single/small-run editorial margin (~2.35x base unit cost)
+  const singleUnitBase = baseBinding + safePages * (perPagePaper + perPageColor);
+  const suggestedPvpUsd = Number(Math.max(9.99, Math.ceil(singleUnitBase * 2.35) - 0.01).toFixed(2));
+
+  return {
+    preset,
+    spineInches,
+    spineMm,
+    sheetsCount,
+    unitWeightGrams,
+    unitCostUsd,
+    batchTotalUsd,
+    discountPct: Math.round(discountRate * 100),
+    suggestedPvpUsd,
+    breakdown: {
+      bindingLabel: BINDING_LABELS[bindingType],
+      colorLabel: colorMode === 'color' ? 'Color Editorial (CMYK)' : 'Blanco y Negro (Sumi)',
+      paperLabel: input.paperType === 'cream' ? 'Crema Premium' : 'Blanco Estándar',
+      bindingCostPerUnitUsd,
+      paperCostPerUnitUsd,
+      colorCostPerUnitUsd,
+    },
+  };
 }
 
 export function slugifyFilename(raw: string): string {

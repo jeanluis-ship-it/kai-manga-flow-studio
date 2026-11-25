@@ -1,0 +1,218 @@
+/* ProjectManager — Configuración de Obra, Modos de Color/Encuadernación y Presupuesto */
+
+.gf-pm-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gf-pm-kai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--gf-ai-accent);
+  background: var(--gf-ai-soft);
+  color: var(--gf-ai-accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.gf-pm-kai-btn:hover {
+  background: var(--gf-ai-accent);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.gf-pm-segmented-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gf-pm-mode-pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gf-pm-binding-pills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gf-pm-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--gf-border-strong);
+  background: var(--gf-surface);
+  color: var(--gf-ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.gf-pm-choice-btn:hover {
+  border-color: var(--gf-ink);
+  background: var(--gf-surface-muted);
+}
+
+.gf-pm-choice-btn.is-active {
+  border-color: var(--gf-ai-accent);
+  background: var(--gf-ai-soft);
+}
+
+.gf-pm-choice-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gf-ink);
+}
+
+.gf-pm-choice-sub {
+  font-size: 10.5px;
+  color: var(--gf-ink-secondary);
+}
+
+/* Spine & Budget Card Enhancements */
+.gf-pm-budget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gf-pm-copies-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--gf-surface-muted);
+  border: 1px solid var(--gf-border);
+}
+
+.gf-pm-copies-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gf-ink-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.gf-pm-copies-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gf-pm-copy-chip {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 9999px;
+  border: 1px solid var(--gf-border-strong);
+  background: var(--gf-surface);
+  color: var(--gf-ink-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.gf-pm-copy-chip:hover {
+  color: var(--gf-ink);
+  border-color: var(--gf-ink);
+}
+
+.gf-pm-copy-chip.is-active {
+  background: var(--gf-btn-solid-bg);
+  border-color: var(--gf-btn-solid-bg);
+  color: var(--gf-btn-solid-fg);
+}
+
+.gf-pm-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gf-pm-stat-box {
+  background: var(--gf-surface-muted);
+  border: 1px solid var(--gf-border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gf-pm-stat-box.is-highlight {
+  border-color: rgba(5, 150, 105, 0.4);
+  background: rgba(5, 150, 105, 0.06);
+}
+
+.gf-pm-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-pm-stat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--gf-ink);
+}
+
+.gf-pm-stat-sub {
+  font-size: 10.5px;
+  color: var(--gf-ink-muted);
+}
+
+.gf-pm-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--gf-border-strong);
+  font-size: 11px;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-pm-breakdown span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 780px) {
+  .gf-pm-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gf-pm-mode-pills,
+  .gf-pm-binding-pills {
+    grid-template-columns: 1fr;
+  }
+}

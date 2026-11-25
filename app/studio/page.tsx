@@ -14,6 +14,7 @@ import {
   FolderPlus,
   HardDrive,
   Info,
+  KeyRound,
   Layers,
   Lock,
   LogIn,
@@ -56,6 +57,10 @@ import {
 import { encodeEan13, formatIsbn13 } from '@/lib/print/ean13';
 import { computeSpineInches } from '@/lib/print/presets';
 import {
+  getSeedProjectForVolume,
+  isStarterBlankProject,
+} from '@/lib/storage/seedProjects';
+import {
   buildKomasForLayout,
   createInitialStudioProject,
   loadStudioProject,
@@ -97,6 +102,46 @@ import './studio.css';
 const STUDIO_THEME_KEY = 'mangai-studio-theme-v1';
 const SIMULATED_PLAN_KEY = 'mangai-simulated-plan-v1';
 const EXTRA_PROJECTS_KEY = 'mangai-extra-projects-v1';
+const LOCAL_SESSION_KEY = 'mangai-local-session-v1';
+const USER_PROJECTS_PREFIX = 'mangai-user-projects-v1:';
+const GOOGLE_KEY_STORAGE = 'mangai-google-key-v1';
+
+interface LocalBetaSession {
+  id?: string;
+  email: string;
+  displayName?: string;
+  name?: string;
+  planTier?: string;
+}
+
+function parseLocalBetaSession(): LocalBetaSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(LOCAL_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LocalBetaSession>;
+    const email = typeof parsed?.email === 'string' ? parsed.email.trim().toLowerCase() : '';
+    if (!email || !email.includes('@')) return null;
+    return {
+      id: typeof parsed.id === 'string' && parsed.id ? parsed.id : `local-${email}`,
+      email,
+      displayName: parsed.displayName || parsed.name || email.split('@')[0],
+      planTier: parsed.planTier,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function projectMatchesVolume(candidate: Project, volumeSlug: string, seedName?: string): boolean {
+  if (candidate.volumeSlug && candidate.volumeSlug.toLowerCase() === volumeSlug.toLowerCase()) {
+    return true;
+  }
+  if (seedName && candidate.name.trim().toLowerCase() === seedName.trim().toLowerCase()) {
+    return true;
+  }
+  return false;
+}
 
 const ART_STYLES = [
   'Classic Shonen',
@@ -192,16 +237,20 @@ export default function StudioPage() {
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [tabletPromptFromKai, setTabletPromptFromKai] = useState('');
   const [kaiPendingMessage, setKaiPendingMessage] = useState('');
+  const [kaiPendingMode, setKaiPendingMode] = useState<'mentor' | 'script'>('mentor');
   const [preflightOpen, setPreflightOpen] = useState(false);
   const [quotaProfile, setQuotaProfile] = useState<UserQuotaProfile>(() =>
     createGuestQuotaProfile('trial'),
   );
+  const [localUserEmail, setLocalUserEmail] = useState<string | null>(null);
   const [upgradeModal, setUpgradeModal] = useState<{
     open: boolean;
     reason?: string;
     requiredPlan?: PlanTier;
   }>({ open: false });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [keyPopoverOpen, setKeyPopoverOpen] = useState(false);
+  const [customGoogleKey, setCustomGoogleKey] = useState('');
   const [hdModelOn, setHdModelOn] = useState(false);
   const [renderPriorityOn, setRenderPriorityOn] = useState(false);
   const [generating, setGenerating] = useState<GeneratingState>({
@@ -264,19 +313,26 @@ export default function StudioPage() {
     let active = true;
     const params = new URLSearchParams(window.location.search);
     const initialTab = resolveTabParam(params.get('tab'));
+    const volumeParam = params.get('volume')?.trim() || '';
     if (initialTab) {
       setView(initialTab);
     }
 
+    let initialExtras: Project[] = [];
     try {
       const savedTheme = window.localStorage.getItem(STUDIO_THEME_KEY);
       if (savedTheme === 'dark' || savedTheme === 'light') {
         setTheme(savedTheme);
       }
+      const savedGoogleKey = window.localStorage.getItem(GOOGLE_KEY_STORAGE);
+      if (savedGoogleKey) {
+        setCustomGoogleKey(savedGoogleKey);
+      }
       const savedExtras = window.localStorage.getItem(EXTRA_PROJECTS_KEY);
       if (savedExtras) {
         const parsedExtras = JSON.parse(savedExtras) as Project[];
         if (Array.isArray(parsedExtras)) {
+          initialExtras = parsedExtras;
           setExtraProjects(parsedExtras);
         }
       }
@@ -284,7 +340,7 @@ export default function StudioPage() {
       // Ignore storage access errors.
     }
 
-    const loadAuthProfile = async () => {
+    const loadAuthProfile = async (): Promise<string | null> => {
       let simulated: PlanTier | undefined;
       try {
         const rawSim = window.localStorage.getItem(SIMULATED_PLAN_KEY);
@@ -295,21 +351,43 @@ export default function StudioPage() {
         // Ignore storage errors.
       }
 
+      const applyLocalBetaFallback = (): string | null => {
+        const localSess = parseLocalBetaSession();
+        if (!localSess) {
+          if (active) {
+            setLocalUserEmail(null);
+            setQuotaProfile(createGuestQuotaProfile(simulated));
+          }
+          return null;
+        }
+        const effectiveTier = simulated ?? normalizePlanTier(localSess.planTier);
+        if (active) {
+          setLocalUserEmail(localSess.email);
+          setQuotaProfile(
+            buildProfileForPlan(effectiveTier, {
+              id: localSess.id,
+              email: localSess.email,
+              displayName: localSess.displayName,
+              isGuest: false,
+            }),
+          );
+        }
+        return localSess.email;
+      };
+
       const supabase = getSupabaseBrowserClient();
       if (!supabase) {
-        if (active) setQuotaProfile(createGuestQuotaProfile(simulated));
-        return;
+        return applyLocalBetaFallback();
       }
 
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!active) return;
+        if (!active) return null;
 
         if (!user) {
-          setQuotaProfile(createGuestQuotaProfile(simulated));
-          return;
+          return applyLocalBetaFallback();
         }
 
         const { data: row } = await supabase
@@ -318,8 +396,10 @@ export default function StudioPage() {
           .eq('id', user.id)
           .maybeSingle();
 
-        if (!active) return;
+        if (!active) return null;
         const effectiveTier = simulated ?? normalizePlanTier(row?.plan_tier);
+        const resolvedEmail = user.email ?? null;
+        setLocalUserEmail(resolvedEmail);
         setQuotaProfile(
           buildProfileForPlan(effectiveTier, {
             id: user.id,
@@ -354,20 +434,80 @@ export default function StudioPage() {
             subscriptionStatus: (row?.subscription_status as SubscriptionStatus) || undefined,
           }),
         );
+        return resolvedEmail;
       } catch {
-        if (active) setQuotaProfile(createGuestQuotaProfile(simulated));
+        return applyLocalBetaFallback();
       }
     };
 
-    void Promise.all([loadStudioProject(), loadAuthProfile()]).then(([{ project: loaded, mode }]) => {
-      if (!active) return;
-      setProject(loaded);
-      setStorageMode(mode);
-      const firstKoma = loaded.pages[0]?.komas?.[0] ?? null;
-      setSelectedKomaId(firstKoma?.id ?? null);
-      setSelectedDialogueId(firstKoma?.dialogues?.[0]?.id ?? null);
-      setMounted(true);
-    });
+    void Promise.all([loadStudioProject(), loadAuthProfile()]).then(
+      ([{ project: loaded, mode }, userEmail]) => {
+        if (!active) return;
+
+        let resolvedProject = loaded;
+        let resolvedExtras = initialExtras;
+
+        // Restore per-user local projects if user signed in via Beta / local session
+        if (userEmail) {
+          try {
+            const rawUserProjects = window.localStorage.getItem(
+              `${USER_PROJECTS_PREFIX}${userEmail}`,
+            );
+            if (rawUserProjects) {
+              const parsed = JSON.parse(rawUserProjects) as {
+                activeProject?: Project;
+                extraProjects?: Project[];
+              };
+              if (parsed?.activeProject && isStarterBlankProject(loaded)) {
+                resolvedProject = parsed.activeProject;
+              }
+              if (Array.isArray(parsed?.extraProjects) && parsed.extraProjects.length > 0) {
+                resolvedExtras = parsed.extraProjects;
+              }
+            }
+          } catch {
+            // Ignore per-user storage parse errors.
+          }
+        }
+
+        // Deep-link ?volume=<id> from landing collection/hero
+        if (volumeParam) {
+          const seeded = getSeedProjectForVolume(volumeParam);
+          const seedName = seeded?.name;
+          if (projectMatchesVolume(resolvedProject, volumeParam, seedName)) {
+            if (!resolvedProject.volumeSlug) {
+              resolvedProject = { ...resolvedProject, volumeSlug: volumeParam };
+            }
+          } else {
+            const existingIdx = resolvedExtras.findIndex((p) =>
+              projectMatchesVolume(p, volumeParam, seedName),
+            );
+            if (existingIdx >= 0) {
+              const matched = resolvedExtras[existingIdx];
+              const remaining = resolvedExtras.filter((_, idx) => idx !== existingIdx);
+              if (!isStarterBlankProject(resolvedProject)) {
+                remaining.push(resolvedProject);
+              }
+              resolvedProject = matched;
+              resolvedExtras = remaining;
+            } else if (seeded) {
+              if (!isStarterBlankProject(resolvedProject)) {
+                resolvedExtras = [...resolvedExtras, resolvedProject];
+              }
+              resolvedProject = seeded;
+            }
+          }
+        }
+
+        setExtraProjects(resolvedExtras);
+        setProject(resolvedProject);
+        setStorageMode(mode);
+        const firstKoma = resolvedProject.pages[0]?.komas?.[0] ?? null;
+        setSelectedKomaId(firstKoma?.id ?? null);
+        setSelectedDialogueId(firstKoma?.dialogues?.[0]?.id ?? null);
+        setMounted(true);
+      },
+    );
 
     return () => {
       active = false;
@@ -378,10 +518,16 @@ export default function StudioPage() {
     if (!mounted) return;
     try {
       window.localStorage.setItem(EXTRA_PROJECTS_KEY, JSON.stringify(extraProjects));
+      if (localUserEmail) {
+        window.localStorage.setItem(
+          `${USER_PROJECTS_PREFIX}${localUserEmail}`,
+          JSON.stringify({ activeProject: project, extraProjects }),
+        );
+      }
     } catch {
       // Ignore quota errors gracefully.
     }
-  }, [extraProjects, mounted]);
+  }, [extraProjects, project, localUserEmail, mounted]);
 
   // Debounced persistence via studioRepository (Supabase + localStorage fallback)
   useEffect(() => {
@@ -429,19 +575,61 @@ export default function StudioPage() {
     });
   };
 
-  const handleSelectView = (nextView: StudioView) => {
+  const handleSelectView = useCallback((nextView: StudioView) => {
     setView(nextView);
-    if (nextView === 'pages' || nextView === 'cover') {
-      // Keep current right tab so user can stay in KAI or switch to Inspector freely
-    } else if (nextView === 'project' || nextView === 'characters') {
-      setRightPanelTab('kai');
-    }
+    setRightPanelCollapsed(false);
+    setRightPanelTab('kai');
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.set('tab', nextView);
       window.history.replaceState({}, '', url.toString());
     }
-  };
+  }, []);
+
+  // Cross-worker event bridges: mangai-kai-ask & mangai-koma-sketch-bridge
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleKaiAsk = (evt: Event) => {
+      const detail = (evt as CustomEvent<{ prompt?: string; mode?: 'mentor' | 'script' }>).detail;
+      if (!detail?.prompt) return;
+      setRightPanelCollapsed(false);
+      setRightPanelTab('kai');
+      setKaiPendingMode(detail.mode === 'script' ? 'script' : 'mentor');
+      setKaiPendingMessage(detail.prompt);
+    };
+
+    const handleKomaSketchBridge = (evt: Event) => {
+      const detail = (
+        evt as CustomEvent<{
+          pageIndex: number;
+          komaId: string;
+          nemuSketchUrl?: string;
+          taggedHandle?: string;
+          actionPrompt?: string;
+        }>
+      ).detail;
+      if (!detail) return;
+      if (typeof detail.pageIndex === 'number' && detail.pageIndex >= 0) {
+        setActivePageIndex(detail.pageIndex);
+      }
+      if (detail.komaId) {
+        setSelectedKomaId(detail.komaId);
+      }
+      try {
+        window.sessionStorage.setItem('mangai-pending-koma-sketch', JSON.stringify(detail));
+      } catch {
+        // Ignore sessionStorage errors.
+      }
+      handleSelectView('drawing_tablet');
+    };
+
+    window.addEventListener('mangai-kai-ask', handleKaiAsk);
+    window.addEventListener('mangai-koma-sketch-bridge', handleKomaSketchBridge);
+    return () => {
+      window.removeEventListener('mangai-kai-ask', handleKaiAsk);
+      window.removeEventListener('mangai-koma-sketch-bridge', handleKomaSketchBridge);
+    };
+  }, [handleSelectView]);
 
   const openDockedKai = () => {
     setRightPanelCollapsed(false);
@@ -461,6 +649,8 @@ export default function StudioPage() {
       nextState.cover.spineWidthInches = computeSpineInches(
         nextState.pageCount,
         nextState.paperType,
+        nextState.colorMode ?? 'bw',
+        nextState.bindingType ?? 'rustica_pegada',
       );
       return nextState;
     });
@@ -866,6 +1056,12 @@ export default function StudioPage() {
     if (supabase) {
       await supabase.auth.signOut();
     }
+    try {
+      window.localStorage.removeItem(LOCAL_SESSION_KEY);
+    } catch {
+      // Ignore storage errors.
+    }
+    setLocalUserEmail(null);
     setUserMenuOpen(false);
     setQuotaProfile(createGuestQuotaProfile('trial'));
     setStorageMode('local');
@@ -962,6 +1158,51 @@ export default function StudioPage() {
         </div>
 
         <div className="gf-topbar-right">
+          <div className="gf-user-menu-wrap">
+            <button
+              type="button"
+              onClick={() => setKeyPopoverOpen((v) => !v)}
+              className="gf-theme-toggle"
+              title="Conectar llave propia de Google AI Studio (opcional)"
+            >
+              <KeyRound size={13} strokeWidth={2} className="gf-icon-shrink" />
+              <span>{customGoogleKey.trim() ? 'Llave Propia Activa' : 'Llave IA'}</span>
+            </button>
+            {keyPopoverOpen && (
+              <div className="gf-user-dropdown" style={{ width: '286px', padding: '12px' }}>
+                <div className="gf-user-dropdown-head">
+                  <strong>Llave Google AI Studio (Opcional)</strong>
+                  <span>
+                    Si cuentas con una llave propia de Gemini AI Studio, guárdala localmente en este
+                    navegador.
+                  </span>
+                </div>
+                <input
+                  type="password"
+                  className="gf-modal-input gf-mono-input"
+                  value={customGoogleKey}
+                  onChange={(e) => {
+                    const nextVal = e.target.value;
+                    setCustomGoogleKey(nextVal);
+                    try {
+                      if (nextVal.trim()) {
+                        window.localStorage.setItem(GOOGLE_KEY_STORAGE, nextVal.trim());
+                      } else {
+                        window.localStorage.removeItem(GOOGLE_KEY_STORAGE);
+                      }
+                    } catch {
+                      // Ignore storage errors.
+                    }
+                  }}
+                  placeholder="AIzaSy..."
+                />
+                <PillButton variant="solid" onClick={() => setKeyPopoverOpen(false)}>
+                  Guardar y Cerrar
+                </PillButton>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={() => openUpgradeModal()}
@@ -1092,7 +1333,7 @@ export default function StudioPage() {
               <NavItem
                 active={view === 'pages'}
                 icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Páginas e Interiores"
+                label="Viñetas e Interiores"
                 onClick={() => handleSelectView('pages')}
               />
               <NavItem
@@ -1344,7 +1585,11 @@ export default function StudioPage() {
                   activePageIndex={safePageIndex}
                   selectedKomaId={selectedKomaId}
                   pendingExternalMessage={kaiPendingMessage}
-                  onConsumeExternalMessage={() => setKaiPendingMessage('')}
+                  pendingExternalMode={kaiPendingMode}
+                  onConsumeExternalMessage={() => {
+                    setKaiPendingMessage('');
+                    setKaiPendingMode('mentor');
+                  }}
                   onNavigateView={handleSelectView}
                   updateProject={updateProject}
                   onApplyScript={handleApplyKaiScript}
@@ -1553,7 +1798,8 @@ function ViewControls({
 
     try {
       const taggedSet = new Set(handlesSnapshot.map((h) => h.toLowerCase()));
-      const taggedEntities = project.characters.filter((c) => {
+      const activeChars = project.characters.filter((c) => c.activeInCanon !== false);
+      const taggedEntities = activeChars.filter((c) => {
         const handle = normalizeTagHandle(c.tagHandle || '', c.name).toLowerCase();
         return taggedSet.has(handle);
       });
@@ -1575,6 +1821,11 @@ function ViewControls({
         .filter(Boolean)
         .join(' | ');
 
+      const seedsCanon = taggedEntities
+        .map((c) => (c.characterSeed ? `${c.name}: ${c.characterSeed}` : ''))
+        .filter(Boolean)
+        .join(' | ');
+
       const referenceImageMediaIds = taggedEntities
         .map((c) => c.referenceMediaId)
         .filter((id): id is string => Boolean(id));
@@ -1582,8 +1833,13 @@ function ViewControls({
         .map((c) => c.referenceBase64)
         .filter((img): img is string => Boolean(img));
 
+      const colorModeLabel =
+        project.colorMode === 'color'
+          ? 'vibrant full color editorial manga illustration'
+          : 'high contrast black and white Sumi ink, fine G-pen linework, screentones';
+
       const finalPrompt = [
-        `Professional single manga panel (Viñeta #${selectedKoma.panelIndex}), high contrast black and white Sumi ink, fine G-pen linework, screentones.`,
+        `Professional single manga panel (Viñeta #${selectedKoma.panelIndex}), ${colorModeLabel}.`,
         `Style: ${styleSnapshot}.`,
         `Camera angle: ${cameraSnapshot}.`,
         `Action: ${promptSnapshot.trim() || currentPage.chapterBeat || 'Dramatic manga moment'}.`,
@@ -1603,7 +1859,8 @@ function ViewControls({
           taggedEntities.map((c) => c.name).filter(Boolean).join(', ') ||
           `${project.name || 'Manga'} · Viñeta #${selectedKoma.panelIndex}`,
         details: entityVisuals || undefined,
-        style: styleSnapshot,
+        canon: seedsCanon || undefined,
+        style: `${styleSnapshot} · ${project.colorMode === 'color' ? 'Color' : 'B/N'}`,
         notes: `${cameraSnapshot} — ${promptSnapshot.trim() || `Viñeta #${selectedKoma.panelIndex}`}`,
         referenceImageMediaIds:
           referenceImageMediaIds.length > 0 ? referenceImageMediaIds : undefined,
@@ -1635,59 +1892,94 @@ function ViewControls({
     }
   };
 
-  const generateUnifiedCover = async () => {
+  const generateCoverTarget = async (target: 'wrap' | 'front' | 'back') => {
     if (generating.cover) return;
     setCoverError('');
     setTaskLoading('cover', true);
     const promptSnapshot = coverPrompt;
 
     try {
-      const charVisuals = project.characters
+      const activeChars = project.characters.filter((c) => c.activeInCanon !== false);
+      const charVisuals = activeChars
         .map((c) => {
           const anchors = (c.visualAnchors ?? []).filter(Boolean).join(', ');
-          return [c.name, c.appearance, c.clothing, anchors ? `Anchors: ${anchors}` : '']
+          return [
+            c.name,
+            c.appearance,
+            c.clothing,
+            anchors ? `Anchors: ${anchors}` : '',
+            c.characterSeed ? `Seed: ${c.characterSeed}` : '',
+          ]
             .filter(Boolean)
             .join(': ');
         })
         .filter(Boolean)
         .join('. ');
-      const referenceImageMediaIds = project.characters
+      const seedsCanon = activeChars
+        .map((c) => (c.characterSeed ? `${c.name}: ${c.characterSeed}` : ''))
+        .filter(Boolean)
+        .join(' | ');
+      const referenceImageMediaIds = activeChars
         .map((c) => c.referenceMediaId)
         .filter((id): id is string => Boolean(id));
-      const referenceImagesBase64 = project.characters
+      const referenceImagesBase64 = activeChars
         .map((c) => c.referenceBase64)
         .filter((img): img is string => Boolean(img));
-      const finalPrompt = `Professional cinematic manga wrap-around cover. Right side (front): main illustration showing ${promptSnapshot}. Left side (back): matching background elements, minimalist composition. Spine in middle. Style: ${style}. Vibrant colors. Character details: ${charVisuals}`;
+
+      const colorFlavor =
+        project.colorMode === 'color'
+          ? 'Vibrant full-color manga cover'
+          : 'Sumi ink monochrome with dramatic crimson accent manga cover';
+
+      const finalPrompt =
+        target === 'wrap'
+          ? `Professional cinematic manga wrap-around cover. Right side (front): main illustration showing ${promptSnapshot}. Left side (back): matching background elements, minimalist composition. Spine in middle. Style: ${style}. ${colorFlavor}. Character details: ${charVisuals}`
+          : target === 'front'
+          ? `Vertical 3:4 manga Tankobon front cover illustration showing ${promptSnapshot}. Style: ${style}. ${colorFlavor}. Character details: ${charVisuals}`
+          : `Vertical 3:4 manga Tankobon back cover atmospheric background art matching ${promptSnapshot}, clean negative space for synopsis and barcode. Style: ${style}. ${colorFlavor}.`;
 
       const result = await Flow.generate.image({
         prompt: finalPrompt,
         useHdModel: hdModelOn,
         renderPriority: renderPriorityOn,
-        mode: 'cover_wrap',
-        aspectRatio: '16:9',
+        mode: target === 'wrap' ? 'cover_wrap' : 'portrait',
+        aspectRatio: target === 'wrap' ? '16:9' : '3:4',
         name: project.name || 'Manga sin título',
         details: charVisuals || undefined,
-        style,
-        notes: promptSnapshot.trim() || `Wrap cover artwork for ${project.name || 'Manga'}`,
+        canon: seedsCanon || undefined,
+        style: `${style} · ${project.colorMode === 'color' ? 'Color' : 'B/N'}`,
+        notes: promptSnapshot.trim() || `Cover artwork for ${project.name || 'Manga'}`,
         referenceImageMediaIds:
           referenceImageMediaIds.length > 0 ? referenceImageMediaIds : undefined,
         referenceImagesBase64:
           referenceImagesBase64.length > 0 ? referenceImagesBase64 : undefined,
       });
 
-      updateCover({
-        fullWrapBase64: result.dataUrl,
-        frontBase64: result.dataUrl,
-        backBase64: result.dataUrl,
-        prompt: promptSnapshot,
-      });
+      if (target === 'wrap') {
+        updateCover({
+          fullWrapBase64: result.dataUrl,
+          frontBase64: result.dataUrl,
+          backBase64: result.dataUrl,
+          prompt: promptSnapshot,
+        });
+      } else if (target === 'front') {
+        updateCover({
+          frontBase64: result.dataUrl,
+          prompt: promptSnapshot,
+        });
+      } else {
+        updateCover({
+          backBase64: result.dataUrl,
+          prompt: promptSnapshot,
+        });
+      }
     } catch (err) {
       console.error(err);
       if (err instanceof QuotaExceededError) {
         onQuotaBlocked(err.message, normalizePlanTier(err.requiredPlan));
       }
       setCoverError(
-        err instanceof Error ? err.message : 'No se pudo generar la cubierta envolvente.',
+        err instanceof Error ? err.message : 'No se pudo generar la cubierta Tankōbon.',
       );
     } finally {
       setTaskLoading('cover', false);
@@ -1760,12 +2052,14 @@ function ViewControls({
                   Settei Etiquetados ({selectedKoma.taggedHandles.length})
                 </SectionLabel>
                 <div className="gf-cast-chips">
-                  {project.characters.length === 0 ? (
+                  {project.characters.filter((c) => c.activeInCanon !== false).length === 0 ? (
                     <span className="gf-cast-empty">
-                      Crea fichas en «Settei y Personajes» para inyectar @handles y anclas visuales.
+                      Activa o crea fichas en «Settei y Personajes» para inyectar @handles y anclas visuales.
                     </span>
                   ) : (
-                    project.characters.map((c) => {
+                    project.characters
+                      .filter((c) => c.activeInCanon !== false)
+                      .map((c) => {
                       const handle = normalizeTagHandle(c.tagHandle || '', c.name);
                       const selected = selectedKoma.taggedHandles.some(
                         (h) => h.toLowerCase() === handle.toLowerCase(),
@@ -2249,10 +2543,34 @@ function ViewControls({
                 <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
               )
             }
-            onClick={generateUnifiedCover}
+            onClick={() => generateCoverTarget('wrap')}
             disabled={isCoverBusy}
           >
-            {isCoverBusy ? 'Generando Cubierta...' : 'Generar Cubierta Completa'}
+            {isCoverBusy ? 'Generando Cubierta...' : 'Generar Full Wrap 16:9'}
+          </PillButton>
+
+          <PillButton
+            variant="outline"
+            onClick={() => generateCoverTarget('front')}
+            disabled={isCoverBusy}
+          >
+            Generar Portada Frontal (3:4)
+          </PillButton>
+
+          <PillButton
+            variant="outline"
+            onClick={() => generateCoverTarget('back')}
+            disabled={isCoverBusy}
+          >
+            Generar Contraportada (3:4)
+          </PillButton>
+
+          <PillButton
+            variant="outline"
+            icon={<Sparkles size={14} strokeWidth={1.75} className="gf-icon-shrink" />}
+            onClick={onOpenKai}
+          >
+            Diseñar Portada con KAI
           </PillButton>
 
           {coverError && <div className="gf-inline-error">{coverError}</div>}
@@ -2355,7 +2673,7 @@ function ViewControls({
             icon={<Printer size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
             onClick={onExportCover}
           >
-            Exportar PDF Listo para Imprenta
+            Exportar PNG de Cubierta
           </PillButton>
         </div>
       </div>

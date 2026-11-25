@@ -874,6 +874,17 @@ body {
   padding: 24px;
 }
 
+@media (min-width: 961px) {
+  .manga-grid:not(.is-right-collapsed) ~ .gf-modal-backdrop {
+    right: 368px;
+  }
+
+  .gf-canvas-shell .gf-modal-backdrop {
+    position: absolute;
+    inset: 0;
+  }
+}
+
 .gf-modal-card {
   background: var(--gf-surface);
   border: 1px solid var(--gf-border-strong);
@@ -2259,9 +2270,64 @@ body {
 
 /* Docked Right-Side KAI Project Workspace (No opaque backdrop over left side) */
 .gf-sidebar-right.gf-sidebar-right-docked {
+  position: relative;
+  z-index: 130;
+  pointer-events: auto;
   padding: 0;
   gap: 0;
   overflow: hidden;
+}
+
+.gf-kai-section-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--gf-surface-muted);
+  border-bottom: 1px solid var(--gf-border);
+  flex-shrink: 0;
+}
+
+.gf-kai-section-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gf-kai-section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--gf-ai-soft);
+  color: var(--gf-ai-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gf-kai-section-tip {
+  margin: 0;
+  font-size: 11px;
+  color: var(--gf-ink-secondary);
+  line-height: 1.4;
+}
+
+.gf-kai-settei-draft-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  background: rgba(5, 150, 105, 0.1);
+  border-bottom: 1px solid rgba(5, 150, 105, 0.3);
+  color: var(--gf-spine-accent);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .gf-right-dock-tabs {
@@ -4241,7 +4307,6 @@ body {
   .gf-editor-header,
   .gf-koma-templates,
   .gf-koma-top-badges,
-  .gf-kai-backdrop,
   .gf-modal-backdrop,
   .gf-layer-l0,
   .gf-layer-l6,
