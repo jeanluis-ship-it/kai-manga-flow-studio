@@ -1,3 +1,4 @@
+import { generateGeminiSketch } from './geminiSketch';
 import { KAI_IMAGE_MODEL_DEFAULT } from './studioCanvas';
 
 type ImagePart = { text: string } | { inlineData: { mimeType: string; data: string } };
@@ -38,6 +39,13 @@ export async function generateGeminiImage(apiKey: string, parts: ImagePart[], as
       const modelLimit = violations.length > 0 && violations.every((v) => v.quotaDimensions?.model);
       if (model !== models.at(-1) && (response.status === 404 || response.status === 503 || (response.status === 429 && modelLimit))) continue;
       if (response.status === 429) {
+        if (allowLite) {
+          try {
+            return await generateGeminiSketch(apiKey, parts, aspectRatio, signal);
+          } catch (error) {
+            console.warn('Gemini sketch unavailable', error instanceof Error ? error.name : 'Error');
+          }
+        }
         const shortLimit = violations.length > 0 && violations.every((v) => /minute|second/i.test(v.quotaId || '') && v.quotaValue !== '0');
         const retry = response.headers.get('retry-after') || details.error?.details?.find((d) => d.retryDelay)?.retryDelay?.replace(/s$/, '');
         const seconds = Math.ceil(Number(retry));
@@ -57,7 +65,7 @@ export async function generateGeminiImage(apiKey: string, parts: ImagePart[], as
       const data = part.inlineData?.data || part.inline_data?.data;
       const mimeType = part.inlineData?.mimeType || part.inline_data?.mime_type || 'image/png';
       if (data && /^image\/(png|jpeg|webp)$/.test(mimeType)) {
-        return { image: `data:${mimeType};base64,${data}`, mimeType, model };
+        return { image: `data:${mimeType};base64,${data}`, mimeType, model, renderKind: 'illustration' as const };
       }
     }
     throw new ImageServiceError('El proveedor terminó sin entregar una imagen. Revisa la descripción o la referencia.', 502);

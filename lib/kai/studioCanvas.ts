@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const KAI_TEXT_MODEL_DEFAULT = 'gemini-3-flash-preview';
+export const KAI_TEXT_MODEL_DEFAULT = 'gemini-3.1-flash-lite';
 export const KAI_IMAGE_MODEL_DEFAULT = 'gemini-3.1-flash-image';
 
 export type KaiCanvasStyleId = 'manga_ink' | 'webtoon_color' | 'cover_art' | 'chibi_kai';
@@ -266,7 +266,7 @@ export async function generateMangaPanel(params: {
   aspectRatio?: KaiCanvasAspectRatio;
   sketchDataUrl?: string;
 }): Promise<{ image: string; mimeType: string; model: string; promptUsed: string }> {
-  return postJson<{ image: string; mimeType: string; model: string; promptUsed: string }>(
+  const result = await postJson<{ image: string; mimeType: string; model: string; promptUsed: string; renderKind?: string }>(
     '/api/kai/canvas',
     {
       prompt: params.prompt,
@@ -276,4 +276,6 @@ export async function generateMangaPanel(params: {
     },
     'No se pudo generar la ilustración en el lienzo.',
   );
+  if (result.renderKind === 'vector-sketch') window.dispatchEvent(new Event('kai-vector-sketch'));
+  return result;
 }
