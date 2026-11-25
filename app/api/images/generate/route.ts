@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { KAI_IMAGE_MODEL_DEFAULT } from '@/lib/kai/studioCanvas';
 import { generateGeminiImage, imageErrorResponse } from '@/lib/kai/geminiImage';
+import { generateFluxImage } from '@/lib/kai/fluxImage';
 import { IMAGE_MODES } from '@/lib/prompts';
 import { checkQuota } from '@/lib/plans/quotas';
 import { getServerQuotaContext } from '@/lib/plans/serverAuth';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 180;
 
 const MAX_FILE_BYTES = 6 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/png', 'image/jpeg', 'image/webp']);
@@ -170,6 +171,11 @@ export async function POST(req: NextRequest) {
     ]
       .filter(Boolean)
       .join('\n');
+
+    if (form.get('provider') === 'flux') {
+      const result = await generateFluxImage(prompt, encodedRefs, aspectRatio, seed, req.signal);
+      return NextResponse.json({ ...result, mode: modeData.id, providerStatus: 'flux-beta' });
+    }
 
     const result = await generateGeminiImage(
       apiKey,
