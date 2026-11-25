@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const KAI_TEXT_MODEL_DEFAULT = 'gemini-3-flash-preview';
-export const KAI_IMAGE_MODEL_DEFAULT = 'gemini-3.1-flash-image-preview';
+export const KAI_IMAGE_MODEL_DEFAULT = 'gemini-3.1-flash-image';
 
 export type KaiCanvasStyleId = 'manga_ink' | 'webtoon_color' | 'cover_art' | 'chibi_kai';
 export type KaiCanvasAspectRatio = '3:4' | '9:16' | '16:9' | '1:1';
@@ -241,11 +241,12 @@ export async function askKaiAssistant(
   chatHistory: KaiChatHistoryTurn[] = [],
   options?: { activeSettei?: string[]; projectContext?: string },
 ): Promise<{ reply: string; visualPrompt: string | null; model: string }> {
-  const cleanSettei = options?.activeSettei?.map((s) => s.trim()).filter(Boolean);
-  const cleanHistory = chatHistory.filter((turn) =>
-    turn.parts.some((part) => part.text.trim().length > 0),
-  );
-  const cleanProjectContext = options?.projectContext?.trim();
+  const cleanSettei = options?.activeSettei?.map((s) => s.trim().slice(0, 1000)).filter(Boolean).slice(0, 20);
+  const cleanHistory = chatHistory.slice(-30).map((turn) => ({
+    role: turn.role,
+    parts: turn.parts.slice(0, 10).map((part) => ({ text: part.text.trim().slice(0, 16000) })).filter((part) => part.text),
+  })).filter((turn) => turn.parts.length > 0);
+  const cleanProjectContext = options?.projectContext?.trim().slice(0, 2400);
 
   return postJson<{ reply: string; visualPrompt: string | null; model: string }>(
     '/api/kai/chat',

@@ -21,7 +21,7 @@ Tu misión es asistir al creador paso a paso en español (Configuración de Obra
 REGLA DE PROMPT VISUAL:
 - SIEMPRE que propongas o refines un personaje, portada, viñeta o mejora de boceto de la Tabla de Dibujo, incluye al final en su propia línea:
 [PROMPT VISUAL]:
-- Debajo de [PROMPT VISUAL]: escribe ÚNICAMENTE un prompt detallado EN INGLÉS optimizado para gemini-3.1-flash-image-preview (sujeto, pose, expresión, vestuario/anclas visuales, ángulo de cámara, iluminación, acabado de tinta/color, sin globos de texto).`;
+- Debajo de [PROMPT VISUAL]: escribe ÚNICAMENTE un prompt detallado EN INGLÉS optimizado para gemini-3.1-flash-image (sujeto, pose, expresión, vestuario/anclas visuales, ángulo de cámara, iluminación, acabado de tinta/color, sin globos de texto).`;
 
 function buildSystemInstruction(activeSettei?: string[], projectContext?: string): string {
   const blocks = [BASE_SYSTEM_INSTRUCTION];

@@ -52,7 +52,8 @@ test('Kai Split Studio: zero client-side API key exposure or Vite leftovers', ()
 
 test('Kai Split Studio: server routes read GEMINI_API_KEY and send x-goog-api-key header', () => {
   const chatRoute = load('app/api/kai/chat/route.ts');
-  const canvasRoute = load('app/api/kai/canvas/route.ts');
+  const imageBackend = load('lib/kai/geminiImage.ts');
+  const canvasRoute = load('app/api/kai/canvas/route.ts') + imageBackend;
 
   for (const [name, source] of [
     ['app/api/kai/chat/route.ts', chatRoute],
@@ -80,7 +81,7 @@ test('Kai Split Studio: studioCanvas contract defines exact models, 4 styles, an
   const contract = load('lib/kai/studioCanvas.ts');
 
   assert.match(contract, /KAI_TEXT_MODEL_DEFAULT\s*=\s*['"]gemini-3-flash-preview['"]/);
-  assert.match(contract, /KAI_IMAGE_MODEL_DEFAULT\s*=\s*['"]gemini-3\.1-flash-image-preview['"]/);
+  assert.match(contract, /KAI_IMAGE_MODEL_DEFAULT\s*=\s*['"]gemini-3\.1-flash-image['"]/);
 
   const expectedStyles = [
     ['manga_ink', 'Manga Entintado B/N'],
