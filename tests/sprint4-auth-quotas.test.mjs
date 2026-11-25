@@ -33,10 +33,8 @@ test('Sprint 4: Supabase SSR auth routes, proxy.ts, and /login exist without blo
 
 test('Sprint 4: PLAN_CATALOG, 402 QUOTA_EXCEEDED server guards, and checkout modal exist', () => {
   const quotas = load('lib/plans/quotas.ts');
-  assert.match(quotas, /maxPages:\s*10/);
-  assert.match(quotas, /maxPages:\s*50/);
-  assert.match(quotas, /maxPages:\s*100/);
-  assert.match(quotas, /maxPages:\s*200/);
+  const plans = JSON.parse(load('lib/plans/catalog.json'));
+  assert.deepEqual(Object.values(plans).map((plan) => plan.maxPages), [10, 50, 100, 200]);
   assert.match(quotas, /export function checkQuota/);
 
   const kaiApi = load('app/api/kai/script/route.ts');

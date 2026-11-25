@@ -327,6 +327,11 @@ export default function StudioPage() {
     let active = true;
     const params = new URLSearchParams(window.location.search);
     const initialTab = resolveTabParam(params.get('tab'));
+    if (params.get('tab') === 'print') setPreflightOpen(true);
+    const plan = params.get('plan');
+    if (plan === 'starter' || plan === 'pro' || plan === 'master') {
+      setUpgradeModal({ open: true, requiredPlan: plan });
+    }
     const volumeParam = params.get('volume')?.trim() || '';
     if (initialTab) {
       setView(initialTab);

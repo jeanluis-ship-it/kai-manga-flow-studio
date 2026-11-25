@@ -68,5 +68,5 @@ test('OSS Integration: Pollinations.ai fallback remains intact for Gemini rate/q
   const fallbackSrc = load('lib/kai/freeImageFallback.ts');
   const geminiSrc = load('lib/kai/geminiImage.ts');
   assert.match(fallbackSrc, /image\.pollinations\.ai/);
-  assert.match(geminiSrc, /generateFreeImageFallback/);
+  assert.doesNotMatch(geminiSrc, /generateFreeImageFallback/);
 });

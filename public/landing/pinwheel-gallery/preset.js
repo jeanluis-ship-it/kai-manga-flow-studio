@@ -4,25 +4,25 @@ import { configurationContract as contract } from "./src/configuration.js";
 // Image slots mapped to local MANGAI Studio editorial covers (/landing/assets/mangai-art-*.svg).
 const images = {
   // Image 1: AnaCaona: Flor Guerrera
-  "imageUrls.0": "/landing/assets/mangai-art-06.svg",
+  "imageUrls.0": "/landing/assets/cover-anacaona.webp",
   // Image 2: Atlas: Mapas del Olvido
-  "imageUrls.1": "/landing/assets/mangai-art-07.svg",
+  "imageUrls.1": "/landing/assets/cover-atlas.webp",
   // Image 3: Nox / Signal
-  "imageUrls.2": "/landing/assets/mangai-art-08.svg",
+  "imageUrls.2": "/landing/assets/cover-nox.webp",
   // Image 4: Kuro: Peso del Silencio
-  "imageUrls.3": "/landing/assets/mangai-art-09.svg",
+  "imageUrls.3": "/landing/assets/cover-kuro.webp",
   // Image 5: Crónicas del Eclipse
-  "imageUrls.4": "/landing/assets/mangai-art-10.svg",
+  "imageUrls.4": "/landing/assets/cover-eclipse.webp",
   // Image 6: Akai: Filo Carmesí
-  "imageUrls.5": "/landing/assets/mangai-art-01.svg",
+  "imageUrls.5": "/landing/assets/cover-akai.webp",
   // Image 7: Kaze: Órbita Cero
-  "imageUrls.6": "/landing/assets/mangai-art-02.svg",
+  "imageUrls.6": "/landing/assets/cover-kaze.webp",
   // Image 8: Yōkai: Archivo Nocturno
-  "imageUrls.7": "/landing/assets/mangai-art-03.svg",
+  "imageUrls.7": "/landing/assets/cover-yokai.webp",
   // Image 9: Sensei: Tinta Viva
-  "imageUrls.8": "/landing/assets/mangai-art-04.svg",
+  "imageUrls.8": "/landing/assets/cover-sensei.webp",
   // Image 10: Hijos del Huracán
-  "imageUrls.9": "/landing/assets/mangai-art-05.svg",
+  "imageUrls.9": "/landing/assets/cover-hijos-del-huracan.webp",
 };
 
 const saved = {

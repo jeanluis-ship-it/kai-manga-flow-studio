@@ -12,8 +12,8 @@
 
 .gf-auth-modal-card {
   width: min(440px, 100%);
-  background: var(--gf-panel, #ffffff);
-  color: var(--gf-text, #111111);
+  background: var(--gf-surface, #ffffff);
+  color: var(--gf-ink, #111111);
   border: 1px solid var(--gf-border, #e2e8f0);
   border-radius: 16px;
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.3);
@@ -51,7 +51,7 @@
 .gf-auth-modal-close {
   border: 1px solid var(--gf-border, #cbd5e1);
   background: var(--gf-surface, #f8fafc);
-  color: var(--gf-text, #111111);
+  color: var(--gf-ink, #111111);
   border-radius: 999px;
   width: 30px;
   height: 30px;
@@ -87,8 +87,8 @@
 }
 
 .gf-auth-tab.is-active {
-  background: var(--gf-panel, #ffffff);
-  color: var(--gf-text, #111111);
+  background: var(--gf-surface, #ffffff);
+  color: var(--gf-ink, #111111);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -120,7 +120,7 @@
   border-radius: 9px;
   border: 1px solid var(--gf-border, #cbd5e1);
   background: var(--gf-surface, #ffffff);
-  color: var(--gf-text, #111111);
+  color: var(--gf-ink, #111111);
   font-size: 13px;
 }
 

@@ -104,7 +104,7 @@ export const PricingUpgradeModal: React.FC<PricingUpgradeModalProps> = ({
         className="gf-modal-card gf-pricing-modal"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-modal="true"
+        aria-modal="false"
         aria-label="Planes y Upgrade de MANGAI Studio"
       >
         <div className="gf-modal-head">

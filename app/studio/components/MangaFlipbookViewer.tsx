@@ -101,6 +101,7 @@ export const MangaFlipbookViewer: React.FC<MangaFlipbookViewerProps> = ({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [contenteditable="true"], .gf-sidebar-right')) return;
       if (e.key === 'Escape') {
         onClose();
       } else if (e.key === 'ArrowRight') {
@@ -127,7 +128,7 @@ export const MangaFlipbookViewer: React.FC<MangaFlipbookViewerProps> = ({
     <div
       className="gf-flipbook-overlay"
       role="dialog"
-      aria-modal="true"
+      aria-modal="false"
       aria-label={`Visor 3D PageFlip — ${project.name || 'Tomo Manga'}`}
       onClick={onClose}
     >

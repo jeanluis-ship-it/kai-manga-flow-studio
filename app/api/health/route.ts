@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FALLBACK_MODEL_NAME } from '@/lib/kai/freeImageFallback';
+import { LOCAL_SYNTH_MODEL_NAME } from '@/lib/kai/freeImageFallback';
 import {
   KAI_IMAGE_MODEL_DEFAULT,
   KAI_TEXT_MODEL_DEFAULT,
@@ -33,23 +33,22 @@ export async function GET() {
   const supabaseConfigured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
-  const fallbackProvider = process.env.IMAGE_FALLBACK_PROVIDER?.trim() || FALLBACK_MODEL_NAME;
 
   return NextResponse.json({
     ok: true,
     service: 'mangai-studio',
     imageApiConfigured: geminiConfigured,
     fallbackReady: true,
-    fallbackProvider: FALLBACK_MODEL_NAME,
+    fallbackProvider: LOCAL_SYNTH_MODEL_NAME,
     requiresAccessToken: tokenEnforced,
     models: {
       text: KAI_TEXT_MODEL_DEFAULT,
       image: KAI_IMAGE_MODEL_DEFAULT,
-      fallbackImage: FALLBACK_MODEL_NAME,
+      fallbackImage: LOCAL_SYNTH_MODEL_NAME,
     },
     providers: {
       gemini: geminiConfigured,
-      fallback: fallbackProvider,
+      fallback: LOCAL_SYNTH_MODEL_NAME,
       supabase: supabaseConfigured,
     },
   });
@@ -130,10 +129,10 @@ export async function POST(req: NextRequest) {
     ok: true,
     source: isLocalHost ? 'local' : 'vercel',
     fallbackReady: true,
-    fallbackProvider: FALLBACK_MODEL_NAME,
+    fallbackProvider: LOCAL_SYNTH_MODEL_NAME,
     summary: liveGeminiOk
       ? `Motores oficiales verificados: ${KAI_TEXT_MODEL_DEFAULT} + ${KAI_IMAGE_MODEL_DEFAULT}.`
-      : `Respaldo Beta activo (${FALLBACK_MODEL_NAME} + Modo Guía KAI). Gemini en vivo sin cuota o sin llave.`,
+      : `Respaldo Beta activo (${LOCAL_SYNTH_MODEL_NAME} + Modo Guía KAI). Gemini en vivo sin cuota o sin llave.`,
     recommendation: liveGeminiOk
       ? 'Listo para generar personajes, portadas, viñetas y mejoras de boceto.'
       : 'Puedes trabajar normalmente con el respaldo Beta o configurar GEMINI_API_KEY / Llave IA.',

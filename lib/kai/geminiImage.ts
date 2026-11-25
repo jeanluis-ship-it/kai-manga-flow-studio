@@ -1,6 +1,5 @@
 import {
   extractSeedFromText,
-  generateFreeImageFallback,
   synthesizeLocalMangaArtwork,
 } from './freeImageFallback';
 import { generateGeminiSketch } from './geminiSketch';
@@ -40,7 +39,7 @@ export async function generateGeminiImage(
     .map((part) => part.text)
     .join('\n');
   const resolvedSeed = options?.seed ?? extractSeedFromText(promptText);
-  const preferredFallback = (process.env.IMAGE_FALLBACK_PROVIDER || '').trim().toLowerCase();
+  const modelDeadline = Date.now() + 35_000;
 
   const primary = process.env.GEMINI_CANVAS_IMAGE_MODEL?.trim() || KAI_IMAGE_MODEL_DEFAULT;
   const secondary = 'gemini-2.5-flash-image';
@@ -53,14 +52,15 @@ export async function generateGeminiImage(
     ),
   );
 
-  // Tier 1: Official Gemini Image models when an API key is available and fallback-only mode is not forced
-  if (cleanKey && preferredFallback !== 'pollinations' && preferredFallback !== 'local' && preferredFallback !== 'custom') {
+  if (cleanKey) {
     const body = JSON.stringify({
       contents: [{ role: 'user', parts }],
       generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio } },
     });
 
     for (const model of models) {
+      const remaining = modelDeadline - Date.now();
+      if (remaining <= 0) break;
       try {
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -68,7 +68,7 @@ export async function generateGeminiImage(
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cleanKey },
             body,
-            signal: AbortSignal.timeout(42_000),
+            signal: AbortSignal.timeout(remaining),
           },
         );
 
@@ -110,20 +110,10 @@ export async function generateGeminiImage(
     }
   }
 
-  // Tier 2: Free / configurable raster fallback (custom / HuggingFace / Cloudflare / Pollinations Flux)
-  const freeFallback = await generateFreeImageFallback({
-    prompt: promptText,
-    aspectRatio,
-    seed: resolvedSeed,
-  });
-  if (freeFallback) {
-    return freeFallback;
-  }
-
-  // Tier 3a: Vector sketch fallback via Gemini text model if API key is present
+  // Keep references and prompts inside the creator’s Google project.
   if (cleanKey) {
     try {
-      const sketch = await generateGeminiSketch(cleanKey, parts, aspectRatio, AbortSignal.timeout(18_000));
+      const sketch = await generateGeminiSketch(cleanKey, parts, aspectRatio, AbortSignal.timeout(12_000));
       return {
         ...sketch,
         fallbackUsed: true,

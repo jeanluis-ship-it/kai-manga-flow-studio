@@ -11,7 +11,7 @@ const BOOKS = [
     genre: 'Fantasía histórica',
     desc: 'Una leyenda caribeña reimaginada en tinta, memoria y aventura.',
     art: '/landing/assets/mangai-art-01.svg',
-    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/mangai-art-06.svg',
+    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/cover-anacaona.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Taino warrior queen AnaCaona standing defiantly in a moonlit Caribbean rainforest, ceremonial golden ornaments, flowing hair, dramatic sumi ink hatching and dynamic manga framing',
@@ -20,14 +20,14 @@ const BOOKS = [
         left: {
           title: 'Capítulo 1: El Despertar de Quisqueya',
           text: 'Trazos iniciales de entintado y composición atmosférica para el primer acto.',
-          image: creaseCarouselOptions.slots[0]?.left.imageUrl || '/landing/assets/mangai-art-12.svg',
+          image: '/landing/samples/anacaona-vol1/1.webp',
           focalX: creaseCarouselOptions.slots[0]?.left.focalX ?? 50,
           focalY: creaseCarouselOptions.slots[0]?.left.focalY ?? 50,
         },
         right: {
           title: 'Duelo en la Selva',
           text: 'Perspectiva dramática y contraste de tinta sumi sobre papel Genkō.',
-          image: creaseCarouselOptions.slots[0]?.right.imageUrl || '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/anacaona-vol1/2.webp',
           focalX: creaseCarouselOptions.slots[0]?.right.focalX ?? 50,
           focalY: creaseCarouselOptions.slots[0]?.right.focalY ?? 50,
         },
@@ -36,36 +36,36 @@ const BOOKS = [
         left: {
           title: 'Settei de Personaje · Canon',
           text: 'Expresiones, silueta ceremonial y anclas visuales bloqueadas para el tomo.',
-          image: creaseCarouselOptions.slots[1]?.left.imageUrl || '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/anacaona-vol1/3.webp',
         },
         right: {
           title: 'Edición Coleccionista Tankōbon',
           text: 'Maquetación de cubierta conceptual lista para exportación editorial.',
-          image: creaseCarouselOptions.slots[1]?.right.imageUrl || '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/anacaona-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'Areíto bajo la Lluvia',
           text: 'Ritmo secuencial en cinco viñetas con líneas cinéticas y tramas tradicionales.',
-          image: creaseCarouselOptions.slots[2]?.left.imageUrl || '/landing/assets/mangai-art-14.svg',
+          image: '/landing/samples/anacaona-vol1/5.webp',
         },
         right: {
           title: 'Juramento de Oro y Coral',
           text: 'Doble página de clímax narrativo asistida por Kai con sangrado KDP.',
-          image: creaseCarouselOptions.slots[2]?.right.imageUrl || '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/anacaona-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Epílogo: Semilla de Fuego',
           text: 'Cierre de capítulo con iluminación dramática y globos vectoriales Fukidashi.',
-          image: '/landing/assets/mangai-art-06.svg',
+          image: '/landing/samples/anacaona-vol1/7.webp',
         },
         right: {
           title: 'Ficha Técnica de Imprenta',
           text: 'Revisión Pre-Flight a 300 DPI lista para publicación física y digital.',
-          image: '/landing/assets/mangai-art-11.svg',
+          image: '/landing/samples/anacaona-vol1/8.webp',
         },
       },
     ],
@@ -79,7 +79,7 @@ const BOOKS = [
     genre: 'Fantasía / Misterio',
     desc: 'Cada noche, un reino desaparece de los mapas de la ciudad.',
     art: '/landing/assets/mangai-art-02.svg',
-    coverArt: pinwheelOptions.items[1]?.imageUrl || '/landing/assets/mangai-art-07.svg',
+    coverArt: pinwheelOptions.items[1]?.imageUrl || '/landing/assets/cover-atlas.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Young arcane cartographer holding a glowing astral compass inside a midnight archive where ancient ink maps float in mid-air, cyan rim lighting and deep slate shadows',
@@ -88,48 +88,48 @@ const BOOKS = [
         left: {
           title: 'Archivo de Cartografía Arcana',
           text: 'Secuencia de viñetas con tramas limpias y profundidad espacial.',
-          image: '/landing/assets/mangai-art-14.svg',
+          image: '/landing/samples/atlas-sketchbook/1.webp',
         },
         right: {
           title: 'La Brújula Astral',
           text: 'Encuadre vertical estilizado y ritmo narrativo asistido por Kai.',
-          image: '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/atlas-sketchbook/2.webp',
         },
       },
       {
         left: {
           title: 'Portada de Cuaderno de Campo',
           text: 'Estudio cromático en azules nocturnos e iluminación de contraste.',
-          image: '/landing/assets/mangai-art-13.svg',
+          image: '/landing/samples/atlas-sketchbook/3.webp',
         },
         right: {
           title: 'Horizonte Desaparecido',
           text: 'Escena panorámica de transición entre distritos olvidados.',
-          image: '/landing/assets/mangai-art-16.svg',
+          image: '/landing/samples/atlas-sketchbook/4.webp',
         },
       },
       {
         left: {
           title: 'Meridiano de Ceniza',
           text: 'Planos arquitectónicos imposibles generados manteniendo el canon del mundo.',
-          image: '/landing/assets/mangai-art-18.svg',
+          image: '/landing/samples/atlas-sketchbook/5.webp',
         },
         right: {
           title: 'El Relojero sin Sombra',
           text: 'Encuentro clave en la torre sumergida con contraluces cian.',
-          image: '/landing/assets/mangai-art-15.svg',
+          image: '/landing/samples/atlas-sketchbook/6.webp',
         },
       },
       {
         left: {
           title: 'Índice de Regiones Borradas',
           text: 'Mapa conceptual de lore sincronizado con la Biblia del Universo.',
-          image: '/landing/assets/mangai-art-07.svg',
+          image: '/landing/samples/atlas-sketchbook/7.webp',
         },
         right: {
           title: 'Última Coordenada',
           text: 'Gancho final del primer tomo preparado para continuar en Estudio.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/atlas-sketchbook/8.webp',
         },
       },
     ],
@@ -143,7 +143,7 @@ const BOOKS = [
     genre: 'Ciencia ficción',
     desc: 'Una señal imposible transforma una ciudad dormida.',
     art: '/landing/assets/mangai-art-03.svg',
-    coverArt: pinwheelOptions.items[2]?.imageUrl || '/landing/assets/mangai-art-08.svg',
+    coverArt: pinwheelOptions.items[2]?.imageUrl || '/landing/assets/cover-nox.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Cyberpunk signal runner perched on a rain-soaked neon rooftop overlooking a sleeping megacity, violet holographic frequencies pulsing across the night sky, 3-point perspective',
@@ -152,48 +152,48 @@ const BOOKS = [
         left: {
           title: 'Transmisión en el Distrito Cero',
           text: 'Perspectiva urbana de tres puntos y líneas cinéticas nocturnas.',
-          image: '/landing/assets/mangai-art-16.svg',
+          image: '/landing/samples/nox-signal-vol2/1.webp',
         },
         right: {
           title: 'Frecuencia Desconocida · Vol. II',
           text: 'Diseño cromático violeta-magenta para la portada del segundo volumen.',
-          image: '/landing/assets/mangai-art-15.svg',
+          image: '/landing/samples/nox-signal-vol2/2.webp',
         },
       },
       {
         left: {
           title: 'Eco en las Antenas',
           text: 'Secuencia de acción en azoteas con ritmo de lectura dinámico.',
-          image: '/landing/assets/mangai-art-18.svg',
+          image: '/landing/samples/nox-signal-vol2/3.webp',
         },
         right: {
           title: 'Señal Interceptada',
           text: 'Primer plano con globo de diálogo y composición de alto impacto.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/nox-signal-vol2/4.webp',
         },
       },
       {
         left: {
           title: 'Protocolo Fantasma',
           text: 'Infiltración en el núcleo orbital con hologramas en tinta carmesí.',
-          image: '/landing/assets/mangai-art-08.svg',
+          image: '/landing/samples/nox-signal-vol2/5.webp',
         },
         right: {
           title: 'Pulso Magnético',
           text: 'Doble splash page con efectos Kakimoji integrados en capa vectorial.',
-          image: '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/nox-signal-vol2/6.webp',
         },
       },
       {
         left: {
           title: 'Archivo de Personajes · Nox',
           text: 'Hoja de referencia cibernética con visor y proporciones bloqueadas.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/nox-signal-vol2/7.webp',
         },
         right: {
           title: 'Fin de Transmisión',
           text: 'Cierre de volumen listo para lectura vertical Webtoon o Tankōbon.',
-          image: '/landing/assets/mangai-art-03.svg',
+          image: '/landing/samples/nox-signal-vol2/8.webp',
         },
       },
     ],
@@ -207,7 +207,7 @@ const BOOKS = [
     genre: 'Drama / Acción',
     desc: 'Dos hermanos descubren el precio de guardar un secreto.',
     art: '/landing/assets/mangai-art-04.svg',
-    coverArt: pinwheelOptions.items[3]?.imageUrl || '/landing/assets/mangai-art-09.svg',
+    coverArt: pinwheelOptions.items[3]?.imageUrl || '/landing/assets/cover-kuro.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Two estranged brothers facing each other across a rain-swept stone courtyard under a dim lantern, heavy monochrome brush shadows, intense silent manga standoff framing',
@@ -216,48 +216,48 @@ const BOOKS = [
         left: {
           title: 'Los Silencios También Gritan',
           text: 'Composición minimalista en tinta negra y pausas dramáticas entre viñetas.',
-          image: '/landing/assets/mangai-art-18.svg',
+          image: '/landing/samples/kuro-vol1/1.webp',
         },
         right: {
           title: 'Lámina de Portada · Kuro',
           text: 'Contraste editorial limpio sobre papel marfil con tipografía bold.',
-          image: '/landing/assets/mangai-art-17.svg',
+          image: '/landing/samples/kuro-vol1/2.webp',
         },
       },
       {
         left: {
           title: 'Ficha de Continuidad Visual',
           text: 'Referencias de vestuario y proporciones para mantener consistencia.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/kuro-vol1/3.webp',
         },
         right: {
           title: 'Juramento en el Patio',
           text: 'Viñeta clave de diálogo con tramas finas y sombreado intenso.',
-          image: '/landing/assets/mangai-art-12.svg',
+          image: '/landing/samples/kuro-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'Bajo la Linterna Rota',
           text: 'Secuencia muda de tensión psicológica trabajada con plumilla G-Pen.',
-          image: '/landing/assets/mangai-art-09.svg',
+          image: '/landing/samples/kuro-vol1/5.webp',
         },
         right: {
           title: 'La Carta Sellada',
           text: 'Detalle narrativo de utilería registrado como entidad Settei.',
-          image: '/landing/assets/mangai-art-14.svg',
+          image: '/landing/samples/kuro-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Desenlace en Nieve',
           text: 'Alto contraste blanco y negro puro listo para impresión offset.',
-          image: '/landing/assets/mangai-art-04.svg',
+          image: '/landing/samples/kuro-vol1/7.webp',
         },
         right: {
           title: 'Avance del Volumen II',
           text: 'Página final de adelanto editorial generada dentro de MANGAI Studio.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/kuro-vol1/8.webp',
         },
       },
     ],
@@ -271,7 +271,7 @@ const BOOKS = [
     genre: 'Fantasía oscura',
     desc: 'Donde termina la noche, comienza una nueva guerra.',
     art: '/landing/assets/mangai-art-05.svg',
-    coverArt: pinwheelOptions.items[4]?.imageUrl || '/landing/assets/mangai-art-10.svg',
+    coverArt: pinwheelOptions.items[4]?.imageUrl || '/landing/assets/cover-eclipse.webp',
     studioStyle: 'cover_art',
     studioPrompt:
       'Lone armored sentinel standing before a fractured crimson solar eclipse tearing open an obsidian sky, swirling embers, monumental dark fantasy manga volume cover composition',
@@ -280,48 +280,48 @@ const BOOKS = [
         left: {
           title: 'Prólogo: El Cielo Fracturado',
           text: 'Apertura dramática preparada para exportación Amazon KDP.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/eclipse-vol1/1.webp',
         },
         right: {
           title: 'Panel Doble · Ruptura Carmesí',
           text: 'Líneas cinéticas radiales y foco de tensión sobre la viñeta central.',
-          image: '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/eclipse-vol1/2.webp',
         },
       },
       {
         left: {
           title: 'La Vigilia del Centinela',
           text: 'Encuadre contrapicado con sombreado geométrico y tramas densas.',
-          image: '/landing/assets/mangai-art-14.svg',
+          image: '/landing/samples/eclipse-vol1/3.webp',
         },
         right: {
           title: 'Arte Final de Volumen',
           text: 'Acabado conceptual para contraportada, lomo y tapa frontal.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/eclipse-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'Ciudadela de Ceniza',
           text: 'Escenario monumental Dark Fantasy con acentos en laca roja Akai.',
-          image: '/landing/assets/mangai-art-10.svg',
+          image: '/landing/samples/eclipse-vol1/5.webp',
         },
         right: {
           title: 'El Pacto de Hierro',
           text: 'Composición diagonal dinámica de cinco viñetas para combate.',
-          image: '/landing/assets/mangai-art-16.svg',
+          image: '/landing/samples/eclipse-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Armamento Ceremonial',
           text: 'Lámina extra de diseño de props y emblemas para el lector.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/eclipse-vol1/7.webp',
         },
         right: {
           title: 'Cubierta Integral KDP',
           text: 'Maqueta con lomo, sangrado de 3.5 mm y código EAN-13 vectorial.',
-          image: '/landing/assets/mangai-art-05.svg',
+          image: '/landing/samples/eclipse-vol1/8.webp',
         },
       },
     ],
@@ -335,7 +335,7 @@ const BOOKS = [
     genre: 'Seinen / Acción Samurái',
     desc: 'Una espada forjada en laca carmesí despierta el linaje prohibido de Akai.',
     art: '/landing/assets/mangai-art-06.svg',
-    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/mangai-art-01.svg',
+    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/cover-akai.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Lone samurai warrior unsheathing a crimson-lacquered katana amidst falling autumn leaves, stark black sumi ink brushwork with dramatic Akai red slash accents',
@@ -344,48 +344,48 @@ const BOOKS = [
         left: {
           title: 'Acto I: El Sello Carmesí',
           text: 'Apertura en tinta sumi con acento rojo Akai y corte diagonal de acción.',
-          image: '/landing/assets/mangai-art-01.svg',
+          image: '/landing/samples/akai-ronin-vol1/1.webp',
         },
         right: {
           title: 'Duelo en el Puente de Bambú',
           text: 'Secuencia cinética de espada con líneas de velocidad de alta precisión.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/akai-ronin-vol1/2.webp',
         },
       },
       {
         left: {
           title: 'Settei · Armadura Akai',
           text: 'Diseño canónico de guardamano, haori rasgado y cicatrices del protagonista.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/akai-ronin-vol1/3.webp',
         },
         right: {
           title: 'Luna de Sangre sobre Edo',
           text: 'Doble página panorámica preparada para edición coleccionista B6.',
-          image: '/landing/assets/mangai-art-10.svg',
+          image: '/landing/samples/akai-ronin-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'juramento del Herrero',
           text: 'Primeros planos expresivos entintados con plumilla japonesa G-Pen.',
-          image: '/landing/assets/mangai-art-12.svg',
+          image: '/landing/samples/akai-ronin-vol1/5.webp',
         },
         right: {
           title: 'Corte Relámpago',
           text: 'Onomatopeyas vectoriales Kakimoji integradas sobre trama dramática.',
-          image: '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/akai-ronin-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Epílogo en Nieve Roja',
           text: 'Silueta minimalista cerrando el primer volumen de la saga Akai.',
-          image: '/landing/assets/mangai-art-18.svg',
+          image: '/landing/samples/akai-ronin-vol1/7.webp',
         },
         right: {
           title: 'Sobrecubierta Editorial Akai',
           text: 'Arte final de cubierta validado a 300 DPI para tirada impresa.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/akai-ronin-vol1/8.webp',
         },
       },
     ],
@@ -399,7 +399,7 @@ const BOOKS = [
     genre: 'Mecha / Sci-Fi',
     desc: 'En los astilleros orbitales, un chasis antiguo vuelve a encender su reactor.',
     art: '/landing/assets/mangai-art-07.svg',
-    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/mangai-art-02.svg',
+    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/cover-kaze.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Sleek orbital mecha frame launching from a zero-gravity hangar bay with emerald thrusters igniting against Earth curvature, detailed mechanical lineart',
@@ -408,48 +408,48 @@ const BOOKS = [
         left: {
           title: 'Hangar 09 · Despresurización',
           text: 'Geometría mecánica detallada con perspectiva técnica asistida por Kai.',
-          image: '/landing/assets/mangai-art-02.svg',
+          image: '/landing/samples/kaze-orbit-vol1/1.webp',
         },
         right: {
           title: 'Ignición en Gravedad Cero',
           text: 'Estela orbital y paneles dinámicos para secuencias de alta velocidad.',
-          image: '/landing/assets/mangai-art-16.svg',
+          image: '/landing/samples/kaze-orbit-vol1/2.webp',
         },
       },
       {
         left: {
           title: 'Cabina Neural · Sincronía',
           text: 'Interfaz holográfica e iluminación esmeralda sobre el rostro del piloto.',
-          image: '/landing/assets/mangai-art-15.svg',
+          image: '/landing/samples/kaze-orbit-vol1/3.webp',
         },
         right: {
           title: 'Planos del Chasis Kaze-01',
           text: 'Hoja técnica de proporciones mecánicas bloqueada en Settei Hub.',
-          image: '/landing/assets/mangai-art-13.svg',
+          image: '/landing/samples/kaze-orbit-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'Escombros del Sector Siete',
           text: 'Maniobra evasiva entre estaciones abandonadas en doble página.',
-          image: '/landing/assets/mangai-art-14.svg',
+          image: '/landing/samples/kaze-orbit-vol1/5.webp',
         },
         right: {
           title: 'Impacto de Riel',
           text: 'Contraste extremo de luces y sombras con tramas metálicas.',
-          image: '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/kaze-orbit-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Reentrada Atmosférica',
           text: 'Clímax ardiente rumbo a la superficie terrestre.',
-          image: '/landing/assets/mangai-art-08.svg',
+          image: '/landing/samples/kaze-orbit-vol1/7.webp',
         },
         right: {
           title: 'Catálogo de Unidades',
           text: 'Apéndice ilustrado incluido al final del tomo coleccionista.',
-          image: '/landing/assets/mangai-art-17.svg',
+          image: '/landing/samples/kaze-orbit-vol1/8.webp',
         },
       },
     ],
@@ -463,7 +463,7 @@ const BOOKS = [
     genre: 'Fantasía Sobrenatural',
     desc: 'Una librería de Kioto custodia los contratos de cien espíritus antiguos.',
     art: '/landing/assets/mangai-art-08.svg',
-    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/mangai-art-03.svg',
+    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/cover-yokai.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Mystical lantern-lit Kyoto alley at midnight where paper talismans swirl around a young exorcist detective, supernatural violet spirit silhouettes',
@@ -472,48 +472,48 @@ const BOOKS = [
         left: {
           title: 'La Librería de las Doce Lunas',
           text: 'Ambientación tradicional japonesa con pergaminos y linternas flotantes.',
-          image: '/landing/assets/mangai-art-03.svg',
+          image: '/landing/samples/yokai-archive-vol1/1.webp',
         },
         right: {
           title: 'El Zorro de Tinta',
           text: 'Aparición sobrenatural renderizada con degradados de semitono.',
-          image: '/landing/assets/mangai-art-15.svg',
+          image: '/landing/samples/yokai-archive-vol1/2.webp',
         },
       },
       {
         left: {
           title: 'Talismán de Contención',
           text: 'Composición vertical de conjuro con caligrafía integrada.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/yokai-archive-vol1/3.webp',
         },
         right: {
           title: 'Bestiario Ilustrado',
           text: 'Fichas canónicas de criaturas registradas para mantener continuidad.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/yokai-archive-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'Tren de Medianoche',
           text: 'Misterio en vagón solitario con juegos de reflejos en las ventanas.',
-          image: '/landing/assets/mangai-art-16.svg',
+          image: '/landing/samples/yokai-archive-vol1/5.webp',
         },
         right: {
           title: 'Ruptura del Velo',
           text: 'Clímax visual en doble pliego con espirales de tinta y papel.',
-          image: '/landing/assets/mangai-art-18.svg',
+          image: '/landing/samples/yokai-archive-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Sello Archivado · Caso 01',
           text: 'Resolución del primer expediente lista para lectura digital.',
-          image: '/landing/assets/mangai-art-12.svg',
+          image: '/landing/samples/yokai-archive-vol1/7.webp',
         },
         right: {
           title: 'Cubierta de Edición Nocturna',
           text: 'Diseño editorial con reserva UV conceptual y lomo numerado.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/yokai-archive-vol1/8.webp',
         },
       },
     ],
@@ -527,7 +527,7 @@ const BOOKS = [
     genre: 'Slice of Life / Arte',
     desc: 'El viaje íntimo de una autora independiente hasta publicar su primer Tankōbon.',
     art: '/landing/assets/mangai-art-09.svg',
-    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/mangai-art-04.svg',
+    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/cover-sensei.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Warm sunlit mangaka studio desk covered with Genko manuscript paper, G-pen nibs, ink bottles, and character sketches coming alive in delicate sumi lines',
@@ -536,48 +536,48 @@ const BOOKS = [
         left: {
           title: 'Mesa de Trabajo · 03:00 AM',
           text: 'Homenaje al oficio del manga sobre papel Genkō de 135 kg.',
-          image: '/landing/assets/mangai-art-04.svg',
+          image: '/landing/samples/sensei-ink-vol1/1.webp',
         },
         right: {
           title: 'Del Boceto Nemu al Entintado',
           text: 'Comparativa real del flujo de capas L0 a L5 dentro del Estudio.',
-          image: '/landing/assets/mangai-art-17.svg',
+          image: '/landing/samples/sensei-ink-vol1/2.webp',
         },
       },
       {
         left: {
           title: 'Correcciones Editoriales',
           text: 'Diálogo cálido de mentoría creativa y ritmo de página.',
-          image: '/landing/assets/mangai-art-12.svg',
+          image: '/landing/samples/sensei-ink-vol1/3.webp',
         },
         right: {
           title: 'El Primer Tomo Impreso',
           text: 'Escena emotiva en librería con detalle de estanterías.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/sensei-ink-vol1/4.webp',
         },
       },
       {
         left: {
           title: 'Estudio de Manos y Expresiones',
           text: 'Láminas de referencia anatómica y gestual para la protagonista.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/sensei-ink-vol1/5.webp',
         },
         right: {
           title: 'Lluvia sobre Tokio',
           text: 'Paisaje urbano contemplativo con tramas suaves al 20%.',
-          image: '/landing/assets/mangai-art-18.svg',
+          image: '/landing/samples/sensei-ink-vol1/6.webp',
         },
       },
       {
         left: {
           title: 'Notas de la Autora',
           text: 'Extras de cierre de tomo maquetados con plantillas MANGAI.',
-          image: '/landing/assets/mangai-art-14.svg',
+          image: '/landing/samples/sensei-ink-vol1/7.webp',
         },
         right: {
           title: 'Colofón Editorial',
           text: 'Créditos e ISBN EAN-13 listos para distribución global.',
-          image: '/landing/assets/mangai-art-11.svg',
+          image: '/landing/samples/sensei-ink-vol1/8.webp',
         },
       },
     ],
@@ -591,7 +591,7 @@ const BOOKS = [
     genre: 'Aventura Épica',
     desc: 'Flotas de vela solar cruzan un archipiélago suspendido entre tormentas eternas.',
     art: '/landing/assets/mangai-art-10.svg',
-    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/mangai-art-05.svg',
+    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/cover-hijos-del-huracan.webp',
     studioStyle: 'cover_art',
     studioPrompt:
       'Skyship fleet with billowing solar sails carving through towering storm clouds above floating tropical islands, dynamic wide-angle shonen adventure cover art',
@@ -600,48 +600,48 @@ const BOOKS = [
         left: {
           title: 'Zarpar hacia el Ojo Celeste',
           text: 'Gran angular épico de aventura con nubes volumétricas y velámenes.',
-          image: '/landing/assets/mangai-art-05.svg',
+          image: '/landing/samples/huracan-vol2/1.webp',
         },
         right: {
           title: 'Abordaje en la Corriente Alta',
           text: 'Acción acrobática entre cubiertas con perspectiva dinámica.',
-          image: '/landing/assets/mangai-art-20.svg',
+          image: '/landing/samples/huracan-vol2/2.webp',
         },
       },
       {
         left: {
           title: 'Carta Náutica del Archipiélago',
           text: 'Doble mapa ilustrado de islas flotantes y rutas de viento.',
-          image: '/landing/assets/mangai-art-13.svg',
+          image: '/landing/samples/huracan-vol2/3.webp',
         },
         right: {
           title: 'La Capitana del Alisio',
           text: 'Retrato heroico con emblemas y vestuario fijados en el canon.',
-          image: '/landing/assets/mangai-art-06.svg',
+          image: '/landing/samples/huracan-vol2/4.webp',
         },
       },
       {
         left: {
           title: 'Tormenta de Relámpagos Rojos',
           text: 'Contraste dramático de tinta negra y destellos carmesí.',
-          image: '/landing/assets/mangai-art-19.svg',
+          image: '/landing/samples/huracan-vol2/5.webp',
         },
         right: {
           title: 'El Faro Ancestral',
           text: 'Descubrimiento de ruinas colosales al cierre del capítulo.',
-          image: '/landing/assets/mangai-art-16.svg',
+          image: '/landing/samples/huracan-vol2/6.webp',
         },
       },
       {
         left: {
           title: 'Tripulación Completa · Settei',
           text: 'Comparativa de alturas y equipo de navegación del escuadrón.',
-          image: '/landing/assets/mangai-art-21.svg',
+          image: '/landing/samples/huracan-vol2/7.webp',
         },
         right: {
           title: 'Próximo Destino · Vol. III',
           text: 'Ilustración de cierre lista para exportar a KDP y Webtoon.',
-          image: '/landing/assets/mangai-art-22.svg',
+          image: '/landing/samples/huracan-vol2/8.webp',
         },
       },
     ],
@@ -736,7 +736,6 @@ function renderPinwheelFrame() {
   const pullPx = pinwheelOptions.pull * (compact ? 0.95 : 1.45);
   const leanFactor = pinwheelOptions.lean * (compact ? 0.24 : 0.4);
   const bendFactor = pinwheelOptions.bend * 0.56;
-  const shadeRatio = pinwheelOptions.shade / 100;
 
   shelf.style.transform = `rotateX(${(-3.5 + pointerTiltY).toFixed(2)}deg) rotateY(${pointerTiltX.toFixed(2)}deg)`;
 
@@ -755,11 +754,9 @@ function renderPinwheelFrame() {
     const rotY = sinT * -40 * (1 - focusCurve * 0.75);
     const rotZ = sinT * bendFactor * (1 - focusCurve * 0.86);
     const scale = (compact ? 0.68 : 0.72) + depth01 * 0.28 + focusCurve * 0.1;
-    const brightness = (1 - (1 - depth01) * shadeRatio * 1.18).toFixed(3);
     const opacity = (0.34 + depth01 * 0.66).toFixed(3);
 
     card.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, ${z.toFixed(1)}px) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-    card.style.filter = `brightness(${brightness})`;
     card.style.opacity = opacity;
     card.style.zIndex = String(Math.round(200 + z));
   });
@@ -836,9 +833,6 @@ function buildKaiDeepLink(book) {
   return buildStudioDeepLink(book, 'kai');
 }
 
-const BLANK_LEAF_PIXEL =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-
 function clearTurningLeaf() {
   for (const prefix of ['leafFront', 'leafBack']) {
     const numEl = $(`#${prefix}Num`);
@@ -848,7 +842,7 @@ function clearTurningLeaf() {
     const textEl = $(`#${prefix}Text`);
     if (numEl) numEl.textContent = '';
     if (volEl) volEl.textContent = '';
-    if (imgEl) imgEl.src = BLANK_LEAF_PIXEL;
+    if (imgEl) imgEl.removeAttribute('src');
     if (titleEl) titleEl.textContent = '';
     if (textEl) textEl.textContent = '';
   }
@@ -1390,9 +1384,36 @@ schedulePinwheelFrame();
 setupCreaseAutoplay();
 
 const modal = $('#modal');
+const inspectButton = $('#inspectBookBtn');
+inspectButton?.addEventListener('click', () => {
+  const book = BOOKS[currentBook];
+  const cover = $('#modalArt');
+  cover.src = book.coverArt;
+  cover.alt = 'Portada de ' + book.title;
+  $('#modalTag').textContent = book.volume + ' · ' + book.genre;
+  $('#modalTitle').textContent = book.title;
+  $('#modalDesc').textContent = book.desc;
+  $('#modalStudioBtn').href = buildKaiDeepLink(book);
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#modalClose').focus();
+});
+modal?.addEventListener('keydown', (event) => {
+  if (event.key !== 'Tab') return;
+  const first = $('#modalClose');
+  const last = $('#modalExplore');
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+});
 function closeModal() {
   if (!modal) return;
   modal.hidden = true;
+  inspectButton?.focus();
   document.body.style.overflow = '';
 }
 
@@ -1588,7 +1609,7 @@ function initSumiStoryFlow() {
   });
 }
 
-function syncLandingAuthLink() {
+async function syncLandingAuthLink() {
   const navAuth = $('#navAuthLink');
   const mobileAuth = $('#mobileAuthLink');
   if (!navAuth && !mobileAuth) return;
@@ -1606,8 +1627,11 @@ function syncLandingAuthLink() {
     // Ignore storage access errors.
   }
 
-  if (!signedInLabel && typeof document !== 'undefined' && /sb-[a-z0-9]+-auth-token/i.test(document.cookie || '')) {
-    signedInLabel = 'Mi Cuenta';
+  try {
+    const response = await fetch('/api/session', { cache: 'no-store' });
+    if (response.ok && (await response.json()).signedIn) signedInLabel = 'Mi perfil';
+  } catch {
+    // El perfil local del modo Beta sigue disponible sin conexión.
   }
 
   if (signedInLabel) {

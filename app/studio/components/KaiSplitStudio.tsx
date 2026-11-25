@@ -592,7 +592,7 @@ export const KaiSplitStudio: React.FC<KaiSplitStudioProps> = ({
                       <span className="kss-msg-role-tag">
                         {msg.isWelcome ? 'Kai · Guía Inicial' : 'Kai · Director de Arte'}
                       </span>
-                      {msg.model && <span className="kss-msg-model-chip">{msg.model}</span>}
+                      {msg.model && <span className="kss-msg-model-chip">{msg.model === 'kai-beta-guide' ? 'Guía local Beta' : msg.model}</span>}
                     </div>
                   )}
 
@@ -927,7 +927,7 @@ export const KaiSplitStudio: React.FC<KaiSplitStudioProps> = ({
                       activeResult.style}
                   </span>
                   <span className="kss-meta-chip is-mono">{activeResult.aspectRatio}</span>
-                  <span className="kss-meta-chip is-mono">{activeResult.model}</span>
+                  <span className="kss-meta-chip is-mono">{activeResult.model === 'local-manga-synthesizer-beta' ? 'Boceto local Beta' : activeResult.model}</span>
                 </div>
                 <button
                   type="button"

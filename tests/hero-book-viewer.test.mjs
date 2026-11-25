@@ -229,7 +229,7 @@ test('Pinwheel Gallery 0.1.0-prototype.1: preset validates 10-panel rotor physic
   assert.equal(pinwheel.items.length, 10);
 
   for (const item of pinwheel.items) {
-    assert.match(item.imageUrl, /^\/landing\/assets\/mangai-art-\d+\.svg$/);
+    assert.match(item.imageUrl, /^\/landing\/assets\/cover-[a-z-]+\.webp$/);
   }
 
   const closedBooks = html.match(/class=["'][^"']*\bmanga-closed-book\b/g) || [];
