@@ -200,6 +200,7 @@ export const Flow = {
 
       const rawText = await resp.text();
       let payload: {
+        renderKind?: string;
         image?: string;
         model?: string;
         error?: string;
@@ -231,6 +232,7 @@ export const Flow = {
         throw new Error(payload.error || `Error generando imagen con Gemini (HTTP ${resp.status}).`);
       }
 
+      if (payload.renderKind === 'vector-sketch') window.dispatchEvent(new Event('kai-vector-sketch'));
       const { mimeType, base64 } = splitDataUrl(payload.image);
       if (!base64) {
         throw new Error('El modelo devolvió datos de imagen vacíos.');

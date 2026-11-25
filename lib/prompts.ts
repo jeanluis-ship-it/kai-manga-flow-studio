@@ -1,5 +1,5 @@
 export const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image';
-export const GEMINI_TEXT_MODEL = 'gemini-3-flash-preview';
+export const GEMINI_TEXT_MODEL = 'gemini-3.1-flash-lite';
 
 export const AI_MODELS = [
   {

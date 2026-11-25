@@ -67,11 +67,11 @@ export async function POST(req: NextRequest) {
   }
 
   const { userMessage, chatHistory, activeSettei, projectContext } = parsed.data;
-  const model = (process.env.GEMINI_KAI_MODEL || KAI_TEXT_MODEL_DEFAULT).trim();
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  let model = (process.env.GEMINI_KAI_MODEL || KAI_TEXT_MODEL_DEFAULT).trim();
+  const endpoint = (id: string) => `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(id)}:generateContent`;
 
   try {
-    const upstreamRes = await fetch(endpoint, {
+    const request: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -87,10 +87,15 @@ export async function POST(req: NextRequest) {
         ],
         generationConfig: {
           temperature: 0.75,
+          maxOutputTokens: 2800,
         },
       }),
-      signal: AbortSignal.timeout(35_000),
-    });
+    };
+    let upstreamRes = await fetch(endpoint(model), { ...request, signal: AbortSignal.timeout(22000) });
+    if ([404, 500, 502, 503, 504].includes(upstreamRes.status) && model !== 'gemini-3-flash-preview') {
+      model = 'gemini-3-flash-preview';
+      upstreamRes = await fetch(endpoint(model), { ...request, signal: AbortSignal.timeout(17000) });
+    }
 
     if (!upstreamRes.ok) {
       if (upstreamRes.status === 429) {
@@ -106,7 +111,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'No se pudo obtener respuesta de Kai desde Gemini 3 Flash. Verifica la cuota de la API.',
+            'El servicio de texto no pudo responder. Tu mensaje sigue en el editor.',
         },
         { status: 502 },
       );
