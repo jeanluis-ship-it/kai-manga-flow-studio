@@ -22,6 +22,26 @@ const safeCompare = (received: string, expected: string) => {
 const read = (form: FormData, name: string, max = 2600) =>
   String(form.get(name) ?? '').trim().slice(0, max);
 
+function resolveGeminiApiKey(req: NextRequest): string {
+  const headerKey = (req.headers.get('x-mangai-llave') || '').trim();
+  if (/^AIza[0-9A-Za-z_-]{6,}$/i.test(headerKey)) {
+    return headerKey;
+  }
+  return (process.env.GEMINI_API_KEY || '').trim();
+}
+
+function extractSeed(formSeed: string, ...texts: string[]): string | undefined {
+  if (formSeed) {
+    const clean = formSeed.replace(/[^0-9]/g, '');
+    if (clean) return clean;
+  }
+  for (const txt of texts) {
+    const match = txt.match(/SEED-(\d+)/i);
+    if (match?.[1]) return match[1];
+  }
+  return undefined;
+}
+
 export async function POST(req: NextRequest) {
   const enforceToken =
     process.env.ENFORCE_STUDIO_TOKEN === 'true' && Boolean(process.env.STUDIO_ACCESS_TOKEN);
@@ -89,49 +109,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const apiKey = (process.env.GEMINI_API_KEY || '').trim();
-    const isLocalHost =
-      req.nextUrl.hostname === 'localhost' || req.nextUrl.hostname === '127.0.0.1';
-    const alreadyForwarded = req.headers.get('x-mangai-forwarded') === '1';
-
-    if (!apiKey && isLocalHost && !alreadyForwarded) {
-      try {
-        const relayResp = await fetch(
-          'https://kai-manga-flow-studio.vercel.app/api/images/generate',
-          {
-            method: 'POST',
-            headers: { 'x-mangai-forwarded': '1' },
-            body: form,
-            signal: AbortSignal.timeout(50_000),
-          },
-        );
-        if (relayResp.ok) {
-          const relayData = (await relayResp.json()) as {
-            image?: string;
-            model?: string;
-            mode?: string;
-          };
-          if (relayData?.image) {
-            return NextResponse.json({
-              ...relayData,
-              model: relayData.model || KAI_IMAGE_MODEL_DEFAULT,
-            });
-          }
-        }
-      } catch {
-        // Fall through to missing key diagnostic below.
-      }
-    }
-
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          error:
-            'Falta GEMINI_API_KEY en el servidor (.env.local / Vercel) para usar el motor de imágenes.',
-        },
-        { status: 503 },
-      );
-    }
+    const apiKey = resolveGeminiApiKey(req);
 
     const name = read(form, 'name', 120);
     const details = read(form, 'details', 2200);
@@ -139,6 +117,7 @@ export async function POST(req: NextRequest) {
     const canon = read(form, 'canon', 1800);
     const notes = read(form, 'notes', 2600);
     const mode = read(form, 'mode', 50);
+    const rawSeed = read(form, 'seed', 64);
     const rawAspect = read(form, 'aspectRatio', 16);
     const aspectRatio = VALID_ASPECTS.has(rawAspect)
       ? rawAspect
@@ -173,6 +152,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const seed = extractSeed(rawSeed, notes, details, canon);
     const prompt = [
       mode === 'sketch_refine' && encodedRefs.length > 0
         ? 'Transform and refine the attached hand-drawn digital manga draft into finished publication-grade manga artwork while preserving exact composition, pose, and framing.'
@@ -191,10 +171,20 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n');
 
-    const result = await generateGeminiImage(apiKey, [
-      { text: prompt }, ...encodedRefs.map((inlineData) => ({ inlineData })),
-    ], aspectRatio, !useHdModel);
-    return NextResponse.json({ ...result, mode: modeData.id, providerStatus: 'official-ai' });
+    const result = await generateGeminiImage(
+      apiKey,
+      [{ text: prompt }, ...encodedRefs.map((inlineData) => ({ inlineData }))],
+      aspectRatio,
+      !useHdModel,
+      { seed },
+    );
+
+    return NextResponse.json({
+      ...result,
+      model: result.model || KAI_IMAGE_MODEL_DEFAULT,
+      mode: modeData.id,
+      providerStatus: result.fallbackUsed ? 'beta-fallback' : 'official-ai',
+    });
   } catch (error) {
     return imageErrorResponse(error);
   }

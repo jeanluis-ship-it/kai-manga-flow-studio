@@ -20,6 +20,28 @@ function parseSketchInlineData(dataUrl?: string): { mimeType: string; data: stri
   };
 }
 
+function resolveGeminiApiKey(req: NextRequest): string {
+  const headerKey = (req.headers.get('x-mangai-llave') || '').trim();
+  if (/^AIza[0-9A-Za-z_-]{6,}$/i.test(headerKey)) {
+    return headerKey;
+  }
+  return (process.env.GEMINI_API_KEY || '').trim();
+}
+
+function extractSeed(rawBody: unknown, prompt: string): string | undefined {
+  if (rawBody && typeof rawBody === 'object' && 'seed' in rawBody) {
+    const rawSeed = (rawBody as { seed?: unknown }).seed;
+    if (typeof rawSeed === 'number' && Number.isFinite(rawSeed)) {
+      return String(Math.floor(rawSeed));
+    }
+    if (typeof rawSeed === 'string' && rawSeed.trim()) {
+      const digits = rawSeed.replace(/\D+/g, '');
+      if (digits) return digits;
+    }
+  }
+  return prompt.match(/SEED-(\d+)/i)?.[1];
+}
+
 export async function POST(req: NextRequest) {
   let rawBody: unknown;
   try {
@@ -56,26 +78,21 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
-  if (!apiKey) {
-    return NextResponse.json(
-      {
-        error:
-          'Falta GEMINI_API_KEY en las variables de entorno del servidor (.env.local / Vercel).',
-      },
-      { status: 503 },
-    );
-  }
-
+  const apiKey = resolveGeminiApiKey(req);
+  const seed = extractSeed(rawBody, input.prompt);
   const sketchInline = parseSketchInlineData(input.sketchDataUrl);
   const fullPrompt = sketchInline
     ? `Refine and upgrade the attached hand-drawn manga draft while strictly preserving the artist pose, framing, and composition: ${buildFullCanvasPrompt(input.prompt, input.style, input.aspectRatio)}`
     : buildFullCanvasPrompt(input.prompt, input.style, input.aspectRatio);
 
   try {
-    const result = await generateGeminiImage(apiKey, [
-      { text: fullPrompt }, ...(sketchInline ? [{ inlineData: sketchInline }] : []),
-    ], input.aspectRatio);
+    const result = await generateGeminiImage(
+      apiKey,
+      [{ text: fullPrompt }, ...(sketchInline ? [{ inlineData: sketchInline }] : [])],
+      input.aspectRatio,
+      true,
+      { seed },
+    );
     return NextResponse.json({ ...result, promptUsed: fullPrompt });
   } catch (error) {
     return imageErrorResponse(error);

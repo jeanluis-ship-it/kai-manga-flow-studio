@@ -1,7 +1,21 @@
+import {
+  extractSeedFromText,
+  generateFreeImageFallback,
+  synthesizeLocalMangaArtwork,
+} from './freeImageFallback';
 import { generateGeminiSketch } from './geminiSketch';
 import { KAI_IMAGE_MODEL_DEFAULT } from './studioCanvas';
 
-type ImagePart = { text: string } | { inlineData: { mimeType: string; data: string } };
+export type ImagePart = { text: string } | { inlineData: { mimeType: string; data: string } };
+
+export interface GenerateImageResultPayload {
+  image: string;
+  mimeType: string;
+  model: string;
+  renderKind: 'illustration' | 'vector-sketch' | 'fallback-raster';
+  fallbackUsed?: boolean;
+  provider?: string;
+}
 
 export class ImageServiceError extends Error {
   constructor(message: string, readonly status: number, readonly retryAfter?: string) {
@@ -9,77 +23,141 @@ export class ImageServiceError extends Error {
   }
 }
 
-interface GeminiFailure {
-  error?: {
-    details?: Array<{
-      violations?: Array<{ quotaDimensions?: { model?: string }; quotaId?: string; quotaValue?: string }>;
-      retryDelay?: string;
-    }>;
-  };
+export interface GenerateGeminiImageOptions {
+  seed?: string | number;
 }
 
-export async function generateGeminiImage(apiKey: string, parts: ImagePart[], aspectRatio: string, allowLite = true) {
-  const primary = process.env.GEMINI_CANVAS_IMAGE_MODEL?.trim() || KAI_IMAGE_MODEL_DEFAULT;
-  const lite = 'gemini-3.1-flash-lite-image';
-  const models = allowLite && parts.length <= 2 && primary !== lite ? [primary, lite] : [primary];
-  const signal = AbortSignal.timeout(52_000);
-  const body = JSON.stringify({
-    contents: [{ role: 'user', parts }],
-    generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio } },
-  });
+export async function generateGeminiImage(
+  apiKey: string,
+  parts: ImagePart[],
+  aspectRatio: string,
+  allowLite = true,
+  options?: GenerateGeminiImageOptions,
+): Promise<GenerateImageResultPayload> {
+  const cleanKey = (apiKey || '').trim();
+  const promptText = parts
+    .filter((part): part is { text: string } => 'text' in part && typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('\n');
+  const resolvedSeed = options?.seed ?? extractSeedFromText(promptText);
+  const preferredFallback = (process.env.IMAGE_FALLBACK_PROVIDER || '').trim().toLowerCase();
 
-  for (const model of models) {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey }, body, signal },
-    );
-    if (!response.ok) {
-      const details: GeminiFailure = await response.json().catch(() => ({}));
-      const violations = details.error?.details?.flatMap((d) => d.violations || []) || [];
-      const modelLimit = violations.length > 0 && violations.every((v) => v.quotaDimensions?.model);
-      if (model !== models.at(-1) && (response.status === 404 || response.status === 503 || (response.status === 429 && modelLimit))) continue;
-      if (response.status === 429) {
-        if (allowLite) {
-          try {
-            return await generateGeminiSketch(apiKey, parts, aspectRatio, signal);
-          } catch (error) {
-            console.warn('Gemini sketch unavailable', error instanceof Error ? error.name : 'Error');
+  const primary = process.env.GEMINI_CANVAS_IMAGE_MODEL?.trim() || KAI_IMAGE_MODEL_DEFAULT;
+  const secondary = 'gemini-2.5-flash-image';
+  const lite = 'gemini-3.1-flash-lite-image';
+  const models = Array.from(
+    new Set(
+      allowLite && parts.length <= 2
+        ? [primary, secondary, lite]
+        : [primary, secondary],
+    ),
+  );
+
+  // Tier 1: Official Gemini Image models when an API key is available and fallback-only mode is not forced
+  if (cleanKey && preferredFallback !== 'pollinations' && preferredFallback !== 'local' && preferredFallback !== 'custom') {
+    const body = JSON.stringify({
+      contents: [{ role: 'user', parts }],
+      generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio } },
+    });
+
+    for (const model of models) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': cleanKey },
+            body,
+            signal: AbortSignal.timeout(42_000),
+          },
+        );
+
+        if (!response.ok) {
+          if (response.status === 429 || response.status === 404 || response.status >= 500) {
+            continue;
+          }
+          // Even on 400/401/403 from a stale key, continue to Tier 2/3 so Beta flow never deadlocks.
+          break;
+        }
+
+        const result = (await response.json()) as {
+          candidates?: Array<{
+            content?: {
+              parts?: Array<{
+                inlineData?: { mimeType?: string; data?: string };
+                inline_data?: { mime_type?: string; data?: string };
+              }>;
+            };
+          }>;
+        };
+
+        for (const part of result.candidates?.[0]?.content?.parts || []) {
+          const data = part.inlineData?.data || part.inline_data?.data;
+          const mimeType = part.inlineData?.mimeType || part.inline_data?.mime_type || 'image/png';
+          if (data && /^image\/(png|jpeg|webp)$/.test(mimeType)) {
+            return {
+              image: `data:${mimeType};base64,${data}`,
+              mimeType,
+              model,
+              renderKind: 'illustration',
+              fallbackUsed: false,
+            };
           }
         }
-        const shortLimit = violations.length > 0 && violations.every((v) => /minute|second/i.test(v.quotaId || '') && v.quotaValue !== '0');
-        const retry = response.headers.get('retry-after') || details.error?.details?.find((d) => d.retryDelay)?.retryDelay?.replace(/s$/, '');
-        const seconds = Math.ceil(Number(retry));
-        if (shortLimit && seconds > 0 && Number.isFinite(seconds)) {
-          throw new ImageServiceError(`El servicio está ocupado. Podrás volver a generar en ${seconds} s.`, 429, String(seconds));
-        }
-        throw new ImageServiceError('El proveedor no tiene cuota de imágenes disponible para este proyecto. Puedes seguir editando y usando el chat.', 429);
-      }
-      throw new ImageServiceError('El servicio de ilustración no pudo completar esta solicitud.', 502);
-    }
-
-    const result = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{
-      inlineData?: { mimeType?: string; data?: string };
-      inline_data?: { mime_type?: string; data?: string };
-    }> } }> };
-    for (const part of result.candidates?.[0]?.content?.parts || []) {
-      const data = part.inlineData?.data || part.inline_data?.data;
-      const mimeType = part.inlineData?.mimeType || part.inline_data?.mime_type || 'image/png';
-      if (data && /^image\/(png|jpeg|webp)$/.test(mimeType)) {
-        return { image: `data:${mimeType};base64,${data}`, mimeType, model, renderKind: 'illustration' as const };
+      } catch {
+        // Network / timeout error on this Gemini model; try next model or degrade to Tier 2.
       }
     }
-    throw new ImageServiceError('El proveedor terminó sin entregar una imagen. Revisa la descripción o la referencia.', 502);
   }
-  throw new ImageServiceError('El servicio de ilustración está temporalmente indisponible.', 503);
+
+  // Tier 2: Free / configurable raster fallback (custom / HuggingFace / Cloudflare / Pollinations Flux)
+  const freeFallback = await generateFreeImageFallback({
+    prompt: promptText,
+    aspectRatio,
+    seed: resolvedSeed,
+  });
+  if (freeFallback) {
+    return freeFallback;
+  }
+
+  // Tier 3a: Vector sketch fallback via Gemini text model if API key is present
+  if (cleanKey) {
+    try {
+      const sketch = await generateGeminiSketch(cleanKey, parts, aspectRatio, AbortSignal.timeout(18_000));
+      return {
+        ...sketch,
+        fallbackUsed: true,
+      };
+    } catch (error) {
+      console.warn('Gemini sketch unavailable', error instanceof Error ? error.name : 'Error');
+    }
+  }
+
+  // Tier 3b: Guaranteed local crisp PNG synthesis via sharp (zero-failure safety net)
+  return synthesizeLocalMangaArtwork({
+    prompt: promptText,
+    aspectRatio,
+    seed: resolvedSeed,
+  });
 }
 
 export function imageErrorResponse(error: unknown) {
   if (error instanceof ImageServiceError) {
-    return Response.json({ error: error.message }, {
-      status: error.status,
-      headers: error.retryAfter ? { 'Retry-After': error.retryAfter } : undefined,
-    });
+    return Response.json(
+      { error: error.message },
+      {
+        status: error.status,
+        headers: error.retryAfter ? { 'Retry-After': error.retryAfter } : undefined,
+      },
+    );
   }
   const timedOut = error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name);
-  return Response.json({ error: timedOut ? 'La ilustración tardó más de lo previsto. Puedes reintentarlo.' : 'No se pudo conectar con el servicio de ilustración.' }, { status: timedOut ? 504 : 502 });
+  return Response.json(
+    {
+      error: timedOut
+        ? 'La ilustración tardó más de lo previsto. Puedes reintentarlo.'
+        : 'No se pudo conectar con el servicio de ilustración.',
+    },
+    { status: timedOut ? 504 : 502 },
+  );
 }
