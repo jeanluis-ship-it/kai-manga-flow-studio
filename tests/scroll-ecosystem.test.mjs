@@ -53,8 +53,8 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
   assert.match(html, /\bclass=["'][^"']*\bkai-chat-preview\b/i, 'index.html must include .kai-chat-preview');
   assert.match(
     html,
-    /<img\b[^>]*\bsrc=["']\/landing\/assets\/mangai-art-06\.svg["'][^>]*>/i,
-    'index.html must reference local /landing/assets/mangai-art-06.svg inside Kai brush preview',
+    /<img\b[^>]*\bsrc=["']\/landing\/assets\/cover-anacaona\.webp["'][^>]*>/i,
+    'index.html must reference local /landing/assets/cover-anacaona.webp inside Kai brush preview',
   );
 
   for (const finish of ['gpen', 'tone', 'crimson']) {
@@ -75,11 +75,8 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
   }
   assert.ok(html.includes('300 DPI'), 'index.html must include 300 DPI KDP badge copy');
 
-  const planCards = html.match(/\bclass=["'][^"']*\bmanga-plan-card\b[^"']*["']/g) || [];
-  assert.equal(planCards.length, 3, 'index.html must include exactly 3 .manga-plan-card items');
-  for (const planToken of ['Mangaka Aprendiz', '$0', 'Creador Pro', '$19', 'Sello Editorial', '$49']) {
-    assert.ok(html.includes(planToken), `index.html must include pricing copy "${planToken}"`);
-  }
+  assert.match(html, /href="\/studio\?plans=1"/, 'Landing must open the Studio plan catalog');
+  assert.doesNotMatch(html, /\$\d|Generaciones ilimitadas/, 'Landing must not duplicate commercial terms');
 
   assert.match(html, /\bclass=["'][^"']*\bfinal-cta-scroll\b/i, 'index.html must include .final-cta-scroll');
   assert.ok(html.includes('道心静'), 'index.html must include 道心静 kanji watermark');

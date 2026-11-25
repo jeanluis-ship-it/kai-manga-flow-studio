@@ -171,6 +171,14 @@ function resolveTabParam(raw: string | null): StudioView | null {
   return null;
 }
 
+const studioSections = [
+  { id: 'project', label: 'Configuración y lomo', icon: Printer },
+  { id: 'characters', label: 'Settei y personajes', icon: Users },
+  { id: 'cover', label: 'Portada tankōbon', icon: BookOpen },
+  { id: 'pages', label: 'Páginas e interiores', icon: BookMarked },
+  { id: 'drawing_tablet', label: 'Tabla de Dibujo', icon: PenTool },
+] as const;
+
 function createEntityId(prefix: string): string {
   if (typeof globalThis !== 'undefined' && typeof globalThis.crypto?.randomUUID === 'function') {
     return globalThis.crypto.randomUUID();
@@ -183,6 +191,7 @@ export default function StudioPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [storageMode, setStorageMode] = useState<StorageMode>('local');
   const [view, setView] = useState<StudioView>('project');
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const [project, setProject] = useState<Project>(() => createInitialStudioProject());
   const [extraProjects, setExtraProjects] = useState<Project[]>([]);
   const [activePageIndex, setActivePageIndex] = useState<number>(0);
@@ -263,6 +272,9 @@ export default function StudioPage() {
   useEffect(() => {
     let active = true;
     const params = new URLSearchParams(window.location.search);
+    if (params.get('plans') === '1') {
+      setUpgradeModal({ open: true });
+    }
     const initialTab = resolveTabParam(params.get('tab'));
     if (initialTab) {
       setView(initialTab);
@@ -431,6 +443,7 @@ export default function StudioPage() {
 
   const handleSelectView = (nextView: StudioView) => {
     setView(nextView);
+    setMobileToolsOpen(false);
     if (nextView === 'pages' || nextView === 'cover') {
       // Keep current right tab so user can stay in KAI or switch to Inspector freely
     } else if (nextView === 'project' || nextView === 'characters') {
@@ -1070,40 +1083,24 @@ export default function StudioPage() {
               <ArrowLeft size={14} strokeWidth={1.75} className="gf-icon-shrink" />
               <span>MANGAI STUDIO</span>
             </Link>
-            <div className="gf-nav-list">
-              <NavItem
-                active={view === 'project'}
-                icon={<Printer size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Configuración y Lomo"
-                onClick={() => handleSelectView('project')}
-              />
-              <NavItem
-                active={view === 'characters'}
-                icon={<Users size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Settei y Personajes"
-                onClick={() => handleSelectView('characters')}
-              />
-              <NavItem
-                active={view === 'cover'}
-                icon={<BookOpen size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Portada Tankōbon"
-                onClick={() => handleSelectView('cover')}
-              />
-              <NavItem
-                active={view === 'pages'}
-                icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Páginas e Interiores"
-                onClick={() => handleSelectView('pages')}
-              />
-              <NavItem
-                active={view === 'drawing_tablet'}
-                icon={<PenTool size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Tabla de Dibujo"
-                onClick={() => handleSelectView('drawing_tablet')}
-              />
+            <nav className="gf-nav-list" aria-label="Herramientas del estudio">
+              {studioSections.map(({ id, label, icon: Icon }) => (
+                <NavItem key={id} active={view === id}
+                  icon={<Icon size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                  label={label} onClick={() => handleSelectView(id)} />
+              ))}
+            </nav>
+            <div className="gf-mobile-nav">
+              <select aria-label="Herramienta del estudio" value={view}
+                onChange={(event) => handleSelectView(event.target.value as StudioView)}>
+                {studioSections.map(({ id, label }) => <option value={id} key={id}>{label}</option>)}
+              </select>
+              <button type="button" aria-expanded={mobileToolsOpen} aria-controls="project-tools"
+                onClick={() => setMobileToolsOpen((open) => !open)}>Gestionar tomo</button>
             </div>
           </div>
 
+          <div className="gf-project-tools" id="project-tools" data-open={mobileToolsOpen}>
           {view === 'pages' && (
             <div className="gf-sidebar-section animate-slide-in-right">
               <SectionLabel>Manuscrito</SectionLabel>
@@ -1243,6 +1240,7 @@ export default function StudioPage() {
               </div>
             )}
             {bundleError && !preflightOpen && <div className="gf-inline-error">{bundleError}</div>}
+          </div>
           </div>
         </aside>
 
@@ -1424,6 +1422,7 @@ function NavItem({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? 'page' : undefined}
       className={`gf-nav-item ${active ? 'is-active' : ''}`}
     >
       <span className="gf-nav-icon">{icon}</span>

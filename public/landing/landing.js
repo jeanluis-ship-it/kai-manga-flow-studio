@@ -11,7 +11,7 @@ const BOOKS = [
     genre: 'Fantasía histórica',
     desc: 'Una leyenda caribeña reimaginada en tinta, memoria y aventura.',
     art: '/landing/assets/mangai-art-01.svg',
-    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/mangai-art-06.svg',
+    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/cover-anacaona.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Taino warrior queen AnaCaona standing defiantly in a moonlit Caribbean rainforest, ceremonial golden ornaments, flowing hair, dramatic sumi ink hatching and dynamic manga framing',
@@ -335,7 +335,7 @@ const BOOKS = [
     genre: 'Seinen / Acción Samurái',
     desc: 'Una espada forjada en laca carmesí despierta el linaje prohibido de Akai.',
     art: '/landing/assets/mangai-art-06.svg',
-    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/mangai-art-01.svg',
+    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/cover-akai.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Lone samurai warrior unsheathing a crimson-lacquered katana amidst falling autumn leaves, stark black sumi ink brushwork with dramatic Akai red slash accents',
@@ -399,7 +399,7 @@ const BOOKS = [
     genre: 'Mecha / Sci-Fi',
     desc: 'En los astilleros orbitales, un chasis antiguo vuelve a encender su reactor.',
     art: '/landing/assets/mangai-art-07.svg',
-    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/mangai-art-02.svg',
+    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/cover-kaze.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Sleek orbital mecha frame launching from a zero-gravity hangar bay with emerald thrusters igniting against Earth curvature, detailed mechanical lineart',
@@ -463,7 +463,7 @@ const BOOKS = [
     genre: 'Fantasía Sobrenatural',
     desc: 'Una librería de Kioto custodia los contratos de cien espíritus antiguos.',
     art: '/landing/assets/mangai-art-08.svg',
-    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/mangai-art-03.svg',
+    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/cover-yokai.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Mystical lantern-lit Kyoto alley at midnight where paper talismans swirl around a young exorcist detective, supernatural violet spirit silhouettes',
@@ -527,7 +527,7 @@ const BOOKS = [
     genre: 'Slice of Life / Arte',
     desc: 'El viaje íntimo de una autora independiente hasta publicar su primer Tankōbon.',
     art: '/landing/assets/mangai-art-09.svg',
-    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/mangai-art-04.svg',
+    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/cover-sensei.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Warm sunlit mangaka studio desk covered with Genko manuscript paper, G-pen nibs, ink bottles, and character sketches coming alive in delicate sumi lines',
@@ -591,7 +591,7 @@ const BOOKS = [
     genre: 'Aventura Épica',
     desc: 'Flotas de vela solar cruzan un archipiélago suspendido entre tormentas eternas.',
     art: '/landing/assets/mangai-art-10.svg',
-    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/mangai-art-05.svg',
+    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/cover-hijos-del-huracan.webp',
     studioStyle: 'cover_art',
     studioPrompt:
       'Skyship fleet with billowing solar sails carving through towering storm clouds above floating tropical islands, dynamic wide-angle shonen adventure cover art',
@@ -857,18 +857,18 @@ function renderCreaseDots(spreadsCount) {
   const total = isBookOpen ? spreadsCount : BOOKS.length;
   const activeIdx = isBookOpen ? spreadIndex : currentBook;
 
-  dotsEl.innerHTML = '';
+  const restoreFocus = dotsEl.contains(document.activeElement);
+  dotsEl.replaceChildren();
   for (let i = 0; i < total; i += 1) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'crease-dot' + (i === activeIdx ? ' is-active' : '');
-    btn.setAttribute('role', 'tab');
-    btn.setAttribute('aria-selected', i === activeIdx ? 'true' : 'false');
+    btn.setAttribute('aria-pressed', i === activeIdx ? 'true' : 'false');
     btn.setAttribute(
       'aria-label',
       isBookOpen
         ? `Ir al pliego ${i + 1} de ${total}`
-        : `Girar Pinwheel al tomo ${BOOKS[i]?.title || i + 1}`,
+        : `Seleccionar tomo ${BOOKS[i]?.title || i + 1}`,
     );
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -882,6 +882,7 @@ function renderCreaseDots(spreadsCount) {
     });
     dotsEl.appendChild(btn);
   }
+  if (restoreFocus) dotsEl.children[activeIdx]?.focus({ preventScroll: true });
 }
 
 function renderHeroBookViewer() {
@@ -901,8 +902,8 @@ function renderHeroBookViewer() {
   if (heroBookTitle) heroBookTitle.textContent = book.title;
   if (heroBookSubtitle) {
     heroBookSubtitle.textContent = isBookOpen
-      ? 'Pliego ' + (spreadIndex + 1) + ' de ' + spreads.length + ' — Haz clic en las páginas o salta al siguiente tomo en 3D'
-      : 'Gira la rueda Pinwheel 3D o haz clic en el tomo frontal para abrir sus pliegos con efecto Crease';
+      ? 'Pliego ' + (spreadIndex + 1) + ' de ' + spreads.length + ' · Usa las flechas para pasar las páginas.'
+      : book.desc;
   }
   if (heroIndex) {
     heroIndex.textContent = isBookOpen
@@ -958,7 +959,7 @@ function renderHeroBookViewer() {
   if (openPageLeft) {
     openPageLeft.setAttribute(
       'aria-label',
-      spreadIndex === 0 ? 'Cerrar tomo y volver al Pinwheel 3D' : 'Página anterior',
+      spreadIndex === 0 ? 'Cerrar tomo y volver a la colección' : 'Página anterior',
     );
   }
 
@@ -1391,15 +1392,20 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-$('#menuToggle')?.addEventListener('click', () => {
-  const m = $('#mobileDropdown');
-  if (!m) return;
-  const on = m.classList.toggle('show');
-  $('#menuToggle').setAttribute('aria-expanded', String(on));
+const menuToggle = $('#menuToggle');
+const mobileMenu = $('#mobileDropdown');
+function setMobileMenu(open) {
+  mobileMenu?.classList.toggle('show', open);
+  menuToggle?.setAttribute('aria-expanded', String(open));
+}
+menuToggle?.addEventListener('click', () => setMobileMenu(!mobileMenu?.classList.contains('show')));
+$$('#mobileDropdown a').forEach((link) => link.addEventListener('click', () => setMobileMenu(false)));
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && mobileMenu?.classList.contains('show')) {
+    setMobileMenu(false);
+    menuToggle?.focus();
+  }
 });
-$$('#mobileDropdown a').forEach((a) =>
-  a.addEventListener('click', () => $('#mobileDropdown')?.classList.remove('show')),
-);
 
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(
