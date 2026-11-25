@@ -833,3 +833,67 @@
 @media(max-width:1000px){.shell{width:min(var(--max),calc(100% - 45px))}.hero-inner{min-height:680px;height:auto}.hero-stamp{right:2%;top:27%}.mangai-stage-center{min-height:350px;margin:0.85rem 0}.mangai-shelf{height:340px}.manga-closed-book{width:170px;height:244px;margin-left:-85px;margin-top:-122px}.manga-open-book{width:min(800px,94vw);max-height:56vh;min-height:330px}.navlinks{gap:15px}.navlinks a{font-size:11px}.sumi-ink-stream-track{left:10px;opacity:0.55}.story-grid{grid-template-columns:1fr;gap:36px}.story-grid.reverse-desktop .story-copy{order:-1}.pricing-cards-grid{grid-template-columns:1fr;max-width:540px;margin:0 auto}.collection-fan-stack{height:420px}.ukiyo-cloud-svg{width:clamp(160px,28vw,240px);opacity:0.42}}
 @media(max-width:690px){.shell{width:calc(100% - 34px)}.nav{height:70px}.brand{font-size:22px}.navlinks{display:none}.mobile-menu{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1px solid #aca4a9;padding:8px 12px;border-radius:50px;color:var(--ink);font-size:12px;font-weight:700}.mobile-dropdown{display:none;position:absolute;z-index:20;right:17px;top:68px;width:240px;padding:18px;background:#f4f0e8;box-shadow:0 15px 35px #0e0b1327;border:1px solid #d6cfca;border-radius:15px}.mobile-dropdown.show{display:grid;gap:15px}.mobile-dropdown a,.mobile-dropdown button{font-weight:700;font-size:13px;text-align:left;border:0;background:transparent}.hero-inner{height:auto;min-height:620px}.hero-top{padding-top:13px}.hero-top .eyebrow{font-size:9px}.hero-top .vertical-caption{display:none}.hero-watermark{top:32%;font-size:15vw}.hero-stamp{display:none}.mangai-hero-stage{padding:10px 0 34px}.mangai-hero-header{padding:4px 4px 0}.mangai-badge{font-size:0.65rem;letter-spacing:0.13em}.mangai-hero-title{font-size:clamp(1.6rem,7.2vw,2.3rem)}.mangai-hero-subtitle{font-size:0.84rem}.mangai-stage-center{min-height:300px;margin:0.75rem 0}.mangai-shelf{height:290px;overflow:visible}.manga-closed-book{width:152px;height:222px;margin-left:-76px;margin-top:-111px}.book-cover-label{padding:0.55rem 1.35rem 0.65rem 0.98rem}.book-card-title{font-size:0.82rem}.manga-open-book{width:calc(100% - 14px);aspect-ratio:auto;height:auto;max-height:none;min-height:300px}.page-stack-left,.page-stack-right{width:9px}.page-stack-left{left:-6px}.page-stack-right{right:-6px}.page-inner{padding:0.88rem 0.85rem;gap:0.45rem}.manga-page-meta{font-size:0.6rem;letter-spacing:0.08em}.manga-panel-art{height:146px;flex:0 0 146px}.manga-caption h4{font-size:0.84rem;margin:0.15rem 0}.manga-caption p{font-size:0.74rem;line-height:1.38}.page-gutter-shadow-left,.page-gutter-shadow-right{width:16px}.mangai-dock-controls{flex-direction:column;align-items:center;gap:0.6rem;width:100%;padding:0}.mangai-dock-nav{justify-content:center}.dock-btn-kai{width:100%;max-width:280px}.modal-card{grid-template-columns:1fr;max-width:500px}.modal-img{height:260px;padding:18px}.modal-cover-frame{height:224px;width:auto;max-width:none}.modal-body{padding:25px}.modal-body h3{font-size:35px}.sumi-ink-stream-track{display:none}.story-stage{padding:58px 0}.ukiyo-cloud-svg{width:155px;opacity:0.18}.cloud-top-right{top:10px;right:6px}.cloud-bottom-left{bottom:10px;left:12px}.brush-panel-card{padding:14px;box-shadow:0 12px 28px rgba(23,20,27,0.06)}.brush-panel-media{min-height:190px}.brush-finish-btn{padding:7px 11px;font-size:11px}.collection-fan-stack{height:370px;max-width:340px}.folio-card{width:80%;padding:13px}.folio-back{transform:translate(-58%,-56%) rotate(-6deg) scale(0.9)}.folio-mid{transform:translate(-42%,-52%) rotate(5deg) scale(0.93)}.folio-front{transform:translate(-49%,-42%) rotate(1.5deg) scale(0.96)}.folio-thumb{height:138px}.folio-front .folio-thumb{height:118px}.pricing-header{margin-bottom:34px}.manga-plan-card{padding:28px 20px 22px}.final-cta-scroll{padding:38px 20px;box-shadow:0 12px 28px rgba(23,20,27,0.06)}.kanji-watermark{font-size:clamp(4.2rem,22vw,6.5rem)}.final-cta-buttons{flex-direction:column;align-items:stretch}.final-cta-buttons .btn-ink-primary,.final-cta-buttons .btn-ink-ghost{width:100%;font-size:0.88rem;padding:0.85rem 1.4rem}.story-footer{padding:28px 0 34px}.story-footer .footer-links,.story-footer .story-footer-links,.story-footer nav{width:100%;gap:16px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;scroll-behavior:auto!important;transition-duration:.01ms!important}.fadeup{opacity:1;transform:none}.reveal-card{opacity:1;transform:none}}
+
+/* Cover story, like the opening spread of a manga anthology. */
+.hero { min-height: auto; }
+.hero-inner { min-height: 0; }
+.hero .book-elastic-band, .hero .pinwheel-open-hint { display: none; }
+.mangai-hero-stage { padding-block: 30px 42px; }
+.mangai-badge { color: #9b281c; }
+.mangai-hero-title { text-wrap: balance; }
+.mangai-hero-subtitle { text-wrap: pretty; }
+.book-cover-label { background: #211e20; }
+.brush-panel-img { object-position: 50% 25%; }
+.crease-dots { gap: 0; }
+.crease-dot, .crease-dot.is-active {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+}
+.crease-dot::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #8a8176; }
+.crease-dot.is-active::after { width: 17px; border-radius: 4px; background: #ab271d; }
+.crease-dot:hover { background: transparent; }
+.dock-btn, .dock-btn-primary, .dock-btn-kai, .mobile-menu { min-height: 44px; }
+.dock-btn { width: 44px; }
+.stage-pricing .pricing-header { margin-bottom: 0; }
+.stage-pricing .btn-ink-primary { margin-top: 1rem; }
+@media (min-width: 1100px) {
+  .mangai-hero-stage:has(.manga-open-book[hidden]) {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.65fr);
+    grid-template-rows: minmax(16px, 1fr) auto auto minmax(16px, 1fr) auto;
+    grid-template-areas: '. shelf' 'headline shelf' 'actions shelf' '. shelf' '. dots';
+    column-gap: 3%;
+    padding-block: 42px 36px;
+    min-height: clamp(530px, 69vh, 720px);
+  }
+  .mangai-hero-stage:has(.manga-open-book[hidden]) .mangai-hero-header {
+    grid-area: headline;
+    align-self: end;
+    text-align: left;
+    padding: 0;
+  }
+  .mangai-hero-stage:has(.manga-open-book[hidden]) .mangai-hero-title {
+    font-size: clamp(3.6rem, 5.1vw, 5.7rem);
+    line-height: .98;
+    margin-block: 16px;
+  }
+  .mangai-hero-stage:has(.manga-open-book[hidden]) .mangai-stage-center {
+    grid-area: shelf;
+    min-height: 440px;
+    margin: 0;
+    clip-path: inset(-15% -1% -12%);
+  }
+  .mangai-hero-stage:has(.manga-open-book[hidden]) .crease-dots { grid-area: dots; align-self: start; justify-self: center; }
+  .mangai-hero-stage:has(.manga-open-book[hidden]) .mangai-dock-controls {
+    grid-area: actions; justify-content: flex-start; padding: 0; margin-top: 24px;
+  }
+}
+@media (max-width: 690px) {
+  .mangai-hero-stage { padding-block: 20px 24px; }
+  .mangai-stage-center { margin-block: 6px; }
+  .mangai-hero-title { margin-top: 8px; }
+}

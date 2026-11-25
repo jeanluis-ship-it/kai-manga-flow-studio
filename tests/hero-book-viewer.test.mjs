@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const base = process.cwd();
@@ -228,8 +228,13 @@ test('Pinwheel Gallery 0.1.0-prototype.1: preset validates 10-panel rotor physic
   assert.equal(pinwheel.pointerSpin, 6);
   assert.equal(pinwheel.items.length, 10);
 
-  for (const item of pinwheel.items) {
-    assert.match(item.imageUrl, /^\/landing\/assets\/mangai-art-\d+\.svg$/);
+  const covers = [...html.matchAll(/<img\b[^>]*src="([^"]+)"[^>]*class="book-cover-img"/g)];
+  assert.equal(covers.length, pinwheel.items.length);
+  assert.equal(new Set(covers.map((cover) => cover[1])).size, covers.length);
+  for (const [i, item] of pinwheel.items.entries()) {
+    assert.match(item.imageUrl, /^\/landing\/assets\/(?:mangai-art-\d+\.svg|cover-[a-z-]+\.webp)$/);
+    assert.equal(covers[i][1], item.imageUrl);
+    assert.ok(existsSync(join(base, 'public', item.imageUrl)));
   }
 
   const closedBooks = html.match(/class=["'][^"']*\bmanga-closed-book\b/g) || [];

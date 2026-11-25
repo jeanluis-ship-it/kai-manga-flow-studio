@@ -148,11 +148,11 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     {
       id: 'kai-welcome',
       role: 'assistant',
-      text: 'Soy KAI, conectado en vivo a cada paso de tu proyecto con Gemini 3 Flash. Todo lo que diseñemos aquí se aplica directo a tu Configuración, fichas @Settei, Portada Tankōbon, Páginas Koma-wari o tu Tabla de Dibujo.',
+      text: '¿Qué quieres crear hoy? Puedo ayudarte a perfilar un personaje, escribir una escena o componer tu primera página.',
     },
   ]);
 
-  const feedEndRef = useRef<HTMLDivElement | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
   const consumedUrlRef = useRef(false);
 
   const activeSetteiPayload = useMemo(
@@ -242,7 +242,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
   }, [pendingExternalMessage]);
 
   useEffect(() => {
-    feedEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    const feed = feedRef.current;
+    if (feed) feed.scrollTop = feed.scrollHeight;
   }, [messages.length, loading]);
 
   const buildChatHistory = (): KaiChatHistoryTurn[] =>
@@ -496,8 +497,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
           </div>
           <div>
             <h2 className="gf-kai-title">Espacio KAI · Proyecto</h2>
-            <p className="gf-kai-subtitle">
-              {KAI_TEXT_MODEL_DEFAULT} · {KAI_IMAGE_MODEL_DEFAULT}
+            <p className="gf-kai-subtitle" title={`${KAI_TEXT_MODEL_DEFAULT} · ${KAI_IMAGE_MODEL_DEFAULT}`}>
+              {STEP_PIPELINE.find((step) => step.id === activeView)?.title}
             </p>
           </div>
         </div>
@@ -581,7 +582,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
       )}
 
       {/* Conversation & Executable Project Cards */}
-      <div className="gf-kai-messages dark-scrollbar">
+      <div ref={feedRef} className="gf-kai-messages dark-scrollbar">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -721,7 +722,6 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
             <span>KAI está trabajando sobre «{project.name || 'tu proyecto'}»...</span>
           </div>
         )}
-        <div ref={feedEndRef} />
       </div>
 
       {/* Contextual Quick Prompts for Current Project Step */}

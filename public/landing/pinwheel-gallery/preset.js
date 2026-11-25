@@ -4,7 +4,7 @@ import { configurationContract as contract } from "./src/configuration.js";
 // Image slots mapped to local MANGAI Studio editorial covers (/landing/assets/mangai-art-*.svg).
 const images = {
   // Image 1: AnaCaona: Flor Guerrera
-  "imageUrls.0": "/landing/assets/mangai-art-06.svg",
+  "imageUrls.0": "/landing/assets/cover-anacaona.webp",
   // Image 2: Atlas: Mapas del Olvido
   "imageUrls.1": "/landing/assets/mangai-art-07.svg",
   // Image 3: Nox / Signal
@@ -14,15 +14,15 @@ const images = {
   // Image 5: Crónicas del Eclipse
   "imageUrls.4": "/landing/assets/mangai-art-10.svg",
   // Image 6: Akai: Filo Carmesí
-  "imageUrls.5": "/landing/assets/mangai-art-01.svg",
+  "imageUrls.5": "/landing/assets/cover-akai.webp",
   // Image 7: Kaze: Órbita Cero
-  "imageUrls.6": "/landing/assets/mangai-art-02.svg",
+  "imageUrls.6": "/landing/assets/cover-kaze.webp",
   // Image 8: Yōkai: Archivo Nocturno
-  "imageUrls.7": "/landing/assets/mangai-art-03.svg",
+  "imageUrls.7": "/landing/assets/cover-yokai.webp",
   // Image 9: Sensei: Tinta Viva
-  "imageUrls.8": "/landing/assets/mangai-art-04.svg",
+  "imageUrls.8": "/landing/assets/cover-sensei.webp",
   // Image 10: Hijos del Huracán
-  "imageUrls.9": "/landing/assets/mangai-art-05.svg",
+  "imageUrls.9": "/landing/assets/cover-hijos-del-huracan.webp",
 };
 
 const saved = {
@@ -105,7 +105,7 @@ const saved = {
       40,
       40
     ],
-    "ariaLabel": "Pinwheel gallery de tomos MANGAI"
+    "ariaLabel": "Galería de tomos MANGAI"
   }
 };
 if (saved.assetId !== contract.templateId || saved.configurationSchemaVersion !== contract.schemaVersion) throw new Error("Settings do not match this asset configuration contract.");
