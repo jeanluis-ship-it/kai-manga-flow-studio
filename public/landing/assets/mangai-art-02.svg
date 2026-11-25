@@ -1,19 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
- <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
- <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
- <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
- </defs><rect width="640" height="900" fill="#161923"/><circle cx="348" cy="417" r="270" fill="#b6a7fd"/>
-  <circle cx="348" cy="417" r="240" fill="none" stroke="#fff9e9" stroke-width="3"/><circle cx="348" cy="417" r="198" fill="none" stroke="#fff9e9" stroke-width="2"/>
-  <path d="M65 386 Q218 218 386 324 T647 376 M59 500 Q272 389 414 498 T653 516 M100 559 Q286 608 580 533" fill="none" stroke="#27213d" stroke-width="8"/>
-  <path d="M154 627 L277 543 338 599 423 509 525 619 V800 H154Z" fill="#302942"/>
-  <path d="M303 563 Q282 599 286 635 L264 740 367 740 347 629 Q354 584 332 556Z" fill="#10141e"/><circle cx="318" cy="523" r="49" fill="#111522"/>
-  <path d="M0 730 L92 702 180 745 320 695 470 752 640 690 V900 H0Z" fill="#11131d"/>
-  <path d="M318 231 L318 681 M91 426 L550 426" stroke="#f7f1e3" stroke-width="2" opacity=".4"/><path d="M 291 194 l 42 93" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#f4f0e7" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
- <text x="42" y="119" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">LOS MAPAS CAMBIAN AL ANOCHECER</text>
- <text x="39" y="794" fill="#f4f0e7" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">ATLAS</text>
- <path d="M43 818 H597" stroke="#f4f0e7" stroke-width="2"/>
- <text x="45" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">Los mapas del olvido</text>
- <text x="548" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
- <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
- <rect x="5" y="5" width="630" height="890" fill="none" stroke="#f4f0e7" stroke-width="3" opacity=".36"/>
- </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="toneLight" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#17141b" opacity="0.18"/>
+    </pattern>
+    <pattern id="toneDense" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#17141b" opacity="0.34"/>
+    </pattern>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#17141b" stroke-width="1.3" opacity="0.22"/>
+    </pattern>
+    <pattern id="genkoGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <linearGradient id="covBg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#081826"/>
+      <stop offset="100%" stop-color="#153447"/>
+    </linearGradient>
+    <clipPath id="safeArt"><rect x="34" y="34" width="572" height="832" rx="14"/></clipPath>
+  </defs>
+  <rect width="640" height="900" fill="#f4f0e7"/>
+  <rect x="28" y="28" width="584" height="844" rx="16" fill="url(#covBg)" stroke="#17141b" stroke-width="3"/>
+    <g clip-path="url(#safeArt)">
+      <rect x="34" y="34" width="572" height="832" fill="url(#toneLight)" opacity="0.35"/>
+      
+    <path d="M34 590 Q320 490 606 600 V660 H34 Z" fill="#0d2638" stroke="#34d399" stroke-width="2"/>
+    <circle cx="480" cy="240" r="120" fill="#10b981" opacity="0.16"/>
+    <circle cx="480" cy="240" r="92" fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="8 6"/>
+    <line x1="460.0" y1="360.0" x2="720.0" y2="360.0" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="470.9" y1="407.0" x2="730.6" y2="487.8" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="464.9" y1="459.9" x2="698.7" y2="621.1" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="457.2" y1="497.2" x2="602.8" y2="642.8" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="385.1" y1="483.9" x2="519.9" y2="740.7" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="348.6" y1="515.4" x2="403.2" y2="812.4" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="320.0" y1="536.0" x2="320.0" y2="760.0" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="262.3" y1="545.2" x2="192.2" y2="770.6" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="240.5" y1="475.3" x2="58.9" y2="738.7" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="208.3" y1="471.7" x2="37.2" y2="642.8" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="164.2" y1="441.8" x2="-60.7" y2="559.9" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="129.2" y1="395.1" x2="-132.4" y2="443.2" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="180.0" y1="360.0" x2="-80.0" y2="360.0" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="169.1" y1="313.0" x2="-90.6" y2="232.2" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="175.1" y1="260.1" x2="-58.7" y2="98.9" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="182.8" y1="222.8" x2="37.2" y2="77.2" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="254.9" y1="236.1" x2="120.1" y2="-20.7" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="291.4" y1="204.6" x2="236.8" y2="-92.4" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="320.0" y1="184.0" x2="320.0" y2="-40.0" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="377.7" y1="174.8" x2="447.8" y2="-50.6" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="399.5" y1="244.7" x2="581.1" y2="-18.7" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="431.7" y1="248.3" x2="602.8" y2="77.2" stroke="#6ee7b7" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="475.8" y1="278.2" x2="700.7" y2="160.1" stroke="#6ee7b7" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="510.8" y1="324.9" x2="772.4" y2="276.8" stroke="#6ee7b7" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/>
+    <g stroke="#0f172a" stroke-width="3">
+      <polygon points="320,185 375,235 352,320 288,320 265,235" fill="#e2e8f0"/>
+      <polygon points="320,210 346,245 320,278 294,245" fill="#10b981"/>
+      <polygon points="265,245 160,180 185,295 255,335" fill="#cbd5e1"/>
+      <polygon points="375,245 480,180 455,295 385,335" fill="#cbd5e1"/>
+      <polygon points="275,320 365,320 390,465 250,465" fill="#334155"/>
+      <polygon points="255,465 305,465 280,615 210,605" fill="#94a3b8"/>
+      <polygon points="335,465 385,465 430,605 360,615" fill="#94a3b8"/>
+    </g>
+    <path d="M210 295 L110 420 M430 295 L530 420" stroke="#34d399" stroke-width="10" stroke-linecap="round" opacity="0.72"/>
+    <path d="M210 295 L110 420 M430 295 L530 420" stroke="#ecfdf5" stroke-width="4" stroke-linecap="round"/>
+  
+      <rect x="34" y="654" width="572" height="212" fill="#0f0d14" opacity="0.86"/>
+      <line x1="56" y1="654" x2="584" y2="654" stroke="#10b981" stroke-width="3"/>
+    </g>
+    <rect x="34" y="34" width="572" height="832" rx="14" fill="none" stroke="#faf7f0" stroke-width="1.6" opacity="0.32"/>
+    <g fill="#faf7f0">
+      <text x="58" y="76" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="5">MANGAI ORIGINALS</text>
+      <text x="58" y="104" font-family="Arial,sans-serif" font-size="13" letter-spacing="1.8" opacity="0.82">PILOTOS DEL ANILLO SOLAR</text>
+      <rect x="520" y="54" width="60" height="60" rx="8" fill="#10b981" stroke="#17141b" stroke-width="2"/>
+      <text x="550" y="95" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="900" fill="#faf7f0">風</text>
+      <text x="56" y="756" font-family="Arial Black,Impact,sans-serif" font-size="64" font-weight="900" letter-spacing="-2">KAZE</text>
+      <line x1="58" y1="780" x2="582" y2="780" stroke="#faf7f0" stroke-width="1.8" opacity="0.45"/>
+      <text x="58" y="818" font-family="Arial,sans-serif" font-size="21" font-weight="700" letter-spacing="1.2">Órbita Cero</text>
+      <text x="578" y="818" text-anchor="end" font-family="Georgia,serif" font-size="24" font-weight="800" fill="#10b981">I</text>
+    </g>
+</svg>

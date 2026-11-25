@@ -1,22 +1,73 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
- <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
- <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
- <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
- </defs><rect width="640" height="900" fill="#eee6d5"/><circle cx="363" cy="400" r="256" fill="#d85349"/>
-  <circle cx="363" cy="400" r="222" stroke="#2e2531" fill="none" stroke-width="2" opacity=".6"/>
-  <path d="M83 688 Q116 540 165 483 Q187 350 307 304 Q405 261 457 352 Q480 395 459 479 Q438 536 512 688Z" fill="#191921"/>
-  <path d="M324 306 Q279 333 270 405 Q263 465 219 489 Q297 487 319 465 Q374 457 394 400 L414 341Z" fill="#e6b69b"/>
-  <path d="M288 368 Q358 357 400 401 L433 452 Q385 466 332 448 L308 431Z" fill="#201e24"/>
-  <path d="M284 421 Q335 439 371 417" stroke="#191921" stroke-width="6" fill="none"/>
-  <path d="M189 630 Q288 562 420 626" stroke="#e9bd78" stroke-width="28" fill="none"/><path d="M178 649 Q296 580 435 654" stroke="#e5a86d" stroke-width="7" fill="none"/>
-  <path d="M126 255 C195 187 219 199 281 227 M393 203 C472 244 501 283 521 353" stroke="#f9deb4" stroke-width="13" fill="none" stroke-linecap="round"/>
-  <circle cx="419" cy="498" r="18" fill="#ddb680"/><path d="M414 501 l-45 57" stroke="#ddb680" stroke-width="7"/>
-  <path d="M0 684 Q177 652 349 731 Q456 692 640 681 V900 H0Z" fill="#1c1b22"/><path d="M 291 194 l 42 93" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#f6ecdf" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#f6ecdf" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#f6ecdf" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#f6ecdf" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#f6ecdf" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#f6ecdf" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
- <text x="42" y="119" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">UNA LEYENDA NACE EN EL CARIBE</text>
- <text x="39" y="794" fill="#f6ecdf" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">ANACAONA</text>
- <path d="M43 818 H597" stroke="#f6ecdf" stroke-width="2"/>
- <text x="45" y="848" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">Flor de guerra</text>
- <text x="548" y="848" fill="#f6ecdf" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
- <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
- <rect x="5" y="5" width="630" height="890" fill="none" stroke="#f6ecdf" stroke-width="3" opacity=".36"/>
- </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="toneLight" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#17141b" opacity="0.18"/>
+    </pattern>
+    <pattern id="toneDense" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#17141b" opacity="0.34"/>
+    </pattern>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#17141b" stroke-width="1.3" opacity="0.22"/>
+    </pattern>
+    <pattern id="genkoGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <pattern id="dotSmall" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#dc2626" opacity="0.22"/></pattern>
+  </defs>
+  <rect width="640" height="900" fill="#faf7f0"/>
+  <g stroke="#00aeef" stroke-width="1.4" opacity="0.65" fill="none">
+    <path d="M26 42 H42 V26 M22 36 H36 V22"/>
+    <path d="M614 42 H598 V26 M618 36 H604 V22"/>
+    <path d="M26 858 H42 V874 M22 864 H36 V878"/>
+    <path d="M614 858 H598 V874 M618 864 H604 V878"/>
+    <path d="M312 28 H328 M320 20 V36"/>
+    <path d="M312 872 H328 M320 864 V880"/>
+  </g>
+  <rect x="44" y="44" width="552" height="812" fill="url(#genkoGrid)" stroke="#17141b" stroke-width="3"/>
+  <rect x="64" y="64" width="512" height="84" fill="#17141b" rx="6"/>
+  <text x="86" y="102" fill="#faf7f0" font-family="Arial,sans-serif" font-size="18" font-weight="800" letter-spacing="3">FICHA PRE-FLIGHT · 300 DPI</text>
+  <text x="86" y="128" fill="#fbbf24" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="1.5">B6 TANKŌBON (128 × 182 MM) · SANGRADO 3.5 MM</text>
+  <rect x="64" y="172" width="248" height="290" fill="#ffffff" stroke="#17141b" stroke-width="2.5" rx="6"/>
+  <text x="82" y="204" fill="#17141b" font-family="Arial,sans-serif" font-size="14" font-weight="800">PILA DE CAPAS L1 → L5</text>
+  <rect x="82" y="222" width="212" height="36" fill="#dc2626" rx="4"/><text x="96" y="245" fill="#fff" font-family="Arial,sans-serif" font-size="13" font-weight="800">L5 · GLOBOS FUKIDASHI</text>
+  <rect x="82" y="268" width="212" height="36" fill="#17141b" rx="4"/><text x="96" y="291" fill="#fff" font-family="Arial,sans-serif" font-size="13" font-weight="800">L4 · SFX KAKIMOJI</text>
+  <rect x="82" y="314" width="212" height="36" fill="#374151" rx="4"/><text x="96" y="337" fill="#fff" font-family="Arial,sans-serif" font-size="13" font-weight="800">L3 · MARCOS KOMA-WARI</text>
+  <rect x="82" y="360" width="212" height="36" fill="#57515e" rx="4"/><text x="96" y="383" fill="#fff" font-family="Arial,sans-serif" font-size="13" font-weight="800">L2 · ENTINTADO SUMI</text>
+  <rect x="82" y="406" width="212" height="36" fill="#d6cfc4" stroke="#17141b" stroke-width="1.5" rx="4"/><text x="96" y="429" fill="#17141b" font-family="Arial,sans-serif" font-size="13" font-weight="800">L1 · SCREENTONE CMYK</text>
+  <rect x="330" y="172" width="246" height="290" fill="url(#dotSmall)" stroke="#17141b" stroke-width="2.5" rx="6"/>
+  <text x="453" y="206" text-anchor="middle" fill="#17141b" font-family="Arial,sans-serif" font-size="14" font-weight="800">SELLO CANON ANACAONA</text>
+  <g transform="translate(453,302) scale(1.8)">
+    <circle cx="0" cy="0" r="24" fill="#f59e0b" stroke="#17141b" stroke-width="2.5"/>
+    <circle cx="0" cy="0" r="17" fill="#fbbf24" stroke="#78350f" stroke-width="1.5"/>
+    <path d="M0 -11 C7 -11 11 -5 8 2 C5 8 -3 9 -8 4 C-11 -1 -7 -7 -1 -6 C3 -5 4 -1 1 2" fill="none" stroke="#78350f" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="0" cy="-24" r="4" fill="#fde68a" stroke="#17141b" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(515,245) rotate(12) scale(0.9)">
+    <path d="M0 0 C-14 -18 -8 -34 4 -28 C16 -22 14 -6 0 0 Z" fill="#dc2626" stroke="#17141b" stroke-width="1.6"/>
+    <path d="M0 0 C18 -14 34 -4 26 8 C18 20 4 14 0 0 Z" fill="#ef4444" stroke="#17141b" stroke-width="1.6"/>
+    <path d="M0 0 C14 18 2 34 -10 26 C-20 18 -12 4 0 0 Z" fill="#dc2626" stroke="#17141b" stroke-width="1.6"/>
+    <path d="M0 0 C-18 14 -34 2 -24 -10 C-16 -20 -4 -12 0 0 Z" fill="#b91c1c" stroke="#17141b" stroke-width="1.6"/>
+    <path d="M0 0 C-2 -22 18 -26 22 -12 C24 0 8 6 0 0 Z" fill="#f87171" stroke="#17141b" stroke-width="1.6"/>
+    <circle cx="0" cy="0" r="5" fill="#fbbf24" stroke="#17141b" stroke-width="1.2"/>
+    <path d="M0 0 L12 -14" stroke="#fde68a" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="13" cy="-15" r="2.5" fill="#fef08a"/>
+  </g>
+  <rect x="372" y="388" width="162" height="44" rx="6" fill="#dc2626"/><text x="453" y="416" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="15" font-weight="800">CANON APROBADO ✓</text>
+  <rect x="64" y="486" width="512" height="170" fill="#ffffff" stroke="#17141b" stroke-width="2.5" rx="6"/>
+  <text x="86" y="524" fill="#17141b" font-family="Arial,sans-serif" font-size="16" font-weight="800">COLOFÓN EDITORIAL · MANGAI STUDIO</text>
+  <text x="86" y="556" fill="#463f4d" font-family="Arial,sans-serif" font-size="13.5">Obra: AnaCaona: Flor Guerrera — Vol. I (Primera Edición)</text>
+  <text x="86" y="582" fill="#463f4d" font-family="Arial,sans-serif" font-size="13.5">Aplanado pre-prensa: L0 Nemu y L6 Guías excluidos automáticamente</text>
+  <text x="86" y="608" fill="#463f4d" font-family="Arial,sans-serif" font-size="13.5">Papel recomendado: Genkō Ivory 135 kg · Perfil ISO Coated v2</text>
+  <rect x="64" y="680" width="512" height="146" fill="#ffffff" stroke="#17141b" stroke-width="2.5" rx="6"/>
+  <g fill="#17141b" transform="translate(92,704)">
+    <rect x="0" y="0" width="4" height="72"/><rect x="8" y="0" width="2" height="72"/><rect x="14" y="0" width="6" height="72"/>
+    <rect x="24" y="0" width="2" height="72"/><rect x="30" y="0" width="5" height="72"/><rect x="40" y="0" width="3" height="72"/>
+    <rect x="48" y="0" width="7" height="72"/><rect x="60" y="0" width="2" height="72"/><rect x="68" y="0" width="4" height="72"/>
+    <rect x="78" y="0" width="6" height="72"/><rect x="88" y="0" width="2" height="72"/><rect x="96" y="0" width="5" height="72"/>
+    <rect x="106" y="0" width="3" height="72"/><rect x="114" y="0" width="6" height="72"/><rect x="124" y="0" width="4" height="72"/>
+    <text x="64" y="92" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700">978-84-9042-001-7</text>
+  </g>
+  <rect x="380" y="704" width="166" height="96" rx="10" fill="#dc2626" stroke="#17141b" stroke-width="2.5"/>
+  <text x="463" y="748" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-size="30" font-weight="900">検印済</text>
+  <text x="463" y="778" text-anchor="middle" fill="#fef3c7" font-family="Arial,sans-serif" font-size="12" font-weight="800">LISTO PARA KDP</text>
+</svg>

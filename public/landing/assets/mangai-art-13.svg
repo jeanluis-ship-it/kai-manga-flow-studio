@@ -1,19 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
- <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
- <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
- <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
- </defs><rect width="640" height="900" fill="#161923"/><circle cx="348" cy="417" r="270" fill="#b6a7fd"/>
-  <circle cx="348" cy="417" r="240" fill="none" stroke="#fff9e9" stroke-width="3"/><circle cx="348" cy="417" r="198" fill="none" stroke="#fff9e9" stroke-width="2"/>
-  <path d="M65 386 Q218 218 386 324 T647 376 M59 500 Q272 389 414 498 T653 516 M100 559 Q286 608 580 533" fill="none" stroke="#27213d" stroke-width="8"/>
-  <path d="M154 627 L277 543 338 599 423 509 525 619 V800 H154Z" fill="#302942"/>
-  <path d="M303 563 Q282 599 286 635 L264 740 367 740 347 629 Q354 584 332 556Z" fill="#10141e"/><circle cx="318" cy="523" r="49" fill="#111522"/>
-  <path d="M0 730 L92 702 180 745 320 695 470 752 640 690 V900 H0Z" fill="#11131d"/>
-  <path d="M318 231 L318 681 M91 426 L550 426" stroke="#f7f1e3" stroke-width="2" opacity=".4"/><path d="M 291 194 l 42 93" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#f4f0e7" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
- <text x="42" y="119" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">LOS MAPAS CAMBIAN AL ANOCHECER</text>
- <text x="39" y="794" fill="#f4f0e7" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">ATLAS</text>
- <path d="M43 818 H597" stroke="#f4f0e7" stroke-width="2"/>
- <text x="45" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">Los mapas del olvido</text>
- <text x="548" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
- <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
- <rect x="5" y="5" width="630" height="890" fill="none" stroke="#f4f0e7" stroke-width="3" opacity=".36"/>
- </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="toneLight" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#17141b" opacity="0.18"/>
+    </pattern>
+    <pattern id="toneDense" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#17141b" opacity="0.34"/>
+    </pattern>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#17141b" stroke-width="1.3" opacity="0.22"/>
+    </pattern>
+    <pattern id="genkoGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <pattern id="seaGrid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#0284c7" stroke-width="0.8" opacity="0.22"/></pattern>
+  </defs>
+  <rect width="640" height="900" fill="#faf7f0"/>
+  <rect x="34" y="34" width="572" height="832" rx="12" fill="#f5ecd8" stroke="#17141b" stroke-width="3.5"/>
+  <rect x="48" y="48" width="544" height="804" fill="url(#seaGrid)" stroke="#78350f" stroke-width="1.5"/>
+  <text x="320" y="96" text-anchor="middle" font-family="Georgia,serif" font-size="24" font-weight="900" fill="#17141b" letter-spacing="3">ARCHIPIÉLAGO CELESTE</text>
+  <text x="320" y="122" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#b91c1c" letter-spacing="2">RUTAS DE VELA SOLAR · CUADRANTE HURACÁN</text>
+  <g stroke="#0369a1" stroke-width="1.6" fill="none" opacity="0.55">
+    <circle cx="320" cy="430" r="240" stroke-dasharray="8 6"/>
+    <circle cx="320" cy="430" r="165"/>
+    <path d="M80 430 H560 M320 190 V670 M150 260 L490 600 M490 260 L150 600"/>
+  </g>
+  <path d="M120 280 Q180 235 245 275 Q225 320 165 325 Z" fill="#134e4a" stroke="#17141b" stroke-width="2.5"/>
+  <path d="M385 245 Q465 205 520 265 Q485 315 415 305 Z" fill="#115e59" stroke="#17141b" stroke-width="2.5"/>
+  <path d="M235 555 Q335 505 435 565 Q395 625 275 615 Z" fill="#134e4a" stroke="#17141b" stroke-width="2.5"/>
+  <path d="M320 430 m-40 0 a40 40 0 1 1 80 0 a58 58 0 1 1 -116 0 a78 78 0 1 1 156 0" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+  <path d="M185 275 C265 295 365 345 450 275 C495 385 455 510 340 555" fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-dasharray="10 6"/>
+  <g transform="translate(245,315) scale(0.7,0.7)">
+    <path d="M-95 20 Q0 62 110 12 L92 42 Q0 76 -78 44 Z" fill="#272230" stroke="#17141b" stroke-width="2.5"/>
+    <path d="M-75 24 L95 16" stroke="#f59e0b" stroke-width="2.5"/>
+    <path d="M-15 20 L-10 -95 M38 18 L48 -78" stroke="#17141b" stroke-width="3.5"/>
+    <path d="M-10 -92 Q58 -65 78 -12 Q25 4 -10 8 Z" fill="#fef3c7" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -92 Q-68 -58 -76 -8 Q-36 6 -10 10 Z" fill="#fde68a" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -58 Q48 -42 66 -14 M-10 -32 Q36 -20 52 -4" stroke="#d97706" stroke-width="1.3" fill="none"/>
+    <path d="M48 -75 Q92 -52 104 -14 Q74 -2 48 4 Z" fill="#fbbf24" stroke="#17141b" stroke-width="2"/>
+    <path d="M-95 20 L-128 4 L-114 32 Z" fill="#dc2626" stroke="#17141b" stroke-width="2"/>
+  </g>
+  <g transform="translate(430,505) scale(-0.65,0.65)">
+    <path d="M-95 20 Q0 62 110 12 L92 42 Q0 76 -78 44 Z" fill="#272230" stroke="#17141b" stroke-width="2.5"/>
+    <path d="M-75 24 L95 16" stroke="#f59e0b" stroke-width="2.5"/>
+    <path d="M-15 20 L-10 -95 M38 18 L48 -78" stroke="#17141b" stroke-width="3.5"/>
+    <path d="M-10 -92 Q58 -65 78 -12 Q25 4 -10 8 Z" fill="#fef3c7" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -92 Q-68 -58 -76 -8 Q-36 6 -10 10 Z" fill="#fde68a" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -58 Q48 -42 66 -14 M-10 -32 Q36 -20 52 -4" stroke="#d97706" stroke-width="1.3" fill="none"/>
+    <path d="M48 -75 Q92 -52 104 -14 Q74 -2 48 4 Z" fill="#fbbf24" stroke="#17141b" stroke-width="2"/>
+    <path d="M-95 20 L-128 4 L-114 32 Z" fill="#dc2626" stroke="#17141b" stroke-width="2"/>
+  </g>
+  <g transform="translate(510,740)">
+    <circle r="48" fill="#faf7f0" stroke="#17141b" stroke-width="2.5"/>
+    <polygon points="0,-42 10,0 0,42 -10,0" fill="#dc2626" stroke="#17141b" stroke-width="1.5"/>
+    <polygon points="-42,0 0,-10 42,0 0,10" fill="#17141b"/>
+    <text x="0" y="-54" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#17141b">N</text>
+  </g>
+  <rect x="74" y="704" width="320" height="96" rx="6" fill="#faf7f0" stroke="#17141b" stroke-width="2.5"/>
+  <text x="92" y="736" font-family="Arial,sans-serif" font-size="14" font-weight="800" fill="#17141b">CORRIENTE ALISIA ALTA</text>
+  <text x="92" y="760" font-family="Arial,sans-serif" font-size="12.5" fill="#463f4d">Altitud: 4,200 m · Escuadrón Huracán</text>
+  <text x="92" y="782" font-family="Arial,sans-serif" font-size="12.5" fill="#b91c1c" font-weight="700">Settei Geográfico Bloqueado · Vol. II</text>
+</svg>

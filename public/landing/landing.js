@@ -808,9 +808,7 @@ function populatePageSide(prefix, pageData, pageNumber, book) {
   if (imgEl) {
     imgEl.src = pageData.image;
     imgEl.alt = prefix.startsWith('leaf') ? '' : `${pageData.title} — ${book.title}`;
-    const fx = pageData.focalX ?? 50;
-    const fy = pageData.focalY ?? 50;
-    imgEl.style.objectPosition = `${fx}% ${fy}%`;
+    imgEl.style.objectPosition = 'center center';
   }
   if (titleEl) titleEl.textContent = pageData.title;
   if (textEl) textEl.textContent = pageData.text;
@@ -820,14 +818,22 @@ function wrapIndex(i) {
   return ((i % BOOKS.length) + BOOKS.length) % BOOKS.length;
 }
 
-function buildKaiDeepLink(book) {
+function buildStudioDeepLink(book, tab = 'kai', overrides = {}) {
+  const b = book || BOOKS[0];
+  const style = overrides.style || b.studioStyle;
+  const prompt = overrides.prompt || b.studioPrompt;
+  const baseUrl = tab === 'kai' ? '/studio?tab=kai' : `/studio?tab=${encodeURIComponent(tab)}`;
   return (
-    '/studio?tab=kai' +
-    '&volume=' + encodeURIComponent(book.id) +
-    '&title=' + encodeURIComponent(book.title) +
-    '&style=' + encodeURIComponent(book.studioStyle) +
-    '&prompt=' + encodeURIComponent(book.studioPrompt)
+    baseUrl +
+    '&volume=' + encodeURIComponent(b.id) +
+    '&title=' + encodeURIComponent(b.title) +
+    '&style=' + encodeURIComponent(style) +
+    '&prompt=' + encodeURIComponent(prompt)
   );
+}
+
+function buildKaiDeepLink(book) {
+  return buildStudioDeepLink(book, 'kai');
 }
 
 function cancelFlip() {
@@ -895,6 +901,8 @@ function renderHeroBookViewer() {
   const heroBookSubtitle = $('#heroBookSubtitle');
   const heroIndex = $('#heroIndex');
   const editWithKaiBtn = $('#editWithKaiBtn');
+  const openBookPagesBtn = $('#openBookPagesBtn');
+  const modalStudioBtn = $('#modalStudioBtn');
   const stageEl = $('#bookStage');
 
   if (heroGenre) heroGenre.textContent = 'MANGAI ORIGINALS · ' + book.genre.toUpperCase();
@@ -912,6 +920,12 @@ function renderHeroBookViewer() {
   if (editWithKaiBtn) {
     editWithKaiBtn.href = buildKaiDeepLink(book);
   }
+  if (openBookPagesBtn) {
+    openBookPagesBtn.href = buildStudioDeepLink(book, 'pages');
+  }
+  if (modalStudioBtn) {
+    modalStudioBtn.href = buildKaiDeepLink(book);
+  }
   if (stageEl) {
     stageEl.setAttribute(
       'aria-label',
@@ -923,6 +937,15 @@ function renderHeroBookViewer() {
   const openBookEl = $('#mangaOpenBook');
   const dockClosed = $('#dockClosedControls');
   const dockOpen = $('#dockOpenControls');
+
+  if (openBookEl) {
+    const maxIdx = Math.max(1, spreads.length - 1);
+    const ratio = spreadIndex / maxIdx;
+    const leftStackPx = Math.round(8 + ratio * 10);
+    const rightStackPx = Math.round(18 - ratio * 10);
+    openBookEl.style.setProperty('--left-stack-px', `${leftStackPx}px`);
+    openBookEl.style.setProperty('--right-stack-px', `${rightStackPx}px`);
+  }
 
   if (shelf) shelf.hidden = isBookOpen;
   if (openBookEl) openBookEl.hidden = !isBookOpen;
@@ -1478,6 +1501,16 @@ function initSumiStoryFlow() {
   updateStoryScroll();
 
   const folioCards = $$('#collectionFanStack .folio-card');
+  const collectionStudioLink = $('#collectionStudioLink');
+  const updateCollectionStudioLink = (card) => {
+    if (!collectionStudioLink || !card) return;
+    const volId = card.dataset.volume || BOOKS[0].id;
+    const matched = BOOKS.find((b) => b.id === volId) || BOOKS[0];
+    collectionStudioLink.href = buildStudioDeepLink(matched, 'pages');
+  };
+  const initialFolio = folioCards.find((item) => item.classList.contains('is-focused')) || folioCards[0];
+  if (initialFolio) updateCollectionStudioLink(initialFolio);
+
   folioCards.forEach((card) => {
     card.addEventListener('click', () => {
       folioCards.forEach((item) => {
@@ -1485,21 +1518,44 @@ function initSumiStoryFlow() {
         item.classList.toggle('is-focused', focused);
         item.setAttribute('aria-pressed', focused ? 'true' : 'false');
       });
+      updateCollectionStudioLink(card);
     });
   });
 
   const kaiBrushCard = $('#kaiBrushCard');
+  const kaiBrushStudioLink = $('#kaiBrushStudioLink');
   const finishButtons = $$('#kaiBrushCard .brush-finish-btn[data-finish]');
   const finishClasses = ['finish-gpen', 'finish-tone', 'finish-crimson'];
+  const finishStudioMap = {
+    gpen: {
+      style: 'manga_ink',
+      prompt: `${BOOKS[0].studioPrompt}, pure black and white G-Pen sumi lineart`,
+    },
+    tone: {
+      style: 'manga_ink',
+      prompt: `${BOOKS[0].studioPrompt}, classic Japanese manga screentone halftone shading`,
+    },
+    crimson: {
+      style: 'cover_art',
+      prompt: `${BOOKS[0].studioPrompt}, dramatic crimson sumi ink accent lighting`,
+    },
+  };
+  if (kaiBrushStudioLink) {
+    kaiBrushStudioLink.href = buildStudioDeepLink(BOOKS[0], 'kai', finishStudioMap.crimson);
+  }
 
   finishButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      const finishClass = 'finish-' + btn.dataset.finish;
+      const finishKey = btn.dataset.finish;
+      const finishClass = 'finish-' + finishKey;
       if (!finishClasses.includes(finishClass)) return;
 
       if (kaiBrushCard) {
         kaiBrushCard.classList.remove(...finishClasses);
         kaiBrushCard.classList.add(finishClass);
+      }
+      if (kaiBrushStudioLink && finishStudioMap[finishKey]) {
+        kaiBrushStudioLink.href = buildStudioDeepLink(BOOKS[0], 'kai', finishStudioMap[finishKey]);
       }
 
       finishButtons.forEach((item) => {

@@ -1,19 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900"><defs>
- <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency="0.32" numOctaves="3" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer></filter>
- <pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.7" fill="#14131c" opacity=".35"/></pattern>
- <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c7a3ff"/><stop offset="1" stop-color="#5c40b6"/></linearGradient>
- </defs><rect width="640" height="900" fill="#161923"/><circle cx="348" cy="417" r="270" fill="#b6a7fd"/>
-  <circle cx="348" cy="417" r="240" fill="none" stroke="#fff9e9" stroke-width="3"/><circle cx="348" cy="417" r="198" fill="none" stroke="#fff9e9" stroke-width="2"/>
-  <path d="M65 386 Q218 218 386 324 T647 376 M59 500 Q272 389 414 498 T653 516 M100 559 Q286 608 580 533" fill="none" stroke="#27213d" stroke-width="8"/>
-  <path d="M154 627 L277 543 338 599 423 509 525 619 V800 H154Z" fill="#302942"/>
-  <path d="M303 563 Q282 599 286 635 L264 740 367 740 347 629 Q354 584 332 556Z" fill="#10141e"/><circle cx="318" cy="523" r="49" fill="#111522"/>
-  <path d="M0 730 L92 702 180 745 320 695 470 752 640 690 V900 H0Z" fill="#11131d"/>
-  <path d="M318 231 L318 681 M91 426 L550 426" stroke="#f7f1e3" stroke-width="2" opacity=".4"/><path d="M 291 194 l 42 93" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 34 588 l -112 -53" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 479 259 l -141 -196" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 388 111 l -37 -194" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 20 619 l -97 -126" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 550 639 l 43 -215" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 7 610 l -92 -92" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 107 593 l -100 52" stroke="#f4f0e7" stroke-width="3" opacity="0.11"/><path d="M 533 738 l -68 -188" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><path d="M 341 139 l 120 124" stroke="#f4f0e7" stroke-width="1" opacity="0.11"/><path d="M 537 101 l 156 -135" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 504 477 l 0 -2" stroke="#f4f0e7" stroke-width="4" opacity="0.11"/><path d="M 330 346 l -33 166" stroke="#f4f0e7" stroke-width="2" opacity="0.11"/><text x="42" y="72" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="21" font-weight="800" letter-spacing="6">MANGAI ORIGINALS</text>
- <text x="42" y="119" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="15" letter-spacing="2.1">LOS MAPAS CAMBIAN AL ANOCHECER</text>
- <text x="39" y="794" fill="#f4f0e7" font-family="Arial Black,Arial,sans-serif" font-size="89" font-weight="900" letter-spacing="-4">ATLAS</text>
- <path d="M43 818 H597" stroke="#f4f0e7" stroke-width="2"/>
- <text x="45" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="23" font-weight="700" letter-spacing="1.5">Los mapas del olvido</text>
- <text x="548" y="848" fill="#f4f0e7" font-family="Arial,sans-serif" font-size="24" font-weight="800">I</text>
- <rect x="0" y="0" width="640" height="900" filter="url(#paper)" opacity=".26"/>
- <rect x="5" y="5" width="630" height="890" fill="none" stroke="#f4f0e7" stroke-width="3" opacity=".36"/>
- </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="toneLight" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#17141b" opacity="0.18"/>
+    </pattern>
+    <pattern id="toneDense" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#17141b" opacity="0.34"/>
+    </pattern>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#17141b" stroke-width="1.3" opacity="0.22"/>
+    </pattern>
+    <pattern id="genkoGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <linearGradient id="covBg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#0d1729"/>
+      <stop offset="100%" stop-color="#1d2f4a"/>
+    </linearGradient>
+    <clipPath id="safeArt"><rect x="34" y="34" width="572" height="832" rx="14"/></clipPath>
+  </defs>
+  <rect width="640" height="900" fill="#f4f0e7"/>
+  <rect x="28" y="28" width="584" height="844" rx="16" fill="url(#covBg)" stroke="#17141b" stroke-width="3"/>
+    <g clip-path="url(#safeArt)">
+      <rect x="34" y="34" width="572" height="832" fill="url(#toneLight)" opacity="0.35"/>
+      
+    <circle cx="320" cy="340" r="185" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.5"/>
+    <circle cx="320" cy="340" r="142" fill="none" stroke="#bae6fd" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.6"/>
+    <path d="M130 340 H510 M320 150 V530 M185 205 L455 475 M455 205 L185 475" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+    <rect x="92" y="185" width="130" height="90" rx="6" fill="#faf7f0" stroke="#17141b" stroke-width="2.5" transform="rotate(-12 157 230)"/>
+    <rect x="425" y="220" width="125" height="92" rx="6" fill="#faf7f0" stroke="#17141b" stroke-width="2.5" transform="rotate(11 487 266)"/>
+    <path d="M110 230 Q150 205 198 238 M446 266 Q485 240 526 276" fill="none" stroke="#0284c7" stroke-width="2.2"/>
+    <path d="M195 654 Q235 470 320 435 Q405 470 445 654 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="320" cy="378" r="36" fill="#e6ccb8" stroke="#17141b" stroke-width="2.5"/>
+    <path d="M282 374 Q320 328 360 374 L350 346 Q320 324 290 346 Z" fill="#1e293b"/>
+    <g>
+    <path d="M287 374 Q301 366 317 377" fill="none" stroke="#17141b" stroke-width="4.2" stroke-linecap="round"/>
+    <ellipse cx="302" cy="382" rx="8.5" ry="10" fill="#17141b"/>
+    <ellipse cx="302" cy="384" rx="5" ry="5.5" fill="#38bdf8"/>
+    <circle cx="299" cy="378" r="2.8" fill="#ffffff"/>
+    <path d="M353 374 Q339 366 323 377" fill="none" stroke="#17141b" stroke-width="4.2" stroke-linecap="round"/>
+    <ellipse cx="338" cy="382" rx="8.5" ry="10" fill="#17141b"/>
+    <ellipse cx="338" cy="384" rx="5" ry="5.5" fill="#38bdf8"/>
+    <circle cx="335" cy="378" r="2.8" fill="#ffffff"/>
+  </g>
+    <circle cx="320" cy="515" r="46" fill="#0c4a6e" stroke="#7dd3fc" stroke-width="3"/>
+    <polygon points="320,476 332,515 320,554 308,515" fill="#bae6fd"/>
+    <polygon points="281,515 320,503 359,515 320,527" fill="#38bdf8"/>
+  
+      <rect x="34" y="654" width="572" height="212" fill="#0f0d14" opacity="0.86"/>
+      <line x1="56" y1="654" x2="584" y2="654" stroke="#38bdf8" stroke-width="3"/>
+    </g>
+    <rect x="34" y="34" width="572" height="832" rx="14" fill="none" stroke="#faf7f0" stroke-width="1.6" opacity="0.32"/>
+    <g fill="#faf7f0">
+      <text x="58" y="76" font-family="Arial,sans-serif" font-size="16" font-weight="800" letter-spacing="5">MANGAI ORIGINALS</text>
+      <text x="58" y="104" font-family="Arial,sans-serif" font-size="13" letter-spacing="1.8" opacity="0.82">CARTOGRAFÍA DE REINOS PERDIDOS</text>
+      <rect x="520" y="54" width="60" height="60" rx="8" fill="#38bdf8" stroke="#17141b" stroke-width="2"/>
+      <text x="550" y="95" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="900" fill="#faf7f0">図</text>
+      <text x="56" y="756" font-family="Arial Black,Impact,sans-serif" font-size="64" font-weight="900" letter-spacing="-2">ATLAS</text>
+      <line x1="58" y1="780" x2="582" y2="780" stroke="#faf7f0" stroke-width="1.8" opacity="0.45"/>
+      <text x="58" y="818" font-family="Arial,sans-serif" font-size="21" font-weight="700" letter-spacing="1.2">Mapas del Olvido</text>
+      <text x="578" y="818" text-anchor="end" font-family="Georgia,serif" font-size="24" font-weight="800" fill="#38bdf8">I</text>
+    </g>
+</svg>

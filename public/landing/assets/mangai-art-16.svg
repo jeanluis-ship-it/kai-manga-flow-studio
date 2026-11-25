@@ -1,5 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="950" viewBox="0 0 700 950"><defs><pattern id="d" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="2" fill="#202024" opacity=".28"/></pattern></defs><rect width="700" height="950" fill="#f7f5ef"/>
-<rect x="30" y="32" width="640" height="298" fill="#ebe7df" stroke="#17151b" stroke-width="9"/><path d="M50 297 L216 158 334 244 450 113 655 286Z" fill="#25242a"/><path d="M50 317 L221 203 343 281 447 167 650 314" fill="none" stroke="white" stroke-width="7"/><circle cx="510" cy="115" r="67" fill="url(#d)" stroke="#17151b" stroke-width="5"/><path d="M84 65 Q212 15 345 80" stroke="#16151a" fill="none" stroke-width="8"/>
-<rect x="30" y="358" width="302" height="270" fill="#e3ded4" stroke="#17151b" stroke-width="9"/><path d="M66 606 Q67 476 198 429 Q293 456 306 597Z" fill="#25242b"/><path d="M123 479 Q147 389 222 398 Q266 425 262 476 Q239 525 172 504" fill="#d4cfc6" stroke="#17151b" stroke-width="5"/><path d="M164 449 l33 -6" stroke="#17151b" stroke-width="8"/>
-<rect x="358" y="358" width="312" height="270" fill="url(#d)" stroke="#17151b" stroke-width="9"/><path d="M405 606 L472 409 519 504 565 416 630 606" fill="#25242b"/><ellipse cx="524" cy="427" rx="108" ry="41" fill="#faf9f4" stroke="#17151b" stroke-width="6"/><text x="524" y="433" text-anchor="middle" font-size="21" font-family="Arial" font-weight="bold">¿LO VISTE?</text>
-<rect x="30" y="655" width="640" height="260" fill="#e9e5dc" stroke="#17151b" stroke-width="9"/><path d="M65 897 Q190 755 372 748 Q521 772 635 895" fill="#1b1a21"/><path d="M246 874 Q267 738 359 704 Q443 724 456 877" fill="#f2eee6" stroke="#17151b" stroke-width="8"/><path d="M317 785 l44 7 M399 793 l38 -6" stroke="#111116" stroke-width="8"/><path d="M40 660 L242 911 M203 663 L410 911 M410 663 L599 911" stroke="#18171c" opacity=".15" stroke-width="5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="toneLight" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#17141b" opacity="0.18"/>
+    </pattern>
+    <pattern id="toneDense" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#17141b" opacity="0.34"/>
+    </pattern>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#17141b" stroke-width="1.3" opacity="0.22"/>
+    </pattern>
+    <pattern id="genkoGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.6" opacity="0.18"/>
+    </pattern>
+    <linearGradient id="stormSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a1f29"/><stop offset="100%" stop-color="#19454e"/></linearGradient>
+  </defs>
+  <rect width="640" height="900" fill="#faf7f0"/>
+  <rect x="38" y="38" width="564" height="824" rx="10" fill="url(#stormSky)" stroke="#17141b" stroke-width="4"/>
+  <rect x="56" y="56" width="528" height="470" fill="#0e2a36" stroke="#faf7f0" stroke-width="3"/>
+  <line x1="450.0" y1="290.0" x2="660.0" y2="290.0" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="462.9" y1="328.7" x2="677.1" y2="386.7" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="463.3" y1="373.7" x2="665.4" y2="491.8" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="463.9" y1="404.7" x2="585.8" y2="502.0" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="396.9" y1="394.8" x2="538.9" y2="588.3" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="373.4" y1="428.0" x2="464.2" y2="663.1" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="356.9" y1="451.8" x2="395.7" y2="621.5" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="312.6" y1="473.9" x2="305.2" y2="659.7" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="281.0" y1="414.0" x2="200.1" y2="671.6" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="255.8" y1="423.3" x2="172.5" y2="596.3" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="211.4" y1="415.5" x2="77.9" y2="569.8" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="167.4" y1="392.9" x2="-11.7" y2="513.6" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="202.9" y1="346.4" x2="13.7" y2="437.5" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="174.5" y1="317.1" x2="-43.7" y2="357.8" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="154.5" y1="276.7" x2="-78.7" y2="258.0" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="140.6" y1="249.1" x2="-11.5" y2="214.3" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="205.2" y1="229.0" x2="-6.7" y2="116.3" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="212.0" y1="188.8" x2="28.2" y2="16.4" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="216.5" y1="160.2" x2="108.0" y2="24.2" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="246.9" y1="121.2" x2="172.9" y2="-49.5" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="301.3" y1="161.4" x2="262.4" y2="-105.8" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="320.0" y1="142.0" x2="320.0" y2="-50.0" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="363.4" y1="129.8" x2="416.7" y2="-67.1" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="412.8" y1="131.1" x2="521.8" y2="-55.4" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="401.1" y1="188.4" x2="532.0" y2="24.2" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/><line x1="439.3" y1="202.4" x2="618.3" y2="71.1" stroke="#99f6e4" stroke-width="1.9" opacity="0.16" stroke-linecap="round"/><line x1="474.8" y1="230.2" x2="693.1" y2="145.8" stroke="#99f6e4" stroke-width="2.8" opacity="0.16" stroke-linecap="round"/><line x1="499.4" y1="249.1" x2="651.5" y2="214.3" stroke="#99f6e4" stroke-width="1.0" opacity="0.16" stroke-linecap="round"/>
+  <path d="M460 66 L410 175 L446 184 L385 310" fill="none" stroke="#fbbf24" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M165 66 L210 165 L178 175 L220 275" fill="none" stroke="#f87171" stroke-width="5.5" stroke-linejoin="round"/>
+  <g transform="translate(325,255) scale(1.38,1.38)">
+    <path d="M-95 20 Q0 62 110 12 L92 42 Q0 76 -78 44 Z" fill="#272230" stroke="#17141b" stroke-width="2.5"/>
+    <path d="M-75 24 L95 16" stroke="#f59e0b" stroke-width="2.5"/>
+    <path d="M-15 20 L-10 -95 M38 18 L48 -78" stroke="#17141b" stroke-width="3.5"/>
+    <path d="M-10 -92 Q58 -65 78 -12 Q25 4 -10 8 Z" fill="#fef3c7" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -92 Q-68 -58 -76 -8 Q-36 6 -10 10 Z" fill="#fde68a" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -58 Q48 -42 66 -14 M-10 -32 Q36 -20 52 -4" stroke="#d97706" stroke-width="1.3" fill="none"/>
+    <path d="M48 -75 Q92 -52 104 -14 Q74 -2 48 4 Z" fill="#fbbf24" stroke="#17141b" stroke-width="2"/>
+    <path d="M-95 20 L-128 4 L-114 32 Z" fill="#dc2626" stroke="#17141b" stroke-width="2"/>
+  </g>
+  <g transform="translate(165,385) scale(-0.85,0.85)">
+    <path d="M-95 20 Q0 62 110 12 L92 42 Q0 76 -78 44 Z" fill="#272230" stroke="#17141b" stroke-width="2.5"/>
+    <path d="M-75 24 L95 16" stroke="#f59e0b" stroke-width="2.5"/>
+    <path d="M-15 20 L-10 -95 M38 18 L48 -78" stroke="#17141b" stroke-width="3.5"/>
+    <path d="M-10 -92 Q58 -65 78 -12 Q25 4 -10 8 Z" fill="#fef3c7" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -92 Q-68 -58 -76 -8 Q-36 6 -10 10 Z" fill="#fde68a" stroke="#17141b" stroke-width="2.2"/>
+    <path d="M-10 -58 Q48 -42 66 -14 M-10 -32 Q36 -20 52 -4" stroke="#d97706" stroke-width="1.3" fill="none"/>
+    <path d="M48 -75 Q92 -52 104 -14 Q74 -2 48 4 Z" fill="#fbbf24" stroke="#17141b" stroke-width="2"/>
+    <path d="M-95 20 L-128 4 L-114 32 Z" fill="#dc2626" stroke="#17141b" stroke-width="2"/>
+  </g>
+  <path d="M56 450 Q175 405 320 445 Q455 480 584 430 V526 H56 Z" fill="#091921"/>
+  <rect x="56" y="544" width="256" height="300" fill="#faf7f0" stroke="#17141b" stroke-width="4"/>
+  <circle cx="184" cy="672" r="48" fill="#f3d4b8" stroke="#17141b" stroke-width="3"/>
+  <rect x="148" y="628" width="72" height="22" rx="8" fill="#2dd4bf" stroke="#17141b" stroke-width="2.5"/>
+  <g>
+    <path d="M148 672 Q162 664 178 675" fill="none" stroke="#17141b" stroke-width="4.2" stroke-linecap="round"/>
+    <ellipse cx="163" cy="680" rx="8.5" ry="10" fill="#17141b"/>
+    <ellipse cx="163" cy="682" rx="5" ry="5.5" fill="#0284c7"/>
+    <circle cx="160" cy="676" r="2.8" fill="#ffffff"/>
+    <path d="M220 672 Q206 664 190 675" fill="none" stroke="#17141b" stroke-width="4.2" stroke-linecap="round"/>
+    <ellipse cx="205" cy="680" rx="8.5" ry="10" fill="#17141b"/>
+    <ellipse cx="205" cy="682" rx="5" ry="5.5" fill="#0284c7"/>
+    <circle cx="202" cy="676" r="2.8" fill="#ffffff"/>
+  </g>
+  <path d="M106 844 Q145 735 235 735 L270 844 Z" fill="#dc2626" stroke="#17141b" stroke-width="3"/>
+  <rect x="328" y="544" width="256" height="300" fill="#17141b" stroke="#2dd4bf" stroke-width="3"/>
+  <ellipse cx="456" cy="645" rx="98" ry="38" fill="#faf7f0" stroke="#17141b" stroke-width="3"/>
+  <text x="456" y="650" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="900" fill="#17141b">¡VELAS AL MÁXIMO!</text>
+  <text x="456" y="765" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="38" font-weight="900" fill="#fbbf24" transform="rotate(-8 456 765)">ドドド!!</text>
+</svg>
