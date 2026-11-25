@@ -1,0 +1,320 @@
+/* =========================================================
+   PageEditor — Vector Koma Builder & Draft L0 -> Final Art L2 Bar
+   Uses --gf-* Studio OS tokens for Light (Genkō) & Dark (Sumi) themes
+   ========================================================= */
+
+.gf-vector-toolbar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--gf-border-strong);
+  background: var(--gf-surface);
+  box-shadow: var(--gf-card-shadow);
+  box-sizing: border-box;
+}
+
+.gf-vector-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.gf-vector-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.gf-vector-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--gf-border-strong);
+  background: var(--gf-surface-muted);
+  color: var(--gf-ink);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.gf-vector-btn:hover:not(:disabled) {
+  background: var(--gf-surface-hover);
+  border-color: var(--gf-ink);
+}
+
+.gf-vector-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gf-vector-btn.is-active {
+  background: var(--gf-ai-soft);
+  border-color: var(--gf-ai-accent);
+  color: var(--gf-ai-accent);
+}
+
+.gf-vector-btn.is-primary {
+  background: var(--gf-ai-accent);
+  border-color: var(--gf-ai-accent);
+  color: #ffffff;
+}
+
+.gf-vector-btn.is-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.gf-vector-btn.is-danger:hover:not(:disabled) {
+  border-color: var(--gf-seal);
+  color: var(--gf-seal);
+  background: var(--gf-error-bg);
+}
+
+.gf-vector-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--gf-ai-soft);
+  border: 1px dashed var(--gf-ai-accent);
+  font-size: 11px;
+  color: var(--gf-ink);
+  line-height: 1.35;
+}
+
+.gf-vector-hint-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gf-ai-accent);
+}
+
+/* Interactive Vector Overlay over Genkō Sheet (above L6 z=70) */
+.gf-vector-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.gf-vector-overlay.is-drawing {
+  pointer-events: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.gf-vector-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.gf-vector-vertex-hit {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+.gf-vector-vertex-hit:active,
+.gf-vector-vertex-hit.is-dragging {
+  cursor: grabbing;
+}
+
+.gf-vector-first-vertex {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.gf-vector-coord-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.3px;
+  font-weight: 700;
+  fill: var(--gf-ai-accent);
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 0.7px;
+  stroke-linejoin: round;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Draft L0 -> Final Art L2 (KAI) Action Bar */
+.gf-draft-flow-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--gf-border-strong);
+  background: var(--gf-surface);
+  box-shadow: var(--gf-card-shadow);
+  box-sizing: border-box;
+}
+
+.gf-draft-flow-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gf-draft-flow-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gf-ink);
+}
+
+.gf-draft-flow-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-draft-flow-badge {
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: var(--gf-surface-muted);
+  border: 1px solid var(--gf-border);
+  font-weight: 700;
+  color: var(--gf-ink);
+}
+
+.gf-draft-flow-badge.has-draft {
+  background: rgba(0, 174, 239, 0.14);
+  border-color: rgba(0, 174, 239, 0.45);
+  color: var(--gf-guide);
+}
+
+.gf-draft-flow-badge.has-ink {
+  background: var(--gf-ai-soft);
+  border-color: var(--gf-ai-accent);
+  color: var(--gf-ai-accent);
+}
+
+.gf-draft-flow-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gf-draft-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--gf-border-strong);
+  background: var(--gf-surface-muted);
+  color: var(--gf-ink);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.gf-draft-btn:hover:not(:disabled) {
+  background: var(--gf-surface-hover);
+  border-color: var(--gf-ink);
+}
+
+.gf-draft-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.gf-draft-btn.is-kai {
+  background: var(--gf-btn-filled-bg);
+  border-color: var(--gf-btn-filled-bg);
+  color: var(--gf-btn-filled-fg);
+}
+
+.gf-draft-btn.is-kai:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.gf-draft-flow-error {
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--gf-error-bg);
+  border: 1px solid var(--gf-error-border);
+  color: var(--gf-error-fg);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.gf-draft-flow-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  color: var(--gf-ink-secondary);
+}
+
+.gf-draft-kai-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--gf-border-strong);
+  background: transparent;
+  color: var(--gf-ai-accent);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.gf-draft-kai-link:hover {
+  background: var(--gf-ai-soft);
+  border-color: var(--gf-ai-accent);
+}
+
+.gf-studio-root[data-theme='dark'] .gf-vector-toolbar,
+.gf-studio-root[data-theme='dark'] .gf-draft-flow-bar {
+  background: var(--gf-surface);
+  border-color: var(--gf-border-strong);
+}
+
+@media (max-width: 720px) {
+  .gf-draft-flow-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .gf-vector-toolbar,
+  .gf-vector-overlay,
+  .gf-draft-flow-bar {
+    display: none !important;
+  }
+}
