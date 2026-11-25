@@ -77,6 +77,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PricingUpgradeModal } from '@/components/studio/PricingUpgradeModal';
 import { Flow, QuotaExceededError } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
+import { AuthModal } from './components/AuthModal';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
 import { DrawingTabletWorkbench } from './components/DrawingTabletWorkbench';
@@ -250,6 +251,7 @@ export default function StudioPage() {
   const [kaiPendingMode, setKaiPendingMode] = useState<'mentor' | 'script'>('mentor');
   const [preflightOpen, setPreflightOpen] = useState(false);
   const [flipbookOpen, setFlipbookOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [buildingPdf, setBuildingPdf] = useState(false);
   const [quotaProfile, setQuotaProfile] = useState<UserQuotaProfile>(() =>
     createGuestQuotaProfile('trial'),
@@ -1264,10 +1266,14 @@ export default function StudioPage() {
           </button>
 
           {quotaProfile.isGuest ? (
-            <Link href="/login" className="gf-auth-cta-btn">
+            <button
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
+              className="gf-auth-cta-btn"
+            >
               <LogIn size={14} strokeWidth={2} className="gf-icon-shrink" />
               <span>Iniciar Sesión</span>
-            </Link>
+            </button>
           ) : (
             <div className="gf-user-menu-wrap">
               <button
@@ -1701,6 +1707,38 @@ export default function StudioPage() {
         open={flipbookOpen}
         project={project}
         onClose={() => setFlipbookOpen(false)}
+      />
+
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onAuthSuccess={() => {
+          void (async () => {
+            const supabase = getSupabaseBrowserClient();
+            if (supabase) {
+              const {
+                data: { user },
+              } = await supabase.auth.getUser();
+              if (user) {
+                setLocalUserEmail(user.email ?? null);
+                setQuotaProfile(
+                  buildProfileForPlan('trial', {
+                    id: user.id,
+                    email: user.email ?? undefined,
+                    displayName:
+                      (user.user_metadata?.full_name as string | undefined) ||
+                      user.email?.split('@')[0] ||
+                      'Mangaka',
+                    isGuest: false,
+                  }),
+                );
+              }
+            }
+            const { project: cloudProj, mode } = await loadStudioProject();
+            setProject(cloudProj);
+            setStorageMode(mode);
+          })();
+        }}
       />
 
       <PricingUpgradeModal

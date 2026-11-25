@@ -1,6 +1,7 @@
 import { getPolygonBounds, KOMA_LAYOUT_PRESETS, type KomaLayoutId } from '@/lib/kai/schema';
 import { computeSpineInches, PRINT_PRESETS, type TrimFormatId } from '@/lib/print/presets';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { uploadMangaAssetToStorage } from '@/lib/supabase/storage';
 import {
   DEFAULT_LAYERS_VISIBILITY,
   DEFAULT_LAYER_OPACITY,
@@ -608,58 +609,126 @@ function isProjectWorthMigrating(project: StudioProjectRecord | null): project i
   );
 }
 
-function mapSupabaseEntity(
-  e: Record<string, unknown>,
-  metaCache: SupabaseProjectMetaCache | null,
-): StudioCharacterRecord {
-  const turnaround = (e.turnaround_urls ?? {}) as Record<string, unknown>;
-  const tagHandle = String(e.tag_handle || '');
-  const cachedChar = metaCache?.characters?.[tagHandle] || metaCache?.characters?.[String(e.id || '')];
-  const refViews = sanitizeReferenceViews({
-    turnaround:
-      typeof turnaround.turnaround === 'string'
-        ? turnaround.turnaround
-        : cachedChar?.referenceViews?.turnaround,
-    front:
-      typeof turnaround.front === 'string'
-        ? turnaround.front
-        : cachedChar?.referenceViews?.front,
-    detail:
-      typeof turnaround.detail === 'string'
-        ? turnaround.detail
-        : cachedChar?.referenceViews?.detail,
+function mapMangaRowToProject(
+  row: Record<string, unknown>,
+  setteiRows: Array<Record<string, unknown>>,
+  pageRows: Array<Record<string, unknown>>,
+  fallbackAuthor: string,
+): StudioProjectRecord {
+  const settings = (row.settings && typeof row.settings === 'object'
+    ? row.settings
+    : {}) as Record<string, unknown>;
+  const meta = readSupabaseMetaCache(String(row.id));
+
+  const characters: StudioCharacterRecord[] = setteiRows.map((item, idx) => {
+    const rawCat = String(item.category || 'character');
+    const entityType: SetteiEntityType =
+      rawCat === 'prop' || rawCat === 'location' || rawCat === 'lore_rule'
+        ? rawCat
+        : 'character';
+    const refUrl =
+      typeof item.reference_image_url === 'string' && item.reference_image_url
+        ? item.reference_image_url
+        : undefined;
+    const anchors = Array.isArray(item.visual_anchors)
+      ? item.visual_anchors.filter((a): a is string => typeof a === 'string')
+      : [];
+    const name = String(item.name || `Settei ${idx + 1}`);
+    const tagHandle = normalizeTagHandle('', name);
+    const cachedChar = meta?.characters?.[tagHandle] || meta?.characters?.[String(item.id)];
+    return {
+      id: String(item.id),
+      entityType,
+      tagHandle,
+      name,
+      appearance: String(item.description || ''),
+      clothing: '',
+      role: entityType === 'character' ? 'Protagonista' : entityType,
+      visualAnchors: anchors,
+      seedLocked: Boolean(item.seed),
+      characterSeed: typeof item.seed === 'string' ? item.seed : undefined,
+      referenceBase64: refUrl || cachedChar?.referenceBase64,
+      activeInCanon: typeof item.is_active === 'boolean' ? item.is_active : true,
+      ...(cachedChar?.referenceViews ? { referenceViews: cachedChar.referenceViews } : {}),
+    };
   });
 
-  const activeInCanon =
-    typeof turnaround.activeInCanon === 'boolean'
-      ? turnaround.activeInCanon
-      : typeof cachedChar?.activeInCanon === 'boolean'
-      ? cachedChar.activeInCanon
-      : true;
+  const pages: Page[] = pageRows.map((pg, idx) => {
+    const layoutData = (pg.layout_data && typeof pg.layout_data === 'object'
+      ? pg.layout_data
+      : {}) as Record<string, unknown>;
+    const layoutTemplate: KomaLayoutId =
+      typeof layoutData.layoutTemplate === 'string' && layoutData.layoutTemplate in KOMA_LAYOUT_PRESETS
+        ? (layoutData.layoutTemplate as KomaLayoutId)
+        : '4_panel_classic';
+    const rawKomas = Array.isArray(layoutData.komas) ? (layoutData.komas as Koma[]) : [];
+    const komas =
+      rawKomas.length > 0
+        ? rawKomas
+        : buildKomasForLayout(layoutTemplate, [], String(pg.id || `page-${idx + 1}`));
 
-  return {
-    id: String(e.id),
-    entityType: (e.entity_type as SetteiEntityType) || 'character',
-    tagHandle,
-    name: String(e.name || 'Sin nombre'),
-    appearance: String(e.role_or_summary || ''),
-    clothing: '',
-    role: e.entity_type === 'character' ? 'Protagonista' : String(e.entity_type || 'character'),
-    visualAnchors: Array.isArray(e.visual_anchors) ? (e.visual_anchors as string[]) : [],
-    seedLocked: Boolean(e.seed_locked),
-    characterSeed: typeof e.character_seed === 'string' ? e.character_seed : undefined,
-    referenceBase64:
-      (typeof turnaround.front === 'string' && turnaround.front) ||
-      cachedChar?.referenceBase64 ||
-      undefined,
-    activeInCanon,
-    ...(refViews ? { referenceViews: refViews } : {}),
-  };
+    return {
+      id: String(pg.id || `page-${idx + 1}`),
+      base64: typeof pg.final_image_url === 'string' ? pg.final_image_url : '',
+      prompt: typeof layoutData.prompt === 'string' ? layoutData.prompt : '',
+      artStyle: typeof layoutData.artStyle === 'string' ? layoutData.artStyle : 'Classic Shonen',
+      castIds: Array.isArray(layoutData.castIds) ? (layoutData.castIds as string[]) : [],
+      layoutTemplate,
+      chapterBeat: typeof layoutData.chapterBeat === 'string' ? layoutData.chapterBeat : '',
+      layersVisibility:
+        layoutData.layersVisibility && typeof layoutData.layersVisibility === 'object'
+          ? (layoutData.layersVisibility as LayersVisibility)
+          : { ...DEFAULT_LAYERS_VISIBILITY },
+      layerOpacity:
+        layoutData.layerOpacity && typeof layoutData.layerOpacity === 'object'
+          ? (layoutData.layerOpacity as { L0_nemu: number; L1_tones: number })
+          : { ...DEFAULT_LAYER_OPACITY },
+      komas,
+    };
+  });
+
+  const frontUrl = typeof row.cover_url === 'string' ? row.cover_url : '';
+  const backUrl = typeof row.back_cover_url === 'string' ? row.back_cover_url : '';
+  const fullWrapUrl =
+    typeof settings.fullWrapUrl === 'string' && settings.fullWrapUrl
+      ? settings.fullWrapUrl
+      : frontUrl;
+
+  return hydrateProjectShape({
+    id: String(row.id),
+    name: String(row.title || 'Manga sin título'),
+    author: typeof settings.author === 'string' && settings.author ? settings.author : fallbackAuthor,
+    pageCount: typeof settings.pageCount === 'number' ? settings.pageCount : 100,
+    paperType: settings.paperType === 'cream' ? 'cream' : 'white',
+    trimFormat: (row.format as TrimFormatId) || 'tankobon_b6',
+    readingDirection: settings.readingDirection === 'ltr' ? 'ltr' : 'rtl',
+    colorMode: row.color_mode === 'color' ? 'color' : 'bw',
+    bindingType:
+      settings.bindingType === 'tapa_dura' || settings.bindingType === 'grapa'
+        ? settings.bindingType
+        : 'rustica_pegada',
+    volumeSlug: typeof settings.volumeSlug === 'string' ? settings.volumeSlug : meta?.volumeSlug,
+    characters,
+    pages: pages.length > 0 ? pages : createInitialStudioProject(createId('page')).pages,
+    cover: {
+      frontBase64: frontUrl || meta?.frontBase64 || '',
+      backBase64: backUrl || meta?.backBase64 || '',
+      fullWrapBase64: fullWrapUrl || meta?.fullWrapBase64 || '',
+      prompt: typeof settings.coverPrompt === 'string' ? settings.coverPrompt : '',
+      spineWidthInches:
+        typeof settings.spineWidthInches === 'number' ? settings.spineWidthInches : 0.2252,
+      isbn: typeof settings.isbn === 'string' ? settings.isbn : '978-9945-0000-0-0',
+      includeIsbn: typeof settings.includeIsbn === 'boolean' ? settings.includeIsbn : true,
+      spineTitle: typeof settings.spineTitle === 'string' ? settings.spineTitle : meta?.spineTitle || '',
+      backSynopsis:
+        typeof settings.backSynopsis === 'string' ? settings.backSynopsis : meta?.backSynopsis || '',
+    },
+  });
 }
 
 /**
- * Loads the user's project list from Supabase (when signed in) or from the
- * local Beta profile / guest storage.
+ * Loads the user's project list from Supabase (`public.mangas`) when signed in,
+ * or from the local Beta profile / guest storage.
  */
 export async function loadUserProjectList(): Promise<StudioProjectRecord[]> {
   const supabase = getSupabaseBrowserClient();
@@ -671,42 +740,23 @@ export async function loadUserProjectList(): Promise<StudioProjectRecord[]> {
       } = await supabase.auth.getSession();
 
       if (session?.user?.id) {
-        const { data: projects } = await supabase
-          .from('projects')
+        const fallbackAuthor =
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.display_name ||
+          session.user.email?.split('@')[0] ||
+          'Autor';
+
+        const { data: mangaRows } = await supabase
+          .from('mangas')
           .select('*')
           .eq('user_id', session.user.id)
           .order('updated_at', { ascending: false })
           .limit(20);
 
-        if (Array.isArray(projects) && projects.length > 0) {
-          return projects.map((row) => {
-            const meta = readSupabaseMetaCache(row.id);
-            return hydrateProjectShape({
-              id: row.id,
-              name: row.title,
-              author: session.user.user_metadata?.display_name || 'Autor',
-              pageCount: row.target_page_count,
-              paperType: row.paper_type === 'cream' ? 'cream' : 'white',
-              trimFormat: (row.trim_format as TrimFormatId) || 'tankobon_b6',
-              readingDirection: row.reading_direction === 'ltr' ? 'ltr' : 'rtl',
-              colorMode: meta?.colorMode,
-              bindingType: meta?.bindingType,
-              volumeSlug: meta?.volumeSlug,
-              characters: [],
-              pages: createInitialStudioProject(createId('page')).pages,
-              cover: {
-                frontBase64: meta?.frontBase64 || row.cover_image_url || '',
-                backBase64: meta?.backBase64 || row.cover_image_url || '',
-                fullWrapBase64: meta?.fullWrapBase64 || row.cover_image_url || '',
-                prompt: row.cover_prompt || '',
-                spineWidthInches: Number(row.spine_width_in) || 0.2252,
-                isbn: row.isbn || '978-9945-0000-0-0',
-                includeIsbn: Boolean(row.isbn ?? true),
-                spineTitle: meta?.spineTitle || '',
-                backSynopsis: typeof row.synopsis === 'string' ? row.synopsis : meta?.backSynopsis || '',
-              },
-            });
-          });
+        if (Array.isArray(mangaRows) && mangaRows.length > 0) {
+          return mangaRows.map((row) =>
+            mapMangaRowToProject(row as Record<string, unknown>, [], [], fallbackAuthor),
+          );
         }
       }
     } catch {
@@ -725,9 +775,9 @@ export async function loadUserProjectList(): Promise<StudioProjectRecord[]> {
 }
 
 /**
- * Loads the active studio project from Supabase when configured + signed in,
- * migrating guest work if the cloud workspace is empty, and degrading cleanly
- * to local profile / localStorage in Beta/Guest mode.
+ * Loads the active studio project from Supabase (`mangas`, `settei_items`,
+ * `manga_pages`) when configured + signed in, migrating guest work if the cloud
+ * workspace is empty, and degrading cleanly to localStorage in Guest mode.
  */
 export async function loadStudioProject(): Promise<{
   project: StudioProjectRecord;
@@ -742,104 +792,45 @@ export async function loadStudioProject(): Promise<{
       } = await supabase.auth.getSession();
 
       if (session?.user?.id) {
-        const { data: projects } = await supabase
-          .from('projects')
+        const fallbackAuthor =
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.display_name ||
+          session.user.email?.split('@')[0] ||
+          'Autor';
+
+        const { data: mangaRows } = await supabase
+          .from('mangas')
           .select('*')
           .eq('user_id', session.user.id)
           .order('updated_at', { ascending: false })
           .limit(1);
 
-        const row = projects?.[0];
-        if (row) {
-          const metaCache = readSupabaseMetaCache(row.id);
-          const [{ data: entities }, { data: pageRows }] = await Promise.all([
-            supabase.from('settei_entities').select('*').eq('project_id', row.id),
+        const mangaRow = mangaRows?.[0] as Record<string, unknown> | undefined;
+        if (mangaRow && typeof mangaRow.id === 'string') {
+          const [{ data: setteiRows }, { data: pageRows }] = await Promise.all([
             supabase
-              .from('pages')
+              .from('settei_items')
               .select('*')
-              .eq('project_id', row.id)
+              .eq('manga_id', mangaRow.id)
+              .order('created_at', { ascending: true }),
+            supabase
+              .from('manga_pages')
+              .select('*')
+              .eq('manga_id', mangaRow.id)
               .order('page_number', { ascending: true }),
           ]);
 
-          const pageIds = (pageRows ?? []).map((p) => p.id);
-          const { data: komaRows } =
-            pageIds.length > 0
-              ? await supabase
-                  .from('komas')
-                  .select('*')
-                  .in('page_id', pageIds)
-                  .order('panel_index', { ascending: true })
-              : { data: [] };
-
-          const komasByPage = new Map<string, Koma[]>();
-          for (const k of komaRows ?? []) {
-            const list = komasByPage.get(k.page_id) ?? [];
-            list.push({
-              id: k.id,
-              panelIndex: k.panel_index,
-              state: (k.state as KomaState) || 'VACIO',
-              polygonCoords: Array.isArray(k.polygon_coords) ? k.polygon_coords : [],
-              cameraAngle: k.camera_angle || 'Plano Medio',
-              taggedHandles: Array.isArray(k.tagged_handles) ? k.tagged_handles : [],
-              actionPrompt: k.action_prompt || '',
-              nemuSketchUrl: k.nemu_sketch_url || undefined,
-              inkRenderUrl: k.ink_render_url || undefined,
-              screentonePreset: k.screentone_preset || undefined,
-              dialogues: Array.isArray(k.dialogues) ? k.dialogues : [],
-              sfxItems: Array.isArray(k.sfx_items) ? k.sfx_items : [],
-            });
-            komasByPage.set(k.page_id, list);
-          }
-
-          const mapped = hydrateProjectShape({
-            id: row.id,
-            name: row.title,
-            author:
-              session.user.user_metadata?.full_name ||
-              session.user.user_metadata?.display_name ||
-              'Autor',
-            pageCount: row.target_page_count,
-            paperType: row.paper_type === 'cream' ? 'cream' : 'white',
-            trimFormat: (row.trim_format as TrimFormatId) || 'tankobon_b6',
-            readingDirection: row.reading_direction === 'ltr' ? 'ltr' : 'rtl',
-            colorMode: metaCache?.colorMode,
-            bindingType: metaCache?.bindingType,
-            volumeSlug: metaCache?.volumeSlug,
-            characters: (entities ?? []).map((e) =>
-              mapSupabaseEntity(e as Record<string, unknown>, metaCache),
-            ),
-            pages: (pageRows ?? []).map((pg) => ({
-              id: pg.id,
-              base64: '',
-              prompt: pg.chapter_beat || '',
-              artStyle: row.style_preset || 'Classic Shonen',
-              castIds: [],
-              layoutTemplate: (pg.layout_template as KomaLayoutId) || '4_panel_classic',
-              chapterBeat: pg.chapter_beat || '',
-              layersVisibility:
-                pg.layers_visibility && typeof pg.layers_visibility === 'object'
-                  ? (pg.layers_visibility as LayersVisibility)
-                  : { ...DEFAULT_LAYERS_VISIBILITY },
-              komas: komasByPage.get(pg.id) ?? [],
-            })),
-            cover: {
-              frontBase64: metaCache?.frontBase64 || row.cover_image_url || '',
-              backBase64: metaCache?.backBase64 || row.cover_image_url || '',
-              fullWrapBase64: metaCache?.fullWrapBase64 || row.cover_image_url || '',
-              prompt: row.cover_prompt || '',
-              spineWidthInches: Number(row.spine_width_in) || 0.2252,
-              isbn: row.isbn || '978-9945-0000-0-0',
-              includeIsbn: Boolean(row.isbn ?? true),
-              spineTitle: metaCache?.spineTitle || '',
-              backSynopsis: typeof row.synopsis === 'string' ? row.synopsis : metaCache?.backSynopsis || '',
-            },
-          });
-
+          const mapped = mapMangaRowToProject(
+            mangaRow,
+            (setteiRows ?? []) as Array<Record<string, unknown>>,
+            (pageRows ?? []) as Array<Record<string, unknown>>,
+            fallbackAuthor,
+          );
           writeLocalProject(mapped);
           return { project: mapped, mode: 'supabase' };
         }
 
-        // Guest -> Signed-in migration when cloud account has no projects yet
+        // Guest -> Signed-in migration when cloud account has no mangas yet
         const guestLocal = readLocalProject();
         if (isProjectWorthMigrating(guestLocal)) {
           const migrated: StudioProjectRecord = {
@@ -879,8 +870,9 @@ export async function loadStudioProject(): Promise<{
 }
 
 /**
- * Persists the project locally (and per local user profile when active),
- * and synchronizes to Supabase when an authenticated session is active.
+ * Persists the project locally and synchronizes to Supabase (`mangas`,
+ * `settei_items`, `manga_pages`) + public Storage bucket (`manga-assets`)
+ * when an authenticated session is active.
  */
 export async function saveStudioProject(project: StudioProjectRecord | Project): Promise<StorageMode> {
   const normalized = hydrateProjectShape(project);
@@ -900,111 +892,143 @@ export async function saveStudioProject(project: StudioProjectRecord | Project):
     } = await supabase.auth.getSession();
     if (!session?.user?.id) return 'local';
 
-    const projectId = toStableUuid(normalized.id || normalized.volumeSlug, 'proj');
-    writeSupabaseMetaCache(projectId, normalized);
+    const userId = session.user.id;
+    const mangaId = toStableUuid(normalized.id || normalized.volumeSlug, 'manga');
+    writeSupabaseMetaCache(mangaId, normalized);
 
-    await supabase.from('profiles').upsert({
-      id: session.user.id,
-      display_name: normalized.author || session.user.email || 'Mangaka',
+    // Upload cover assets to public `manga-assets` bucket under `{user_id}/{manga_id}/...`
+    const [frontCoverUrl, backCoverUrl, fullWrapUrl] = await Promise.all([
+      uploadMangaAssetToStorage(
+        supabase,
+        userId,
+        mangaId,
+        'covers/front',
+        normalized.cover.frontBase64,
+      ),
+      uploadMangaAssetToStorage(
+        supabase,
+        userId,
+        mangaId,
+        'covers/back',
+        normalized.cover.backBase64,
+      ),
+      uploadMangaAssetToStorage(
+        supabase,
+        userId,
+        mangaId,
+        'covers/full_wrap',
+        normalized.cover.fullWrapBase64,
+      ),
+    ]);
+
+    const { error: mangaErr } = await supabase.from('mangas').upsert({
+      id: mangaId,
+      user_id: userId,
+      title: normalized.name || 'Manga sin título',
+      genre: normalized.pages[0]?.artStyle || 'Shonen',
+      format: normalized.trimFormat || 'tankobon_b6',
+      color_mode: normalized.colorMode || 'bw',
+      cover_url: frontCoverUrl || fullWrapUrl || null,
+      back_cover_url: backCoverUrl || null,
+      settings: {
+        author: normalized.author || 'Autor',
+        pageCount: normalized.pageCount,
+        paperType: normalized.paperType,
+        readingDirection: normalized.readingDirection || 'rtl',
+        bindingType: normalized.bindingType || 'rustica_pegada',
+        volumeSlug: normalized.volumeSlug || null,
+        spineWidthInches: Number(normalized.cover.spineWidthInches.toFixed(4)),
+        isbn: normalized.cover.isbn || null,
+        includeIsbn: normalized.cover.includeIsbn !== false,
+        spineTitle: normalized.cover.spineTitle || '',
+        backSynopsis: normalized.cover.backSynopsis || '',
+        coverPrompt: normalized.cover.prompt || '',
+        fullWrapUrl: fullWrapUrl || null,
+      },
+      updated_at: new Date().toISOString(),
     });
 
-    const { error: projErr } = await supabase.from('projects').upsert({
-      id: projectId,
-      user_id: session.user.id,
-      title: normalized.name || 'Sin Título',
-      synopsis: normalized.cover.backSynopsis || null,
-      reading_direction: normalized.readingDirection || 'rtl',
-      trim_format: normalized.trimFormat || 'tankobon_b6',
-      target_page_count: normalized.pageCount,
-      paper_type: normalized.paperType === 'cream' ? 'cream' : 'white_standard',
-      spine_width_in: Number(normalized.cover.spineWidthInches.toFixed(4)),
-      isbn: normalized.cover.includeIsbn === false ? null : normalized.cover.isbn || null,
-      cover_prompt: normalized.cover.prompt || null,
-      cover_image_url: normalized.cover.fullWrapBase64?.startsWith('http')
-        ? normalized.cover.fullWrapBase64
-        : normalized.cover.frontBase64?.startsWith('http')
-        ? normalized.cover.frontBase64
-        : null,
-    });
-    if (projErr) return 'local';
+    if (mangaErr) return 'local';
 
+    // Sync Visual Bible (`public.settei_items`) + upload reference images
     if (normalized.characters.length > 0) {
-      await supabase.from('settei_entities').upsert(
-        normalized.characters.map((c, idx) => {
-          const turnaroundUrls: Record<string, unknown> = {
-            activeInCanon: c.activeInCanon !== false,
-          };
-          if (c.referenceBase64 && c.referenceBase64.startsWith('http')) {
-            turnaroundUrls.front = c.referenceBase64;
-          }
-          if (c.referenceViews?.turnaround?.startsWith('http')) {
-            turnaroundUrls.turnaround = c.referenceViews.turnaround;
-          }
-          if (c.referenceViews?.front?.startsWith('http')) {
-            turnaroundUrls.front = c.referenceViews.front;
-          }
-          if (c.referenceViews?.detail?.startsWith('http')) {
-            turnaroundUrls.detail = c.referenceViews.detail;
-          }
+      const setteiPayload = await Promise.all(
+        normalized.characters.map(async (c, idx) => {
+          const itemId = toStableUuid(c.id || `${mangaId}:settei:${c.tagHandle || idx}`, 'settei');
+          const refUrl = await uploadMangaAssetToStorage(
+            supabase,
+            userId,
+            mangaId,
+            `settei/${itemId}`,
+            c.referenceBase64 || c.referenceViews?.front || c.referenceViews?.turnaround,
+          );
+          const category =
+            c.entityType === 'prop' || c.entityType === 'location' || c.entityType === 'lore_rule'
+              ? c.entityType
+              : 'character';
 
           return {
-            id: toStableUuid(c.id || `${projectId}:${c.tagHandle || idx}`, 'ent'),
-            project_id: projectId,
-            entity_type: c.entityType || 'character',
-            tag_handle: normalizeTagHandle(c.tagHandle || '', c.name || `Settei${idx + 1}`),
+            id: itemId,
+            manga_id: mangaId,
+            user_id: userId,
+            category,
             name: c.name || 'Sin nombre',
-            role_or_summary: [c.appearance, c.clothing].filter(Boolean).join(' · ') || null,
+            description: [c.appearance, c.clothing].filter(Boolean).join(' · '),
             visual_anchors: c.visualAnchors ?? [],
-            seed_locked: Boolean(c.seedLocked),
-            character_seed: c.characterSeed || null,
-            turnaround_urls: turnaroundUrls,
+            seed: c.characterSeed || null,
+            reference_image_url: refUrl,
+            is_active: c.activeInCanon !== false,
           };
         }),
-        { onConflict: 'project_id,tag_handle' },
       );
+
+      await supabase.from('settei_items').upsert(setteiPayload);
     }
 
-    for (let i = 0; i < normalized.pages.length; i++) {
+    // Sync Pages & Vector Komas (`public.manga_pages`) + upload sketches & final ink renders
+    for (let i = 0; i < normalized.pages.length; i += 1) {
       const pg = normalized.pages[i];
-      const pageUuid = toStableUuid(pg.id || `${projectId}:page:${i + 1}`, 'page');
-      const { data: savedPage } = await supabase
-        .from('pages')
-        .upsert(
-          {
-            id: pageUuid,
-            project_id: projectId,
-            page_number: i + 1,
-            layout_template: pg.layoutTemplate || '4_panel_classic',
-            chapter_beat: pg.chapterBeat || pg.prompt || null,
-            layers_visibility: pg.layersVisibility ?? DEFAULT_LAYERS_VISIBILITY,
-            status: (pg.komas ?? []).some((k) => k.inkRenderUrl) ? 'inked' : 'draft',
-          },
-          { onConflict: 'project_id,page_number' },
-        )
-        .select('id')
-        .single();
+      const pageId = toStableUuid(pg.id || `${mangaId}:page:${i + 1}`, 'page');
+      const komasWithUrls = await Promise.all(
+        (pg.komas ?? []).map(async (k, kIdx) => {
+          const komaKey = `pages/p${i + 1}_k${k.panelIndex || kIdx + 1}`;
+          const [sketchUrl, inkUrl] = await Promise.all([
+            uploadMangaAssetToStorage(supabase, userId, mangaId, `${komaKey}_sketch`, k.nemuSketchUrl),
+            uploadMangaAssetToStorage(supabase, userId, mangaId, `${komaKey}_ink`, k.inkRenderUrl),
+          ]);
+          return {
+            ...k,
+            nemuSketchUrl: sketchUrl || (k.nemuSketchUrl?.startsWith('http') ? k.nemuSketchUrl : undefined),
+            inkRenderUrl: inkUrl || (k.inkRenderUrl?.startsWith('http') ? k.inkRenderUrl : undefined),
+          };
+        }),
+      );
 
-      const resolvedPageId = savedPage?.id || pageUuid;
-      const komas = pg.komas ?? [];
-      if (komas.length > 0) {
-        await supabase.from('komas').upsert(
-          komas.map((k, kIdx) => ({
-            id: toStableUuid(k.id || `${resolvedPageId}:koma:${k.panelIndex || kIdx + 1}`, 'koma'),
-            page_id: resolvedPageId,
-            panel_index: k.panelIndex || kIdx + 1,
-            state: k.state || 'VACIO',
-            polygon_coords: k.polygonCoords,
-            camera_angle: k.cameraAngle || 'Plano Medio',
-            tagged_handles: k.taggedHandles ?? [],
-            action_prompt: k.actionPrompt || null,
-            ink_render_url: k.inkRenderUrl?.startsWith('http') ? k.inkRenderUrl : null,
-            screentone_preset: k.screentonePreset || 'none',
-            dialogues: k.dialogues ?? [],
-            sfx_items: k.sfxItems ?? [],
-          })),
-          { onConflict: 'page_id,panel_index' },
-        );
-      }
+      const pageFinalUrl =
+        (await uploadMangaAssetToStorage(supabase, userId, mangaId, `pages/p${i + 1}_final`, pg.base64)) ||
+        komasWithUrls.find((k) => k.inkRenderUrl)?.inkRenderUrl ||
+        null;
+      const pageSketchUrl = komasWithUrls.find((k) => k.nemuSketchUrl)?.nemuSketchUrl || null;
+
+      await supabase.from('manga_pages').upsert({
+        id: pageId,
+        manga_id: mangaId,
+        user_id: userId,
+        page_number: i + 1,
+        layout_data: {
+          layoutTemplate: pg.layoutTemplate || '4_panel_classic',
+          artStyle: pg.artStyle || 'Classic Shonen',
+          prompt: pg.prompt || '',
+          chapterBeat: pg.chapterBeat || '',
+          castIds: pg.castIds ?? [],
+          layersVisibility: pg.layersVisibility ?? DEFAULT_LAYERS_VISIBILITY,
+          layerOpacity: pg.layerOpacity ?? DEFAULT_LAYER_OPACITY,
+          komas: komasWithUrls,
+        },
+        sketch_url: pageSketchUrl,
+        final_image_url: pageFinalUrl,
+        updated_at: new Date().toISOString(),
+      });
     }
 
     return 'supabase';
