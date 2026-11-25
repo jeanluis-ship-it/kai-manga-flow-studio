@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Check,
   Download,
@@ -45,6 +46,10 @@ import {
 } from '../types';
 import { PillButton, SectionLabel } from './Primitives';
 import './PageEditor.css';
+
+const KonvaKomaCanvas = dynamic(() => import('./KonvaKomaCanvas'), {
+  ssr: false,
+});
 
 const KOMA_STATE_LABELS: Record<Koma['state'], string> = {
   VACIO: 'VACÍO',
@@ -1022,6 +1027,35 @@ export const PageEditor: React.FC<{
             </svg>
           </div>
         )}
+
+        {/* ===== KONVA VECTOR ENGINE (react-konva clipFunc + point-by-point polygon editor) ===== */}
+        <KonvaKomaCanvas
+          komas={komas}
+          selectedKomaId={selectedKoma?.id ?? null}
+          showInk={vis.L2_ink}
+          showBorders={vis.L3_borders_fx}
+          isDrawingVector={isDrawingVector}
+          isEditingVertices={isEditingVertices}
+          draftPoints={draftPoints}
+          cursorPoint={cursorPoint}
+          isNearFirstVertex={isNearFirstVertex}
+          snapPoint={snapAndClampPoint}
+          onSelectKoma={onSelectKoma}
+          onAddDraftPoint={(pt) => setDraftPoints((prev) => [...prev, pt])}
+          onCursorMove={setCursorPoint}
+          onCloseDraftPolygon={() => closeVectorPolygon(draftPoints)}
+          onMoveVertex={(komaId, vertexIdx, nextPt) => {
+            updateCurrentPageKomas((prev) =>
+              prev.map((k) => {
+                if (k.id !== komaId) return k;
+                const nextCoords = k.polygonCoords.map((pt, idx) =>
+                  idx === vertexIdx ? nextPt : pt,
+                );
+                return { ...k, polygonCoords: nextCoords };
+              }),
+            );
+          }}
+        />
 
         {/* ===== LAYER L2 (z-index: 30) — Clipped Ink Art & Koma Interactive Selection ===== */}
         <div className="gf-layer gf-layer-l2">

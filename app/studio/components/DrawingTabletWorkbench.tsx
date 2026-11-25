@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { getStroke } from 'perfect-freehand';
 import {
   Check,
   Download,
@@ -115,6 +116,20 @@ const REFINE_MODES = [
   },
 ] as const;
 
+function getSvgPathFromStroke(stroke: number[][]): string {
+  if (!stroke.length) return '';
+  const d = stroke.reduce<Array<string | number>>(
+    (acc, [x0, y0], i, arr) => {
+      const [x1, y1] = arr[(i + 1) % arr.length];
+      acc.push(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
+      return acc;
+    },
+    ['M', ...stroke[0], 'Q'],
+  );
+  d.push('Z');
+  return d.join(' ');
+}
+
 export interface DrawingTabletWorkbenchProps {
   project: Project;
   activePageIndex: number;
@@ -142,6 +157,8 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
   const isDrawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const smoothedPointRef = useRef<{ x: number; y: number } | null>(null);
+  const activeStrokePointsRef = useRef<Array<[number, number, number]>>([]);
+  const strokeBaseImageRef = useRef<ImageData | null>(null);
   const pendingBridgeImageRef = useRef<string | null>(null);
 
   const [canvasAspect, setCanvasAspect] = useState<'3:4' | '16:9' | '1:1'>('3:4');
@@ -401,14 +418,13 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
   const isInkActive = brushId === 'maru_pen' || brushId === 'akai_crimson';
   const activeInkPreset = BRUSHES.find((b) => b.id === inkVariant) ?? BRUSHES[2];
 
-  const drawSegment = (
-    from: { x: number; y: number },
-    to: { x: number; y: number },
-    pressure: number,
+  const renderFreehandStroke = (
+    points: Array<[number, number, number]>,
+    pointerType: string,
     useBarrelEraser: boolean,
   ) => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || points.length === 0) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -416,28 +432,54 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
       ? BRUSHES.find((b) => b.id === 'eraser')!
       : activeBrush;
 
-    const clampedP = Math.min(1, Math.max(0.08, pressure));
-    const widthFactor =
-      tool.minFactor + (tool.maxFactor - tool.minFactor) * Math.pow(clampedP, 1.15);
-    const dynamicWidth = Math.max(1, brushSize * widthFactor);
-
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = dynamicWidth;
-    if (tool.isEraser) {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.strokeStyle = 'rgba(0,0,0,1)';
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = tool.color;
-      ctx.globalAlpha = Math.min(1, tool.alpha * (0.55 + clampedP * 0.45));
+    if (strokeBaseImageRef.current) {
+      ctx.putImageData(strokeBaseImageRef.current, 0, 0);
     }
 
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
+    const smoothRatio = Math.min(0.88, Math.max(0, stabilizer / 100));
+    const isGpen = tool.id === 'g_pen';
+    const isMaru = tool.id === 'maru_pen';
+    const simulatePressure = pointerType !== 'pen';
+
+    const strokeOutline = getStroke(points, {
+      size: Math.max(2, brushSize * (isGpen ? 1.55 : tool.isEraser ? 1.8 : 1.15)),
+      thinning: tool.isEraser ? 0.15 : isGpen ? 0.74 : isMaru ? 0.56 : 0.45,
+      smoothing: 0.5 + smoothRatio * 0.32,
+      streamline: 0.45 + smoothRatio * 0.4,
+      easing: (t) => t,
+      simulatePressure,
+      start: tool.isEraser
+        ? { cap: true, taper: 0 }
+        : { cap: true, taper: isGpen ? Math.max(4, brushSize * 0.75) : Math.max(2, brushSize * 0.35) },
+      end: tool.isEraser
+        ? { cap: true, taper: 0 }
+        : { cap: true, taper: isGpen ? Math.max(6, brushSize * 1.1) : Math.max(3, brushSize * 0.45) },
+    });
+
+    const pathData = getSvgPathFromStroke(strokeOutline);
+    if (!pathData) return;
+
+    ctx.save();
+    if (tool.isEraser) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,1)';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = tool.color;
+      ctx.globalAlpha = tool.alpha;
+    }
+
+    if (typeof Path2D !== 'undefined') {
+      ctx.fill(new Path2D(pathData));
+    } else {
+      ctx.beginPath();
+      strokeOutline.forEach(([x, y], idx) => {
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fill();
+    }
     ctx.restore();
   };
 
@@ -456,6 +498,12 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     e.currentTarget.setPointerCapture(e.pointerId);
     isDrawingRef.current = true;
 
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (canvas && ctx) {
+      strokeBaseImageRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+
     const pt = getCanvasCoords(e);
     lastPointRef.current = pt;
     smoothedPointRef.current = pt;
@@ -464,8 +512,9 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     setLivePressure(pressure);
     setLiveTilt({ x: e.tiltX || 0, y: e.tiltY || 0 });
 
+    activeStrokePointsRef.current = [[pt.x, pt.y, pressure]];
     const barrelEraser = (e.buttons & 32) === 32;
-    drawSegment(pt, { x: pt.x + 0.1, y: pt.y + 0.1 }, pressure, barrelEraser);
+    renderFreehandStroke(activeStrokePointsRef.current, pType, barrelEraser);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -499,12 +548,12 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
         y: prevSmooth.y * smoothRatio + rawPt.y * (1 - smoothRatio),
       };
       const pressure = pType === 'pen' ? sample.pressure || 0.5 : 0.62;
-      if (lastPointRef.current) {
-        drawSegment(lastPointRef.current, nextSmooth, pressure, barrelEraser);
-      }
+      activeStrokePointsRef.current.push([nextSmooth.x, nextSmooth.y, pressure]);
       lastPointRef.current = nextSmooth;
       smoothedPointRef.current = nextSmooth;
     }
+
+    renderFreehandStroke(activeStrokePointsRef.current, pType, barrelEraser);
   };
 
   const finishStroke = () => {
@@ -512,6 +561,8 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     isDrawingRef.current = false;
     lastPointRef.current = null;
     smoothedPointRef.current = null;
+    activeStrokePointsRef.current = [];
+    strokeBaseImageRef.current = null;
     setLivePressure(0);
     setStrokeCount((c) => c + 1);
     pushSnapshot();

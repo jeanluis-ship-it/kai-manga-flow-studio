@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -11,6 +12,7 @@ import {
   Crown,
   Eye,
   EyeOff,
+  FileText,
   FolderPlus,
   HardDrive,
   Info,
@@ -43,6 +45,10 @@ import {
   buildPrintBundle,
   runPreflightChecks,
 } from '@/lib/export/buildPrintBundle';
+import {
+  buildPrintPdf,
+  getPrintPdfFilename,
+} from '@/lib/export/buildPrintPdf';
 import {
   PLAN_CATALOG,
   buildProfileForPlan,
@@ -78,6 +84,10 @@ import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
 import { PageEditor } from './components/PageEditor';
 import { PreflightModal } from './components/PreflightModal';
 import { ProjectManager } from './components/ProjectManager';
+
+const MangaFlipbookViewer = dynamic(() => import('./components/MangaFlipbookViewer'), {
+  ssr: false,
+});
 import {
   DEFAULT_LAYERS_VISIBILITY,
   DEFAULT_LAYER_OPACITY,
@@ -239,6 +249,8 @@ export default function StudioPage() {
   const [kaiPendingMessage, setKaiPendingMessage] = useState('');
   const [kaiPendingMode, setKaiPendingMode] = useState<'mentor' | 'script'>('mentor');
   const [preflightOpen, setPreflightOpen] = useState(false);
+  const [flipbookOpen, setFlipbookOpen] = useState(false);
+  const [buildingPdf, setBuildingPdf] = useState(false);
   const [quotaProfile, setQuotaProfile] = useState<UserQuotaProfile>(() =>
     createGuestQuotaProfile('trial'),
   );
@@ -1099,6 +1111,26 @@ export default function StudioPage() {
     }
   };
 
+  const handleConfirmPdfExport = async () => {
+    if (buildingPdf) return;
+    setBuildingPdf(true);
+    setBundleError('');
+    try {
+      const { base64, filename } = await buildPrintPdf(project);
+      await Flow.download({
+        base64,
+        mimeType: 'application/pdf',
+        filename,
+      });
+      setPreflightOpen(false);
+    } catch (err) {
+      console.error(err);
+      setBundleError(err instanceof Error ? err.message : 'No se pudo generar el PDF KDP.');
+    } finally {
+      setBuildingPdf(false);
+    }
+  };
+
   if (!mounted) {
     return <div className="gf-loading" aria-hidden="true" />;
   }
@@ -1462,6 +1494,27 @@ export default function StudioPage() {
           <div className="gf-sidebar-bottom">
             <SectionLabel>Pre-Prensa & Entrega</SectionLabel>
             <PillButton
+              variant="outline"
+              icon={<BookOpen size={15} strokeWidth={1.75} className="gf-icon-shrink" />}
+              onClick={() => setFlipbookOpen(true)}
+            >
+              Visor 3D PageFlip
+            </PillButton>
+            <PillButton
+              variant="outline"
+              icon={
+                buildingPdf ? (
+                  <RefreshCw size={15} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+                ) : (
+                  <FileText size={15} strokeWidth={1.75} className="gf-icon-shrink" />
+                )
+              }
+              onClick={handleConfirmPdfExport}
+              disabled={buildingPdf || generating.bundle}
+            >
+              {buildingPdf ? 'Generando PDF KDP...' : 'Exportar PDF KDP'}
+            </PillButton>
+            <PillButton
               variant="solid"
               icon={
                 generating.bundle ? (
@@ -1474,7 +1527,7 @@ export default function StudioPage() {
                 setBundleError('');
                 setPreflightOpen(true);
               }}
-              disabled={generating.bundle}
+              disabled={generating.bundle || buildingPdf}
             >
               {generating.bundle ? 'Empaquetando ZIP...' : 'Exportar Paquete ZIP'}
             </PillButton>
@@ -1635,10 +1688,19 @@ export default function StudioPage() {
       <PreflightModal
         open={preflightOpen}
         report={preflightReport}
+        pdfFilename={getPrintPdfFilename(project)}
         isBuilding={generating.bundle}
+        isBuildingPdf={buildingPdf}
         error={bundleError}
         onClose={() => setPreflightOpen(false)}
         onConfirmExport={handleConfirmPrintExport}
+        onConfirmExportPdf={handleConfirmPdfExport}
+      />
+
+      <MangaFlipbookViewer
+        open={flipbookOpen}
+        project={project}
+        onClose={() => setFlipbookOpen(false)}
       />
 
       <PricingUpgradeModal

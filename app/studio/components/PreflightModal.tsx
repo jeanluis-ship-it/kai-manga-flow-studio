@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   FileArchive,
+  FileText,
   PackageCheck,
   RefreshCw,
   ShieldCheck,
@@ -16,14 +17,28 @@ import { PillButton } from './Primitives';
 export const PreflightModal: React.FC<{
   open: boolean;
   report: PreflightReport;
+  pdfFilename?: string;
   isBuilding: boolean;
+  isBuildingPdf?: boolean;
   error?: string;
   onClose: () => void;
   onConfirmExport: () => void;
-}> = ({ open, report, isBuilding, error, onClose, onConfirmExport }) => {
+  onConfirmExportPdf?: () => void;
+}> = ({
+  open,
+  report,
+  pdfFilename,
+  isBuilding,
+  isBuildingPdf = false,
+  error,
+  onClose,
+  onConfirmExport,
+  onConfirmExportPdf,
+}) => {
   if (!open) return null;
 
   const hasWarnings = report.checks.some((c) => c.status === 'warn');
+  const busy = isBuilding || isBuildingPdf;
 
   return (
     <div className="gf-modal-backdrop" onClick={() => !isBuilding && onClose()}>
@@ -80,13 +95,35 @@ export const PreflightModal: React.FC<{
           <FileArchive size={15} strokeWidth={1.75} className="gf-icon-shrink" />
           <code>{report.zipFilename}</code>
         </div>
+        {pdfFilename && (
+          <div className="gf-preflight-filename">
+            <FileText size={15} strokeWidth={1.75} className="gf-icon-shrink" />
+            <code>{pdfFilename}</code>
+          </div>
+        )}
 
         {error && <div className="gf-inline-error">{error}</div>}
 
         <div className="gf-modal-actions">
-          <PillButton variant="outline" onClick={onClose} disabled={isBuilding}>
+          <PillButton variant="outline" onClick={onClose} disabled={busy}>
             Revisar Lienzo
           </PillButton>
+          {onConfirmExportPdf && (
+            <PillButton
+              variant="outline"
+              icon={
+                isBuildingPdf ? (
+                  <RefreshCw size={15} strokeWidth={2} className="gf-spin gf-icon-shrink" />
+                ) : (
+                  <FileText size={15} strokeWidth={1.75} className="gf-icon-shrink" />
+                )
+              }
+              onClick={onConfirmExportPdf}
+              disabled={busy}
+            >
+              {isBuildingPdf ? 'Generando PDF KDP...' : 'Exportar PDF KDP'}
+            </PillButton>
+          )}
           <PillButton
             variant="solid"
             icon={
@@ -97,7 +134,7 @@ export const PreflightModal: React.FC<{
               )
             }
             onClick={onConfirmExport}
-            disabled={isBuilding}
+            disabled={busy}
           >
             {isBuilding ? 'Aplanando L1→L5 y Empaquetando...' : 'Confirmar y Descargar ZIP'}
           </PillButton>
