@@ -836,6 +836,24 @@ function buildKaiDeepLink(book) {
   return buildStudioDeepLink(book, 'kai');
 }
 
+const BLANK_LEAF_PIXEL =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+function clearTurningLeaf() {
+  for (const prefix of ['leafFront', 'leafBack']) {
+    const numEl = $(`#${prefix}Num`);
+    const volEl = $(`#${prefix}Vol`);
+    const imgEl = $(`#${prefix}Img`);
+    const titleEl = $(`#${prefix}Title`);
+    const textEl = $(`#${prefix}Text`);
+    if (numEl) numEl.textContent = '';
+    if (volEl) volEl.textContent = '';
+    if (imgEl) imgEl.src = BLANK_LEAF_PIXEL;
+    if (titleEl) titleEl.textContent = '';
+    if (textEl) textEl.textContent = '';
+  }
+}
+
 function cancelFlip() {
   if (flipTimer) {
     clearTimeout(flipTimer);
@@ -848,6 +866,7 @@ function cancelFlip() {
   if (openBookEl) openBookEl.classList.remove('flipping-next', 'flipping-prev');
   if (leaf) leaf.hidden = true;
   if (shadow) shadow.hidden = true;
+  clearTurningLeaf();
 }
 
 function renderCreaseDots(spreadsCount) {
@@ -1029,6 +1048,7 @@ function transitionToSpread(targetIdx) {
     if (openBookEl) openBookEl.classList.remove('flipping-next', 'flipping-prev');
     if (leaf) leaf.hidden = true;
     if (shadow) shadow.hidden = true;
+    clearTurningLeaf();
     renderHeroBookViewer();
   }, duration);
 }
@@ -1071,6 +1091,7 @@ function switchOpenBookTo(nextBookIndex) {
     if (openBookEl) openBookEl.classList.remove('flipping-next', 'flipping-prev');
     if (leaf) leaf.hidden = true;
     if (shadow) shadow.hidden = true;
+    clearTurningLeaf();
     renderHeroBookViewer();
   }, duration);
 }
@@ -1567,4 +1588,41 @@ function initSumiStoryFlow() {
   });
 }
 
+function syncLandingAuthLink() {
+  const navAuth = $('#navAuthLink');
+  const mobileAuth = $('#mobileAuthLink');
+  if (!navAuth && !mobileAuth) return;
+
+  let signedInLabel = '';
+  try {
+    const rawLocal = window.localStorage?.getItem('mangai-local-session-v1');
+    if (rawLocal) {
+      const parsed = JSON.parse(rawLocal);
+      if (parsed && (parsed.displayName || parsed.email)) {
+        signedInLabel = (parsed.displayName || parsed.email).trim().slice(0, 18);
+      }
+    }
+  } catch {
+    // Ignore storage access errors.
+  }
+
+  if (!signedInLabel && typeof document !== 'undefined' && /sb-[a-z0-9]+-auth-token/i.test(document.cookie || '')) {
+    signedInLabel = 'Mi Cuenta';
+  }
+
+  if (signedInLabel) {
+    if (navAuth) {
+      navAuth.textContent = signedInLabel;
+      navAuth.href = '/studio';
+      navAuth.classList.add('is-signed-in');
+      navAuth.setAttribute('title', 'Sesión activa · Ir al Estudio');
+    }
+    if (mobileAuth) {
+      mobileAuth.textContent = `${signedInLabel} · Estudio`;
+      mobileAuth.href = '/studio';
+    }
+  }
+}
+
 initSumiStoryFlow();
+syncLandingAuthLink();

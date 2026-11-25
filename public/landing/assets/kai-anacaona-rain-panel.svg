@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" width="960" height="600" role="img" aria-label="Viñeta manga: AnaCaona deteniendo una espada bajo la lluvia en tinta sumi">
+  <defs>
+    <linearGradient id="stormSky" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#0b0a10"/>
+      <stop offset="52%" stop-color="#1c1926"/>
+      <stop offset="100%" stop-color="#2c141d"/>
+    </linearGradient>
+    <radialGradient id="clashGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="28%" stop-color="#fef08a" stop-opacity="0.95"/>
+      <stop offset="62%" stop-color="#dc2626" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bladeSteel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="48%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="goldGuanin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <pattern id="sumiHalftone" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1.4" fill="#0f0d14" opacity="0.55"/>
+    </pattern>
+    <pattern id="lightTone" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="0.95" fill="#f8fafc" opacity="0.14"/>
+    </pattern>
+    <clipPath id="panelFrame">
+      <rect x="18" y="18" width="924" height="564" rx="4"/>
+    </clipPath>
+  </defs>
+
+  <!-- Outer Genko margin -->
+  <rect width="960" height="600" fill="#faf7f0"/>
+
+  <!-- Main Manga Panel -->
+  <g clip-path="url(#panelFrame)">
+    <rect x="18" y="18" width="924" height="564" fill="url(#stormSky)"/>
+    <rect x="18" y="18" width="924" height="564" fill="url(#lightTone)"/>
+
+    <!-- Storm jungle silhouettes & low-angle mountain -->
+    <path d="M18 430 L165 340 L290 385 L420 295 L560 360 L725 270 L942 350 L942 582 L18 582 Z" fill="#100e17"/>
+    <path d="M18 470 Q135 420 240 465 T470 450 T740 430 T942 460 L942 582 L18 582 Z" fill="#07060b"/>
+
+    <!-- Radial shuchusen kinetic focus lines centered on blade clash (545, 245) -->
+    <g stroke="#f8fafc" stroke-opacity="0.24" stroke-linecap="round">
+      <line x1="545" y1="245" x2="30" y2="25" stroke-width="2.2"/>
+      <line x1="545" y1="245" x2="180" y2="18" stroke-width="1.4"/>
+      <line x1="545" y1="245" x2="355" y2="18" stroke-width="2.4"/>
+      <line x1="545" y1="245" x2="495" y2="18" stroke-width="1.2"/>
+      <line x1="545" y1="245" x2="640" y2="18" stroke-width="2"/>
+      <line x1="545" y1="245" x2="810" y2="18" stroke-width="1.5"/>
+      <line x1="545" y1="245" x2="942" y2="75" stroke-width="2.6"/>
+      <line x1="545" y1="245" x2="942" y2="190" stroke-width="1.4"/>
+      <line x1="545" y1="245" x2="942" y2="330" stroke-width="2.2"/>
+      <line x1="545" y1="245" x2="942" y2="490" stroke-width="1.6"/>
+      <line x1="545" y1="245" x2="770" y2="582" stroke-width="1.5"/>
+      <line x1="545" y1="245" x2="40" y2="220" stroke-width="1.8"/>
+      <line x1="545" y1="245" x2="25" y2="380" stroke-width="1.3"/>
+    </g>
+
+    <!-- Descending enemy steel sword from upper-right -->
+    <g>
+      <path d="M935 30 L540 240 L558 262 L950 74 Z" fill="url(#bladeSteel)" stroke="#09080d" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M925 48 L552 246" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
+      <!-- Attacker shadow silhouette upper right -->
+      <path d="M770 18 L942 18 L942 210 L850 150 Q805 110 770 18 Z" fill="#09080e" opacity="0.88"/>
+    </g>
+
+    <!-- AnaCaona foreground contrapicado warrior stance (left-center) -->
+    <g>
+      <!-- Flowing wet dark hair whipped by storm -->
+      <path d="M235 170 C175 180 120 245 78 335 C125 322 162 292 192 260 C150 320 112 375 88 455 C148 418 196 368 238 308 L368 298 C402 252 406 185 352 152 C310 128 262 146 235 170 Z" fill="#0b0a10" stroke="#f8fafc" stroke-opacity="0.22" stroke-width="2"/>
+      <!-- Flowing crimson sash / war mantle -->
+      <path d="M180 410 Q110 470 42 545 L178 582 L288 475 Z" fill="#b91c1c" stroke="#09080d" stroke-width="4"/>
+      <path d="M180 410 Q110 470 42 545 L178 582 L288 475 Z" fill="url(#sumiHalftone)" opacity="0.45"/>
+
+      <!-- Torso & armored shoulder -->
+      <path d="M196 582 L222 396 C235 352 276 326 332 328 L420 350 L446 582 Z" fill="#17141f" stroke="#09080d" stroke-width="5"/>
+      <!-- Ceremonial ivory/gold chest wrap -->
+      <path d="M242 380 L388 364 L402 458 L228 472 Z" fill="#f5efe2" stroke="#09080d" stroke-width="4.5"/>
+      <path d="M248 408 L392 392 M240 436 L396 420" stroke="#dc2626" stroke-width="4"/>
+      <!-- Golden Guanin medallion -->
+      <circle cx="318" cy="402" r="24" fill="url(#goldGuanin)" stroke="#09080d" stroke-width="4"/>
+      <circle cx="318" cy="402" r="11" fill="none" stroke="#09080d" stroke-width="2.5"/>
+
+      <!-- Head & fierce manga expression -->
+      <path d="M256 226 C256 176 346 172 358 228 C364 264 345 316 308 326 C272 318 254 274 256 226 Z" fill="#e6b89c" stroke="#09080d" stroke-width="4.5"/>
+      <!-- Dramatic jaw shadow -->
+      <path d="M264 278 Q305 316 350 278 L340 310 Q306 330 274 310 Z" fill="#09080d" opacity="0.28"/>
+      <!-- Hair bangs -->
+      <path d="M250 226 C268 188 308 182 354 212 L344 236 L326 212 L310 242 L292 214 L274 240 Z" fill="#0b0a10"/>
+      <!-- Hibiscus war flower ornament in hair -->
+      <g transform="translate(242,202)">
+        <circle cx="-10" cy="-6" r="11" fill="#dc2626" stroke="#09080d" stroke-width="2.5"/>
+        <circle cx="8" cy="-10" r="11" fill="#ef4444" stroke="#09080d" stroke-width="2.5"/>
+        <circle cx="12" cy="6" r="10" fill="#dc2626" stroke="#09080d" stroke-width="2.5"/>
+        <circle cx="-6" cy="10" r="10" fill="#b91c1c" stroke="#09080d" stroke-width="2.5"/>
+        <circle cx="1" cy="0" r="5" fill="#fbbf24" stroke="#09080d" stroke-width="2"/>
+      </g>
+      <!-- Intense manga eyes & brows looking at blade clash -->
+      <path d="M274 242 L301 249 M322 248 L348 238" stroke="#09080d" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M276 254 Q290 249 301 256 Q290 264 276 254 Z" fill="#ffffff" stroke="#09080d" stroke-width="2.8"/>
+      <circle cx="292" cy="255" r="4.2" fill="#09080d"/>
+      <circle cx="294" cy="253" r="1.4" fill="#ffffff"/>
+      <path d="M323 255 Q336 247 348 253 Q336 263 323 255 Z" fill="#ffffff" stroke="#09080d" stroke-width="2.8"/>
+      <circle cx="338" cy="254" r="4.2" fill="#09080d"/>
+      <circle cx="340" cy="252" r="1.4" fill="#ffffff"/>
+      <!-- Determined mouth -->
+      <path d="M298 290 Q314 285 326 292" fill="none" stroke="#09080d" stroke-width="3.5" stroke-linecap="round"/>
+
+      <!-- Raised forearm & golden gauntlet blocking the sword -->
+      <path d="M372 356 L496 268 L534 294 L424 416 Z" fill="#e6b89c" stroke="#09080d" stroke-width="5" stroke-linejoin="round"/>
+      <!-- Ceremonial bronze/gold bracer catching the steel blade -->
+      <path d="M466 286 L532 242 L564 272 L502 326 Z" fill="url(#goldGuanin)" stroke="#09080d" stroke-width="5" stroke-linejoin="round"/>
+      <!-- Ceremonial carved spear shaft angled across -->
+      <path d="M286 488 L640 162 L652 174 L298 500 Z" fill="#1f1b24" stroke="#09080d" stroke-width="4"/>
+      <path d="M295 492 L644 169" stroke="#f59e0b" stroke-width="2.2" stroke-dasharray="14 10"/>
+    </g>
+
+    <!-- Impact flash & sparks where gauntlet/spear stops sword -->
+    <circle cx="548" cy="248" r="115" fill="url(#clashGlow)"/>
+    <polygon points="548,162 560,232 634,218 572,256 626,312 556,274 534,344 534,268 466,274 526,242 486,184 542,226" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+
+    <!-- Torrential diagonal manga rain streaks -->
+    <g stroke="#f8fafc" stroke-linecap="round" opacity="0.58">
+      <line x1="90" y1="24" x2="36" y2="178" stroke-width="2"/>
+      <line x1="175" y1="22" x2="112" y2="210" stroke-width="1.6"/>
+      <line x1="270" y1="30" x2="215" y2="180" stroke-width="1.8"/>
+      <line x1="415" y1="20" x2="345" y2="225" stroke-width="2.4"/>
+      <line x1="510" y1="22" x2="450" y2="172" stroke-width="1.5"/>
+      <line x1="655" y1="26" x2="590" y2="205" stroke-width="2.2"/>
+      <line x1="740" y1="45" x2="662" y2="268" stroke-width="1.7"/>
+      <line x1="860" y1="120" x2="778" y2="352" stroke-width="2.3"/>
+      <line x1="922" y1="220" x2="848" y2="430" stroke-width="1.9"/>
+      <line x1="140" y1="295" x2="78" y2="475" stroke-width="1.6"/>
+      <line x1="720" y1="315" x2="646" y2="532" stroke-width="2.1"/>
+      <line x1="835" y1="370" x2="770" y2="562" stroke-width="1.5"/>
+    </g>
+
+    <!-- Japanese Kakimoji SFX (キィン!! / CLANG!!) -->
+    <g transform="translate(658, 430) rotate(-11)">
+      <text x="0" y="0" font-family="Impact, 'Arial Black', sans-serif" font-size="68" font-weight="900" fill="#ffffff" stroke="#09080d" stroke-width="10" paint-order="stroke" letter-spacing="2">キィン!!</text>
+      <text x="4" y="34" font-family="'Space Grotesk', Arial, sans-serif" font-size="16" font-weight="800" fill="#fef08a" stroke="#09080d" stroke-width="4" paint-order="stroke" letter-spacing="4">KIIIN!! · SUMI INK</text>
+    </g>
+  </g>
+
+  <!-- Crisp Sumi Panel Border -->
+  <rect x="18" y="18" width="924" height="564" rx="4" fill="none" stroke="#17141b" stroke-width="7"/>
+</svg>

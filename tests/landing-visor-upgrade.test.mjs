@@ -97,3 +97,23 @@ test('Landing Otaku & Kawaii KAI Redesign + Studio Project Deep-Links', () => {
   assert.ok(js.includes('buildStudioDeepLink'), 'landing.js must define buildStudioDeepLink');
   assert.ok(js.includes("window.location.assign('/studio')"), 'landing.js must keep startStudio navigation');
 });
+
+test('Landing Pass 2: header auth link, dedicated KAI rain panel SVG, and zero duplicate Page 02 in DOM', () => {
+  const html = load('public/landing/index.html');
+  const css = load('public/landing/landing.css');
+  const js = load('public/landing/landing.js');
+
+  assert.match(html, /id=["']navAuthLink["'][^>]*href=["']\/login["'][^>]*>INICIAR SESIÓN/i);
+  assert.match(html, /id=["']mobileAuthLink["'][^>]*href=["']\/login["']/i);
+  assert.ok(css.includes('.nav-auth-link'), 'landing.css must style .nav-auth-link');
+  assert.ok(js.includes('syncLandingAuthLink'), 'landing.js must define syncLandingAuthLink');
+
+  const panelPath = join(base, 'public/landing/assets/kai-anacaona-rain-panel.svg');
+  assert.ok(existsSync(panelPath), 'Dedicated KAI rain panel SVG must exist');
+  assert.ok(statSync(panelPath).size > 2560, 'Dedicated KAI rain panel SVG must be > 2.5 KB');
+  assert.match(html, /src=["']\/landing\/assets\/kai-anacaona-rain-panel\.svg["']/i);
+
+  const dueloMatches = html.match(/Duelo en la Selva/g) || [];
+  assert.equal(dueloMatches.length, 1, 'Duelo en la Selva must appear once in initial DOM (no duplicate inside hidden turningLeaf)');
+  assert.ok(js.includes('clearTurningLeaf'), 'landing.js must clear turningLeaf after flip');
+});

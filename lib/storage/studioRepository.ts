@@ -575,6 +575,29 @@ function isUuid(val?: string): boolean {
   );
 }
 
+function toStableUuid(raw: string | undefined, fallbackPrefix: string): string {
+  if (isUuid(raw)) return raw!;
+  const source = (raw || '').trim();
+  if (!source) return createId(fallbackPrefix);
+  let h1 = 0x811c9dc5;
+  let h2 = 0x9e3779b9;
+  let h3 = 0x85ebca6b;
+  let h4 = 0xc2b2ae35;
+  for (let i = 0; i < source.length; i++) {
+    const ch = source.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 0x01000193) >>> 0;
+    h2 = Math.imul(h2 ^ (ch + i), 0x01000193) >>> 0;
+    h3 = Math.imul(h3 ^ (ch * 31), 0x01000193) >>> 0;
+    h4 = Math.imul(h4 ^ (ch + 17 * i), 0x01000193) >>> 0;
+  }
+  const hex =
+    h1.toString(16).padStart(8, '0') +
+    h2.toString(16).padStart(8, '0') +
+    h3.toString(16).padStart(8, '0') +
+    h4.toString(16).padStart(8, '0');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
 function isProjectWorthMigrating(project: StudioProjectRecord | null): project is StudioProjectRecord {
   if (!project) return false;
   return (
@@ -877,7 +900,7 @@ export async function saveStudioProject(project: StudioProjectRecord | Project):
     } = await supabase.auth.getSession();
     if (!session?.user?.id) return 'local';
 
-    const projectId = isUuid(normalized.id) ? normalized.id! : createId('proj');
+    const projectId = toStableUuid(normalized.id || normalized.volumeSlug, 'proj');
     writeSupabaseMetaCache(projectId, normalized);
 
     await supabase.from('profiles').upsert({
@@ -925,7 +948,7 @@ export async function saveStudioProject(project: StudioProjectRecord | Project):
           }
 
           return {
-            id: isUuid(c.id) ? c.id : createId('ent'),
+            id: toStableUuid(c.id || `${projectId}:${c.tagHandle || idx}`, 'ent'),
             project_id: projectId,
             entity_type: c.entityType || 'character',
             tag_handle: normalizeTagHandle(c.tagHandle || '', c.name || `Settei${idx + 1}`),
@@ -943,7 +966,7 @@ export async function saveStudioProject(project: StudioProjectRecord | Project):
 
     for (let i = 0; i < normalized.pages.length; i++) {
       const pg = normalized.pages[i];
-      const pageUuid = isUuid(pg.id) ? pg.id : createId('page');
+      const pageUuid = toStableUuid(pg.id || `${projectId}:page:${i + 1}`, 'page');
       const { data: savedPage } = await supabase
         .from('pages')
         .upsert(
@@ -966,7 +989,7 @@ export async function saveStudioProject(project: StudioProjectRecord | Project):
       if (komas.length > 0) {
         await supabase.from('komas').upsert(
           komas.map((k, kIdx) => ({
-            id: isUuid(k.id) ? k.id : createId('koma'),
+            id: toStableUuid(k.id || `${resolvedPageId}:koma:${k.panelIndex || kIdx + 1}`, 'koma'),
             page_id: resolvedPageId,
             panel_index: k.panelIndex || kIdx + 1,
             state: k.state || 'VACIO',
