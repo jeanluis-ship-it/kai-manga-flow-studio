@@ -115,28 +115,13 @@ const STEP_PIPELINE: Array<{
   },
 ];
 
-const STEP_SUGGESTIONS: Record<StudioView, string[]> = {
-  flux: ['Escribe una dirección de arte para una cubierta a color con la protagonista a la derecha.'],
-  project: [
-    'Propón Título, Autor/Tono y Sinopsis de contraportada lista para mi manga.',
-    'Ayúdame a estructurar el primer volumen de fantasía oscura en formato Tankōbon B6.',
-  ],
-  characters: [
-    'Diseña un protagonista con Nombre, @Handle, Rasgos, Vestuario y 3 Anclas Visuales claras.',
-    'Crea un antagonista o reliquia icónica lista para rellenar mi ficha Settei.',
-  ],
-  cover: [
-    'Diseña la composición envolvente 16:9 de portada, lomo y contraportada para este tomo.',
-    'Propón una portada dramática de alto impacto con iluminación carmesí y tinta sumi.',
-  ],
-  pages: [
-    'Estructura una página de tensión bajo la lluvia en 4 viñetas con giro final.',
-    'Arma un combate dinámico en 5 viñetas con corte diagonal y diálogos breves.',
-  ],
-  drawing_tablet: [
-    'Dame instrucciones de entintado G-Pen y anatomía para mejorar el boceto de mi Tabla de Dibujo.',
-    'Prepara un [PROMPT VISUAL]: para pasar mi borrador dibujado a manga profesional con tramas.',
-  ],
+const STEP_SUGGESTIONS: Record<StudioView, string> = {
+  project: 'Revisa el formato y el lomo de mi tomo.',
+  characters: 'Ayúdame a definir los rasgos que deben mantenerse en cada viñeta.',
+  cover: 'Ayúdame a mejorar la composición de esta cubierta.',
+  pages: 'Revisa el ritmo y el orden de lectura de esta página.',
+  drawing_tablet: 'Sugiere cómo entintar este boceto con G-Pen.',
+  flux: 'Ayúdame a describir la luz y el encuadre de esta escena.',
 };
 
 function parseSetteiAutofillFromMessage(
@@ -748,7 +733,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     setMsgBusy(msg.id, false, true);
   };
 
-  const suggestions = STEP_SUGGESTIONS[activeView] || STEP_SUGGESTIONS.project;
+  const suggestion = STEP_SUGGESTIONS[activeView] || STEP_SUGGESTIONS.project;
 
   return (
     <div className="gf-kai-docked" aria-label="Espacio KAI conectado al proyecto">
@@ -759,56 +744,12 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
             <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
           </div>
           <div>
-            <h2 className="gf-kai-title">Espacio KAI · Proyecto</h2>
-            <p className="gf-kai-subtitle">
-              {KAI_TEXT_MODEL_DEFAULT} · {KAI_IMAGE_MODEL_DEFAULT}
-            </p>
+            <h2 className="gf-kai-title">KAI · {activeStepMeta.title}</h2>
+            <small className="gf-kai-subtitle" title={`${KAI_TEXT_MODEL_DEFAULT} · ${KAI_IMAGE_MODEL_DEFAULT}`}>
+              Asistente del proyecto
+            </small>
           </div>
         </div>
-      </div>
-
-      {/* Interactive 5-Step Project Pipeline */}
-      <div className="gf-kai-pipeline" role="navigation" aria-label="Pasos del proyecto con KAI">
-        {STEP_PIPELINE.map((step) => {
-          const isCurrent = activeView === step.id;
-          const isCompleted =
-            (step.id === 'project' && project.name && project.name !== 'Manga sin título') ||
-            (step.id === 'characters' && project.characters.length > 0) ||
-            (step.id === 'cover' &&
-              Boolean(project.cover.fullWrapBase64 || project.cover.frontBase64)) ||
-            (step.id === 'pages' &&
-              project.pages.some((p) => (p.komas ?? []).some((k) => Boolean(k.inkRenderUrl))));
-
-          return (
-            <button
-              key={step.id}
-              type="button"
-              className={`gf-kai-step-pill ${isCurrent ? 'is-current' : ''} ${
-                isCompleted ? 'is-done' : ''
-              }`}
-              onClick={() => onNavigateView(step.id)}
-              title={`Ir a ${step.title}`}
-            >
-              {step.icon}
-              <span>{step.shortLabel}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Contextual Active Section Badge & Tip */}
-      <div className="gf-kai-section-banner">
-        <div className="gf-kai-section-badge-row">
-          <span className="gf-kai-section-badge">
-            {activeStepMeta.icon}
-            <span>Contexto: {activeStepMeta.shortLabel}</span>
-          </span>
-          <span className="gf-kai-dir-pill">
-            {project.colorMode === 'color' ? 'Color' : 'B/N'} ·{' '}
-            {(project.readingDirection || 'rtl').toUpperCase()}
-          </span>
-        </div>
-        <p className="gf-kai-section-tip">{activeStepMeta.tip}</p>
       </div>
 
       {/* Live Settei Draft Indicator */}
@@ -820,6 +761,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         </div>
       )}
 
+      <details className="kai-options"><summary>Opciones de KAI</summary>
       {/* Mode Switcher: Conversational Co-Design vs Multi-Page Koma-wari Script */}
       <div className="gf-kai-mode-switch" role="tablist" aria-label="Modo de trabajo con KAI">
         <button
@@ -869,6 +811,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         </div>
       )}
 
+      </details>
       {/* Conversation & Executable Project Cards */}
       <div className="gf-kai-messages dark-scrollbar">
         {messages.map((msg) => (
@@ -1076,19 +1019,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
 
       {/* Contextual Quick Prompts for Current Project Step */}
       <div className="gf-kai-suggestions">
-        {suggestions.map((sample) => (
-          <button
-            key={sample}
-            type="button"
-            className="gf-kai-suggestion-btn"
-            onClick={() =>
-              handleSendMessage(sample, activeView === 'pages' ? 'script' : mode)
-            }
-            disabled={loading}
-          >
-            {sample}
-          </button>
-        ))}
+        <button type="button" className="gf-kai-suggestion-btn" disabled={loading}
+          onClick={() => setPrompt(suggestion)}>{suggestion}</button>
       </div>
 
       {error && <div className="gf-inline-error gf-kai-error">{error}</div>}
@@ -1124,6 +1056,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         <div className="gf-kai-input-wrap">
           <textarea
             className="gf-kai-textarea"
+            aria-label="Mensaje para KAI"
             maxLength={mode === 'script' ? 3000 : 4000}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -1136,7 +1069,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
             placeholder={
               mode === 'script'
                 ? 'Describe la escena para crear páginas y viñetas Koma-wari...'
-                : 'Habla con KAI sobre el paso actual de tu manga...'
+                : activeView === 'cover' ? '¿Qué quieres cambiar de esta cubierta?' : 'Escribe a KAI…'
             }
             rows={2}
             disabled={loading}

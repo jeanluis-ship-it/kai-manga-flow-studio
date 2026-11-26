@@ -4426,3 +4426,8 @@ body {
 @media(max-width:900px) {
   .manga-grid.is-right-collapsed { grid-template-columns:minmax(0,1fr); }
 }
+.kai-options > summary { cursor:pointer; padding:.6rem 1rem; color:var(--gf-muted); font-size:.8rem; }
+.gf-kai-composer .gf-kai-input-wrap { border:1px solid var(--gf-border-strong); background:var(--gf-input-bg); padding:.5rem; border-radius:10px; }
+.gf-kai-input-wrap:focus-within { outline:2px solid var(--gf-ai-accent); }
+.gf-kai-composer .gf-kai-textarea { border:0; box-shadow:none; min-height:4.5rem; }
+.gf-kai-composer .gf-kai-send-btn { align-self:flex-end; }

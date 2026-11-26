@@ -1284,7 +1284,9 @@ export default function StudioPage() {
           <button
             type="button"
             onClick={() => {
-              if (!rightPanelCollapsed && rightPanelTab === 'kai') {
+              if (welcome) {
+                handleSelectView('pages');
+              } else if (!rightPanelCollapsed && rightPanelTab === 'kai') {
                 setRightPanelCollapsed(true);
               } else {
                 openDockedKai();
@@ -1294,7 +1296,7 @@ export default function StudioPage() {
             title="Mostrar u ocultar el Espacio KAI acoplado a la derecha (sin opacar el proyecto)"
           >
             <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
-            <span>{!rightPanelCollapsed && rightPanelTab === 'kai' ? 'KAI Activo' : 'Espacio KAI'}</span>
+            <span>{!welcome && !rightPanelCollapsed && rightPanelTab === 'kai' ? 'KAI Activo' : 'Espacio KAI'}</span>
           </button>
 
           {quotaProfile.isGuest ? (
