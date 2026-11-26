@@ -84,7 +84,6 @@ import { DrawingTabletWorkbench } from './components/DrawingTabletWorkbench';
 import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
 import { PageEditor } from './components/PageEditor';
 import { PreflightModal } from './components/PreflightModal';
-import { FluxStudio } from './components/FluxStudio';
 import { ProjectManager } from './components/ProjectManager';
 
 const MangaFlipbookViewer = dynamic(() => import('./components/MangaFlipbookViewer'), {
@@ -202,7 +201,7 @@ const DIALOGUE_STYLE_OPTIONS: Array<{ value: DialogueStyle; label: string }> = [
 export function resolveTabParam(raw: string | null): StudioView | null {
   if (!raw) return null;
   const slug = raw.trim().toLowerCase();
-  if (slug === 'flux') return 'flux';
+  if (slug === 'flux') return 'drawing_tablet';
   if (slug === 'project' || slug === 'lore' || slug === 'setup' || slug === 'config') {
     return 'project';
   }
@@ -1400,8 +1399,7 @@ export default function StudioPage() {
                 icon={<PenTool size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
                 label="Tabla de Dibujo"
                 onClick={() => handleSelectView('drawing_tablet')}
-              /><NavItem active={view === 'flux'} icon={<Sparkles size={17} strokeWidth={1.75} />}
-                label="Ilustrar con FLUX" onClick={() => handleSelectView('flux')} />
+              />
               </div></details><details open className="studio-nav-group"><summary>Páginas</summary><div className="gf-nav-list"><NavItem
                 active={view === 'pages'}
                 icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
@@ -1547,9 +1545,6 @@ export default function StudioPage() {
                 <button className="studio-continue" onClick={() => handleSelectView('pages')}>Continuar mi manga</button>
               </div>
             </section>}
-            <div hidden={view !== 'flux'}>
-              <FluxStudio key={project.id || project.volumeSlug || 'local'} project={project} updateProject={updateProject} />
-            </div>
             {view === 'pages' && (
               <PageEditor
                 project={project}
@@ -1987,7 +1982,7 @@ function ViewControls({
         useHdModel: hdModelOn,
         renderPriority: renderPriorityOn,
         mode: 'panel',
-        aspectRatio: '3:4',
+        aspectRatio: 'B6',
         name:
           taggedEntities.map((c) => c.name).filter(Boolean).join(', ') ||
           `${project.name || 'Manga'} · Viñeta #${selectedKoma.panelIndex}`,

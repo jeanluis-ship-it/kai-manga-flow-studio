@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const KAI_TEXT_MODEL_DEFAULT = 'gemini-3.1-flash-lite';
-export const KAI_IMAGE_MODEL_DEFAULT = 'gemini-3.1-flash-image';
+export const KAI_IMAGE_MODEL_DEFAULT = 'FLUX.2 [klein] 4B';
 
 export type KaiCanvasStyleId = 'manga_ink' | 'webtoon_color' | 'cover_art' | 'chibi_kai';
 export type KaiCanvasAspectRatio = '3:4' | '9:16' | '16:9' | '1:1';
@@ -125,7 +125,8 @@ export const KaiCanvasGenerateRequestSchema = z.object({
     .min(2, 'Describe la escena o viñeta antes de generar.')
     .max(3000, 'El prompt del lienzo no puede superar 3000 caracteres.'),
   style: z.enum(['manga_ink', 'webtoon_color', 'cover_art', 'chibi_kai']).default('manga_ink'),
-  aspectRatio: z.enum(['3:4', '9:16', '16:9', '1:1']).default('3:4'),
+  aspectRatio: z.enum(['3:4', '9:16', '16:9', '1:1', '4:3', 'B6']).default('3:4'),
+  referenceImage: z.string().max(8_000_000).optional(),
   sketchDataUrl: z.string().max(8_000_000).optional(),
 });
 
@@ -267,7 +268,7 @@ export async function generateMangaPanel(params: {
   sketchDataUrl?: string;
 }): Promise<{ image: string; mimeType: string; model: string; promptUsed: string }> {
   const result = await postJson<{ image: string; mimeType: string; model: string; promptUsed: string; renderKind?: string }>(
-    '/api/kai/canvas',
+    '/api/flux/generate',
     {
       prompt: params.prompt,
       style: params.style ?? 'manga_ink',

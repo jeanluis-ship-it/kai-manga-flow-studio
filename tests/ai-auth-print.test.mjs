@@ -83,24 +83,24 @@ test('freeImageFallback: generateFreeImageFallback validates Pollinations HTTP 2
 });
 
 test('Image API & GeminiImage contracts preserve test constraints and unblocked fallback', () => {
-  const generateRoute = load('app/api/images/generate/route.ts');
+  const generateRoute = load('app/api/flux/generate/route.ts');
   const canvasRoute = load('app/api/kai/canvas/route.ts');
   const geminiImage = load('lib/kai/geminiImage.ts');
   const healthRoute = load('app/api/health/route.ts');
 
   // Repository & sprint4 constraints on generate/route.ts
   assert.match(generateRoute, /STUDIO_ACCESS_TOKEN/);
-  assert.match(generateRoute, /GEMINI_API_KEY/);
-  assert.match(generateRoute, /KAI_IMAGE_MODEL_DEFAULT/);
+  assert.match(generateRoute, /generateFluxImage/);
+  assert.doesNotMatch(generateRoute, /generateGeminiImage/);
   assert.match(generateRoute, /QUOTA_EXCEEDED/);
   assert.match(generateRoute, /status:\s*402/);
   assert.doesNotMatch(generateRoute, /OpenAI|huggingface|pollinations|cloudflare/i);
 
   // Unblocked key/seed handling in generate & canvas routes
-  assert.match(generateRoute, /x-mangai-llave/);
+  assert.match(generateRoute, /x-mangai-access/);
   assert.match(generateRoute, /SEED-\(\\d\+\)/);
   assert.doesNotMatch(generateRoute, /status:\s*503/);
-  assert.match(canvasRoute, /x-mangai-llave/);
+  assert.ok(canvasRoute.includes('@/app/api/flux/generate/route'));
   assert.doesNotMatch(canvasRoute, /status:\s*503/);
 
   // 3-tier fallback in geminiImage.ts
@@ -167,9 +167,8 @@ test('.env.example and DEPLOY_VERCEL.md document fallback and Supabase env keys'
   const deployDoc = load('docs/DEPLOY_VERCEL.md');
 
   for (const key of [
-    'IMAGE_FALLBACK_PROVIDER',
-    'IMAGE_FALLBACK_URL',
-    'POLLINATIONS_API_KEY',
+    'CLOUDFLARE_ACCOUNT_ID',
+    'CLOUDFLARE_WORKERS_AI_TOKEN',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   ]) {

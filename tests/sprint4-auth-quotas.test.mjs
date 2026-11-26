@@ -55,7 +55,7 @@ test('Sprint 4: PLAN_CATALOG, 402 QUOTA_EXCEEDED server guards, QuotaMeter, and 
   assert.match(kaiApi, /QUOTA_EXCEEDED/);
   assert.match(kaiApi, /status:\s*402/);
 
-  const imgApi = load('app/api/images/generate/route.ts');
+  const imgApi = load('app/api/flux/generate/route.ts');
   assert.match(imgApi, /QUOTA_EXCEEDED/);
   assert.match(imgApi, /status:\s*402/);
 

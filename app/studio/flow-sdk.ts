@@ -1,7 +1,7 @@
 import { splitDataUrl, toDataImageSrc } from './types';
 import { KAI_IMAGE_MODEL_DEFAULT } from '@/lib/kai/studioCanvas';
 
-export type AspectRatio = '1:1' | '3:4' | '4:3' | '16:9' | '9:16';
+export type AspectRatio = 'B6' | '1:1' | '3:4' | '4:3' | '16:9' | '9:16';
 export type ImageMode = 'sheet' | 'cover_wrap' | 'panel' | 'portrait' | 'sketch_refine';
 
 export interface GenerateImageParams {
@@ -119,8 +119,8 @@ function readOptionalStudioAccessToken(): string {
 }
 
 /**
- * Unified MANGAI Studio SDK backed exclusively by `gemini-3.1-flash-image`
- * through `/api/images/generate`.
+ * Unified MANGAI Studio SDK backed exclusively by `FLUX`
+ * through `/api/flux/generate`.
  */
 export const Flow = {
   media: {
@@ -194,7 +194,7 @@ export const Flow = {
         headers['x-mangai-access'] = accessToken;
       }
 
-      const resp = await fetch('/api/images/generate', {
+      const resp = await fetch('/api/flux/generate', {
         method: 'POST',
         headers: Object.keys(headers).length > 0 ? headers : undefined,
         body: formData,
@@ -231,7 +231,7 @@ export const Flow = {
       }
 
       if (!resp.ok || !payload.image) {
-        throw new Error(payload.error || `Error generando imagen con Gemini (HTTP ${resp.status}).`);
+        throw new Error(payload.error || `Error generando imagen con FLUX (HTTP ${resp.status}).`);
       }
 
       if (payload.renderKind === 'vector-sketch') window.dispatchEvent(new Event('kai-vector-sketch'));

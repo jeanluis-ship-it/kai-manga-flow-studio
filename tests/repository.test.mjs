@@ -18,13 +18,13 @@ test('never puts API credentials in public assets', () => {
   assert.doesNotMatch(load('public/landing/index.html'), /OPENAI_API_KEY|GEMINI_API_KEY|sk-proj-/);
 });
 
-test('Image & Script APIs enforce server-side Gemini 3 Flash / 3.1 Flash Image exclusively', () => {
-  const imgApi = load('app/api/images/generate/route.ts');
+test('Image and script APIs route to FLUX and Gemini respectively', () => {
+  const imgApi = load('app/api/flux/generate/route.ts');
   const scriptApi = load('app/api/kai/script/route.ts');
 
   assert.match(imgApi, /STUDIO_ACCESS_TOKEN/);
-  assert.match(imgApi, /GEMINI_API_KEY/);
-  assert.match(imgApi, /KAI_IMAGE_MODEL_DEFAULT/);
+  assert.match(imgApi, /generateFluxImage/);
+  assert.doesNotMatch(imgApi, /generateGeminiImage/);
   assert.doesNotMatch(imgApi, /OpenAI|huggingface|pollinations|cloudflare/i);
 
   assert.match(scriptApi, /GEMINI_API_KEY/);

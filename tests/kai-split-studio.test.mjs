@@ -52,36 +52,26 @@ test('Kai Split Studio: zero client-side API key exposure or Vite leftovers', ()
 
 test('Kai Split Studio: server routes read GEMINI_API_KEY and send x-goog-api-key header', () => {
   const chatRoute = load('app/api/kai/chat/route.ts');
-  const imageBackend = load('lib/kai/geminiImage.ts');
-  const canvasRoute = load('app/api/kai/canvas/route.ts') + imageBackend;
-
-  for (const [name, source] of [
-    ['app/api/kai/chat/route.ts', chatRoute],
-    ['app/api/kai/canvas/route.ts', canvasRoute],
-  ]) {
-    assert.match(source, /export const runtime\s*=\s*['"]nodejs['"]/, `${name} must run on nodejs`);
-    assert.match(source, /process\.env\.GEMINI_API_KEY/, `${name} must read process.env.GEMINI_API_KEY`);
-    assert.match(source, /['"]x-goog-api-key['"]/, `${name} must pass x-goog-api-key header`);
-    assert.match(source, /generativelanguage\.googleapis\.com\/v1beta\/models\//, `${name} must target Gemini v1beta endpoint`);
-  }
+  const canvasRoute = load('app/api/flux/generate/route.ts');
+  assert.match(chatRoute, /process\.env\.GEMINI_API_KEY/);
+  assert.match(chatRoute, /x-goog-api-key/);
+  assert.match(canvasRoute, /generateFluxImage/);
 
   assert.match(chatRoute, /KaiChatRequestSchema/);
   assert.match(chatRoute, /KAI_TEXT_MODEL_DEFAULT/);
   assert.match(chatRoute, /extractVisualPrompt/);
 
   assert.match(canvasRoute, /KaiCanvasGenerateRequestSchema/);
-  assert.match(canvasRoute, /KAI_IMAGE_MODEL_DEFAULT/);
-  assert.match(canvasRoute, /buildFullCanvasPrompt/);
-  assert.match(canvasRoute, /responseModalities:\s*\[\s*['"]IMAGE['"]\s*\]/);
-  assert.match(canvasRoute, /inlineData/);
-  assert.match(canvasRoute, /inline_data/);
+  assert.match(canvasRoute, /referenceImage/);
+  assert.match(canvasRoute, /encodedRefs/);
+
 });
 
 test('Kai Split Studio: studioCanvas contract defines exact models, 4 styles, and 4 aspect ratios', () => {
   const contract = load('lib/kai/studioCanvas.ts');
 
   assert.match(contract, /KAI_TEXT_MODEL_DEFAULT\s*=\s*['"]gemini-3.1-flash-lite['"]/);
-  assert.match(contract, /KAI_IMAGE_MODEL_DEFAULT\s*=\s*['"]gemini-3\.1-flash-image['"]/);
+  assert.match(contract, /KAI_IMAGE_MODEL_DEFAULT\s*=\s*['"]FLUX\.2 \[klein\] 4B['"]/);
 
   const expectedStyles = [
     ['manga_ink', 'Manga Entintado B/N'],

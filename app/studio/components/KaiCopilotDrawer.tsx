@@ -101,11 +101,6 @@ const STEP_PIPELINE: Array<{
     icon: <BookMarked size={12} strokeWidth={2} />,
   },
   {
-    id: 'flux', stepNum: 6, shortLabel: 'FLUX', title: 'Ilustrar con FLUX',
-    tip: 'Describe el sujeto, el encuadre y la luz para generar una ilustración con tus referencias.',
-    icon: <PenTool size={12} strokeWidth={2} />,
-  },
-  {
     id: 'drawing_tablet',
     stepNum: 5,
     shortLabel: '5. Tabla de Dibujo',
@@ -121,7 +116,6 @@ const STEP_SUGGESTIONS: Record<StudioView, string> = {
   cover: 'Ayúdame a mejorar la composición de esta cubierta.',
   pages: 'Revisa el ritmo y el orden de lectura de esta página.',
   drawing_tablet: 'Sugiere cómo entintar este boceto con G-Pen.',
-  flux: 'Ayúdame a describir la luz y el encuadre de esta escena.',
 };
 
 function parseSetteiAutofillFromMessage(
@@ -668,7 +662,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
       const generated = await Flow.generate.image({
         prompt: `${msg.visualPrompt} (${colorModeLabel})`,
         mode: 'panel',
-        aspectRatio: '3:4',
+        aspectRatio: 'B6',
         name: `${project.name || 'Manga'} · Viñeta #${targetPanelIdx}`,
         style: `${targetArtStyle} · ${colorModeLabel}`,
         canon: seeds || undefined,

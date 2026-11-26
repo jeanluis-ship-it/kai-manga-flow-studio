@@ -11,14 +11,12 @@
 
 En **Vercel Dashboard → Project → Settings → Environment Variables**, configura según tu despliegue:
 
-### 1. Motor de IA y Respaldo Beta (sin bloqueos 429 / 503)
-- `GEMINI_API_KEY`: clave oficial de Google AI Studio (opcional en Beta; también se acepta llave temporal vía cabecera `x-mangai-llave` desde el botón *Llave IA* del Studio).
-- `IMAGE_FALLBACK_PROVIDER`: proveedor preferido cuando Gemini no está disponible o alcanza límite `429` (`pollinations` por defecto; admite `custom`, `huggingface`, `cloudflare`, `local`).
-- `IMAGE_FALLBACK_URL`: URL personalizada opcional (`POST` JSON `{ prompt, width, height, seed, aspectRatio }`) si deseas conectar tu propio servidor de difusión.
-- `POLLINATIONS_API_KEY`: token Bearer opcional para Pollinations.ai (funciona también sin clave usando `pollinations-flux-beta`).
-- `HF_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_WORKERS_AI_TOKEN`: credenciales opcionales para respaldo en HuggingFace o Cloudflare Workers AI.
+### 1. Generación FLUX y asistente KAI
 
-Si Gemini falla con `429`/`404`/`5xx` o no hay cuota de imagen, la tubería degrada automáticamente en 3 niveles (`Gemini` → `Respaldo raster configurable / Pollinations Flux` → `Síntesis local PNG con sharp`) y el chat de KAI responde en `[Modo Guía Beta — sin cuota LLM en vivo]` con un `[PROMPT VISUAL]:` válido.
+- Las pantallas creativas envían texto y referencias a `POST /api/flux/generate`. El servidor usa el Space público FLUX.2 Klein 4B. Las solicitudes de texto pueden pasar automáticamente al Space FLUX.1 Schnell.
+- `HF_API_TOKEN` permite usar la cuota autenticada de Hugging Face Spaces.
+- Configura `CLOUDFLARE_ACCOUNT_ID` y `CLOUDFLARE_WORKERS_AI_TOKEN` para activar un segundo proveedor FLUX.2 que también procesa referencias. Usa un token con permiso de inferencia de Workers AI y una cuenta con cuota disponible.
+- `GEMINI_API_KEY` habilita el asistente de texto. Las imágenes se generan mediante FLUX.
 
 ### 2. Autenticación y Persistencia (Supabase Cloud vs Perfil Local Beta)
 - `NEXT_PUBLIC_SUPABASE_URL`: URL pública de tu proyecto Supabase.
@@ -39,7 +37,7 @@ Si Gemini falla con `429`/`404`/`5xx` o no hay cuota de imagen, la tubería degr
    - `https://TU-DOMINIO/` (landing 3D)
    - `https://TU-DOMINIO/studio` (Studio + KAI)
    - `https://TU-DOMINIO/login` (Auth Cloud / Perfil Local Beta)
-   - `https://TU-DOMINIO/api/health` (debe reportar `ok: true` y `fallbackProvider: "pollinations-flux-beta"`)
+   - `https://TU-DOMINIO/api/health` (debe reportar `ok: true` y `models.image: "FLUX.2 [klein] 4B"`)
 
 ## D. Seguridad
 

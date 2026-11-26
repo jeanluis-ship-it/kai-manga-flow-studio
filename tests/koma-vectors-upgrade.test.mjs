@@ -93,7 +93,7 @@ test('Koma Vectors: implements L0 -> L2 KAI Draft Flow and cross-worker event co
   // KAI sketch_refine call attaching L0 nemuSketchUrl + active @Settei refs, anchors & seed
   assert.match(tsx, /Flow\.generate\.image/);
   assert.match(tsx, /mode:\s*['"]sketch_refine['"]/);
-  assert.match(tsx, /aspectRatio:\s*['"]3:4['"]/);
+  assert.match(tsx, /aspectRatio:\s*['"]B6['"]/);
   assert.match(tsx, /nemuSketchUrl/);
   assert.match(tsx, /activeInCanon/);
   assert.match(tsx, /visualAnchors/);

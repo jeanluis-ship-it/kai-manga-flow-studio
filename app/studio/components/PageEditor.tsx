@@ -698,7 +698,7 @@ export const PageEditor: React.FC<{
       const result = await Flow.generate.image({
         prompt: finalPrompt,
         mode: 'sketch_refine',
-        aspectRatio: '3:4',
+        aspectRatio: 'B6',
         name:
           matchedEntities.map((c) => c.name).filter(Boolean).join(', ') ||
           `${project.name || 'Manga'} · Viñeta #${selectedKoma.panelIndex}`,
