@@ -106,6 +106,11 @@ export const PricingUpgradeModal: React.FC<PricingUpgradeModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Planes y Upgrade de MANGAI Studio"
+        style={{
+          background: 'var(--genko-panel, var(--gf-surface, #FFFFFF))',
+          borderColor: 'var(--genko-border, var(--gf-border-strong, #E2E0D8))',
+          color: 'var(--genko-ink, var(--gf-ink, #111111))',
+        }}
       >
         <div className="gf-modal-head">
           <div className="gf-pricing-head-title">
@@ -115,7 +120,7 @@ export const PricingUpgradeModal: React.FC<PricingUpgradeModalProps> = ({
             <div>
               <h3 className="gf-modal-title">Planes MANGAI Studio OS</h3>
               <p className="gf-preflight-sub">
-                Escala tus tomos, páginas mensuales, Gemini 3.1 Flash Image HD y prioridad de render.
+                Escala tus proyectos, páginas, Motor Nano Banana 2 HD, Tankōbon B6 / Canva B4 y prioridad de render.
               </p>
             </div>
           </div>
@@ -177,7 +182,7 @@ export const PricingUpgradeModal: React.FC<PricingUpgradeModalProps> = ({
                 <div className="gf-plan-quota-pills">
                   <span>{cfg.maxProjects} proy.</span>
                   <span>{cfg.maxPages} págs.</span>
-                  {cfg.hdModelEnabled && <span className="is-hd">HD</span>}
+                  {cfg.hdModelEnabled && <span className="is-hd">Nano Banana 2 HD</span>}
                   {cfg.renderPriority && <span className="is-priority">Prioridad</span>}
                 </div>
 
@@ -193,7 +198,8 @@ export const PricingUpgradeModal: React.FC<PricingUpgradeModalProps> = ({
                 <div className="gf-plan-cta-wrap">
                   {isCurrent ? (
                     <button type="button" className="gf-plan-btn is-current" disabled>
-                      Plan Actual ✓
+                      <Check size={14} strokeWidth={2.2} className="gf-icon-shrink" />
+                      <span>Plan Actual</span>
                     </button>
                   ) : tier === 'trial' ? (
                     <button

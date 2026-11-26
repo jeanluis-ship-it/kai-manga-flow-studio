@@ -9,9 +9,10 @@ export interface PlanConfig {
   periodLabel: string;
   maxProjects: number;
   maxPages: number;
-  hdModelEnabled: boolean; // Gemini 3.1 Flash Image HD
+  hdModelEnabled: boolean; // Motor Nano Banana 2 HD (Gemini 3.1 Flash Image HD)
   renderPriority: boolean;
   highlighted?: boolean;
+  badgeLabel?: string;
   features: string[];
 }
 
@@ -28,7 +29,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
     features: [
       '1 proyecto activo',
       'Hasta 10 páginas totales',
-      'KAI Sensei estándar',
+      'KAI estándar',
       'Guías Genkō y Koma-wari',
     ],
   },
@@ -44,8 +45,8 @@ export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
     features: [
       '5 proyectos activos',
       'Hasta 50 páginas totales',
-      'Guardado en nube Supabase',
-      'Exportación ZIP pre-prensa',
+      'Nube Supabase',
+      'ZIP pre-prensa',
     ],
   },
   pro: {
@@ -58,11 +59,12 @@ export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
     hdModelEnabled: true,
     renderPriority: false,
     highlighted: true,
+    badgeLabel: 'Más Popular',
     features: [
       '10 proyectos activos',
       'Hasta 100 páginas totales',
-      'Gemini 3.1 Flash Image HD',
-      'Presets Tankōbon B6 y Canva B4',
+      'Motor Nano Banana 2 HD',
+      'Tankōbon B6 y Canva B4',
     ],
   },
   master: {
@@ -77,8 +79,8 @@ export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
     features: [
       '20 proyectos activos',
       'Hasta 200 páginas totales',
-      'Gemini 3.1 Flash Image HD + Prioridad',
-      'Empaque Tankōbon completo e ISBN',
+      'Nano Banana 2 HD + Prioridad de Render',
+      'Empaque completo e ISBN',
     ],
   },
 };
@@ -239,7 +241,7 @@ export function checkQuota(
         allowed: false,
         code: 'QUOTA_EXCEEDED',
         requiredPlan: 'pro',
-        reason: `El modo Gemini 3.1 Flash Image HD requiere Plan Pro ($3.49/mes) o Master. Tu plan actual es ${plan.name}.`,
+        reason: `El Motor Nano Banana 2 HD requiere Plan Pro ($3.49/mes) o Master. Tu plan actual es ${plan.name}.`,
       };
     }
     return { allowed: true };

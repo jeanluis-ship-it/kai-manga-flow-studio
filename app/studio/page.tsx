@@ -74,8 +74,9 @@ import {
 } from '@/lib/storage/studioRepository';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PricingUpgradeModal } from '@/components/studio/PricingUpgradeModal';
+import { QuotaMeter } from '@/components/studio/QuotaMeter';
 import { Flow, QuotaExceededError } from './flow-sdk';
-import { FieldDropdown, PillButton, QuotaMeter, SectionLabel, TextInput } from './components/Primitives';
+import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
 import { AuthModal } from './components/AuthModal';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';

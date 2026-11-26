@@ -2,7 +2,10 @@
 
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import {
+  AlertTriangle,
+  Barcode,
   BookOpen,
+  CheckCircle2,
   Download,
   Eye,
   EyeOff,
@@ -12,8 +15,18 @@ import {
   Sparkles,
   Upload,
 } from 'lucide-react';
-import { encodeEan13 } from '@/lib/print/ean13';
-import { getPrintPreset, slugifyFilename } from '@/lib/print/presets';
+import {
+  computeEan13CheckDigit,
+  encodeEan13,
+  extractIsbnDigits,
+  formatIsbn13,
+} from '@/lib/print/ean13';
+import {
+  PRINT_PRESET_LIST,
+  getPrintPreset,
+  slugifyFilename,
+  type TrimFormatId,
+} from '@/lib/print/presets';
 import { type Project, toDataImageSrc } from '../types';
 import './CoverDesigner.css';
 
@@ -220,10 +233,30 @@ export const CoverDesigner = forwardRef<
   );
 
   const includeIsbn = project.cover.includeIsbn !== false;
+  const rawIsbn = project.cover.isbn ?? '978-9945-0000-0-0';
+  const isbnEncoded = encodeEan13(rawIsbn);
+  const isbnDigits = extractIsbnDigits(rawIsbn);
   const spineTitle = project.cover.spineTitle?.trim() || project.name || 'Manga sin título';
   const backSynopsis = project.cover.backSynopsis?.trim() || '';
   const authorLabel = project.author || 'Autor';
   const titleLabel = project.name || 'Manga sin título';
+
+  const handleSelectPreset = (formatId: TrimFormatId) => {
+    updateProject({ trimFormat: formatId });
+  };
+
+  const handleAutofixIsbnCheckDigit = () => {
+    const first12 = isbnDigits.padEnd(12, '0').slice(0, 12);
+    const check = computeEan13CheckDigit(first12);
+    const fixed = formatIsbn13(`${first12}${check}`);
+    updateProject({
+      cover: {
+        ...project.cover,
+        isbn: fixed,
+        includeIsbn: true,
+      },
+    });
+  };
 
   // Proportional spine width in px clamped cleanly for visual preview
   const spineWidthPx = Math.min(54, Math.max(28, Math.round(project.cover.spineWidthInches * 92)));
@@ -419,6 +452,133 @@ export const CoverDesigner = forwardRef<
           {preset.name} ({preset.trimLabel}) · Sangrado {preset.bleedLabel} · Lomo:{' '}
           {project.cover.spineWidthInches.toFixed(3)}&quot; ({spineMm} mm)
         </p>
+      </div>
+
+      {/* Format Presets (Tankōbon B6, Canva B4 2150×3035 + 3.5mm, KDP 6×9") & Editable ISBN-13 */}
+      <div className="gf-cover-prepress-panel" aria-label="Presets de Imprenta e ISBN-13 Editable">
+        <div className="gf-cover-presets-row" role="radiogroup" aria-label="Formato de corte y sangrado">
+          {PRINT_PRESET_LIST.map((p) => {
+            const active = preset.id === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                className={`gf-cover-preset-card ${active ? 'is-active' : ''}`}
+                onClick={() => handleSelectPreset(p.id)}
+              >
+                <div className="gf-cover-preset-top">
+                  <span className="gf-cover-preset-name">{p.shortName}</span>
+                  <span className="gf-cover-preset-badge">{p.badge}</span>
+                </div>
+                <span className="gf-cover-preset-meta">
+                  {p.exportWidthPx}×{p.exportHeightPx} px · Sangrado {p.bleedMm} mm · {p.dpiInterior} DPI
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="gf-cover-isbn-bar">
+          <div className="gf-cover-isbn-field">
+            <div className="gf-cover-isbn-label-row">
+              <label htmlFor="gf-cover-isbn-input" className="gf-cover-isbn-label">
+                <Barcode size={13} strokeWidth={2} className="gf-icon-shrink" />
+                <span>ISBN-13 Editable (EAN-13 Vectorial)</span>
+              </label>
+              <label className="gf-cover-isbn-toggle">
+                <input
+                  type="checkbox"
+                  checked={includeIsbn}
+                  onChange={(e) =>
+                    updateProject({
+                      cover: { ...project.cover, includeIsbn: e.target.checked },
+                    })
+                  }
+                />
+                <span>Imprimir código en contraportada</span>
+              </label>
+            </div>
+
+            <div className="gf-cover-isbn-input-row">
+              <input
+                id="gf-cover-isbn-input"
+                type="text"
+                className="gf-cover-text-input gf-cover-isbn-input"
+                value={project.cover.isbn ?? '978-9945-0000-0-0'}
+                disabled={!includeIsbn}
+                placeholder="978-9945-0000-0-0"
+                onChange={(e) =>
+                  updateProject({
+                    cover: {
+                      ...project.cover,
+                      isbn: formatIsbn13(e.target.value),
+                    },
+                  })
+                }
+              />
+              <span
+                className={`gf-cover-isbn-status ${
+                  isbnEncoded.valid && isbnEncoded.checksumValid ? 'is-valid' : 'is-warn'
+                }`}
+              >
+                {isbnEncoded.valid && isbnEncoded.checksumValid ? (
+                  <CheckCircle2 size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                ) : (
+                  <AlertTriangle size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                )}
+                <span>{isbnEncoded.message}</span>
+              </span>
+              {(!isbnEncoded.valid || !isbnEncoded.checksumValid) && includeIsbn && (
+                <button
+                  type="button"
+                  className="gf-cover-isbn-fix-btn"
+                  onClick={handleAutofixIsbnCheckDigit}
+                >
+                  Calcular dígito EAN-13
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="gf-cover-meta-fields">
+            <div className="gf-cover-meta-col">
+              <label htmlFor="gf-cover-spine-input" className="gf-cover-isbn-label">
+                Título en Lomo ({spineMm} mm)
+              </label>
+              <input
+                id="gf-cover-spine-input"
+                type="text"
+                className="gf-cover-text-input"
+                value={project.cover.spineTitle ?? ''}
+                placeholder={project.name || 'Título en el lomo'}
+                onChange={(e) =>
+                  updateProject({
+                    cover: { ...project.cover, spineTitle: e.target.value },
+                  })
+                }
+              />
+            </div>
+            <div className="gf-cover-meta-col">
+              <label htmlFor="gf-cover-synopsis-input" className="gf-cover-isbn-label">
+                Sinopsis en Contraportada
+              </label>
+              <input
+                id="gf-cover-synopsis-input"
+                type="text"
+                className="gf-cover-text-input"
+                value={project.cover.backSynopsis ?? ''}
+                placeholder="Breve sinopsis editorial para la contraportada..."
+                onChange={(e) =>
+                  updateProject({
+                    cover: { ...project.cover, backSynopsis: e.target.value },
+                  })
+                }
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Preview Tabs + Guides Toggle + KAI + Canvas PNG Export */}

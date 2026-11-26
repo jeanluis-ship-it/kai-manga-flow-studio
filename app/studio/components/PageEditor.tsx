@@ -6,12 +6,17 @@ import {
   Check,
   Download,
   Eraser,
+  Eye,
+  EyeOff,
+  Layers,
   LayoutGrid,
   Magnet,
+  MessageSquarePlus,
   Move,
   PenTool,
   Plus,
   RefreshCw,
+  SlidersHorizontal,
   Sparkles,
   Trash2,
   Undo2,
@@ -27,22 +32,27 @@ import {
   type PolygonPoint,
 } from '@/lib/kai/schema';
 import { renderPrintablePageToPngBase64 } from '@/lib/export/buildPrintBundle';
-import { getPrintPreset } from '@/lib/print/presets';
+import { PRINT_PRESET_LIST, getPrintPreset, type TrimFormatId } from '@/lib/print/presets';
 import { FukidashiLayer } from '@/components/studio/FukidashiLayer';
 import { KakimojiLayer } from '@/components/studio/KakimojiLayer';
 import { Flow, QuotaExceededError } from '../flow-sdk';
 import {
   DEFAULT_LAYERS_VISIBILITY,
   DEFAULT_LAYER_OPACITY,
+  KOMA_STATES,
+  LAYER_DEFINITIONS,
   normalizeTagHandle,
   toDataImageSrc,
   type Character,
+  type DialogueStyle,
   type Koma,
   type KomaDialogue,
   type KomaSfx,
   type KomaState,
   type LayerKey,
   type Project,
+  type ScreentonePreset,
+  type SpeedlinePreset,
 } from '../types';
 import { PillButton, SectionLabel } from './Primitives';
 import './PageEditor.css';
@@ -59,6 +69,39 @@ const KOMA_STATE_LABELS: Record<Koma['state'], string> = {
   SHIAGE: 'SHIAGE',
   LOCKED: 'LOCKED',
 };
+
+const INLINE_CAMERA_ANGLES = [
+  'Plano Medio',
+  'Primer Plano Dramático',
+  'Gran Plano General',
+  'Picado Dramático',
+  'Contrapicado Heroico',
+  'Plano Holandés (Acción)',
+];
+
+const INLINE_SCREENTONES: Array<{ value: ScreentonePreset; label: string }> = [
+  { value: 'none', label: 'Sin trama (Blanco)' },
+  { value: 'dots_15', label: 'Puntos 15% (Luz)' },
+  { value: 'dots_30', label: 'Puntos 30% (Tono medio)' },
+  { value: 'dots_60', label: 'Puntos 60% (Sombra)' },
+  { value: 'gradient', label: 'Degradado Atmosférico' },
+  { value: 'beta_black', label: 'Beta Negro Sólido' },
+];
+
+const INLINE_SPEEDLINES: Array<{ value: SpeedlinePreset; label: string }> = [
+  { value: 'none', label: 'Sin líneas cinéticas' },
+  { value: 'ryusen', label: 'Ryūsen (Velocidad horizontal)' },
+  { value: 'shuchusen', label: 'Shūchūsen (Foco radial)' },
+];
+
+const INLINE_DIALOGUE_STYLES: Array<{ value: DialogueStyle; label: string }> = [
+  { value: 'normal', label: 'Normal (Óvalo)' },
+  { value: 'shout', label: 'Grito (Explosivo)' },
+  { value: 'whisper', label: 'Susurro (Punteado)' },
+  { value: 'thought', label: 'Pensamiento (Nube)' },
+  { value: 'narrator', label: 'Narrador (Caja)' },
+  { value: 'system', label: 'Sistema (Invertido)' },
+];
 
 function clampCoord(value: number): number {
   return Math.round(Math.min(98, Math.max(2, value)) * 10) / 10;
@@ -235,6 +278,81 @@ export const PageEditor: React.FC<{
       updateProject({ pages: nextPages });
     },
     [page, project.pages, safeIndex, updateProject],
+  );
+
+  const handleInlineLayerOpacity = useCallback(
+    (layerKey: 'L0_nemu' | 'L1_tones', value: number) => {
+      if (!page) return;
+      const nextPages = project.pages.map((p, idx) =>
+        idx === safeIndex
+          ? {
+              ...p,
+              layerOpacity: {
+                ...DEFAULT_LAYER_OPACITY,
+                ...(p.layerOpacity ?? {}),
+                [layerKey]: value,
+              },
+            }
+          : p,
+      );
+      updateProject({ pages: nextPages });
+    },
+    [page, project.pages, safeIndex, updateProject],
+  );
+
+  const handleInlineAddBalloon = useCallback(() => {
+    if (!page || !selectedKoma) return;
+    const bounds = getPolygonBounds(selectedKoma.polygonCoords);
+    const count = selectedKoma.dialogues.length;
+    const cx = Number(
+      Math.min(82, Math.max(18, bounds.left + bounds.width * (0.32 + (count % 3) * 0.18))).toFixed(1),
+    );
+    const cy = Number(
+      Math.min(82, Math.max(16, bounds.top + bounds.height * (0.28 + (count % 2) * 0.24))).toFixed(1),
+    );
+    const newBalloon: KomaDialogue = {
+      id: `${selectedKoma.id}-dlg-${Date.now().toString(36)}`,
+      speaker: project.characters[0]?.name || 'Personaje',
+      style: 'normal',
+      text: '¡Escribe tu diálogo aquí!',
+      x: cx,
+      y: cy,
+      tailX: Number(Math.min(90, Math.max(10, cx - 4)).toFixed(1)),
+      tailY: Number(Math.min(92, Math.max(10, cy + 9)).toFixed(1)),
+      fontSize: 2.35,
+      width: 18,
+    };
+    updateCurrentPageKomas((prev) =>
+      prev.map((k) =>
+        k.id === selectedKoma.id ? { ...k, dialogues: [...k.dialogues, newBalloon] } : k,
+      ),
+    );
+    onSelectDialogue(selectedKoma.id, newBalloon.id);
+    if (!vis.L5_balloons) {
+      onToggleLayer(page.id, 'L5_balloons');
+    }
+  }, [
+    onSelectDialogue,
+    onToggleLayer,
+    page,
+    project.characters,
+    selectedKoma,
+    updateCurrentPageKomas,
+    vis.L5_balloons,
+  ]);
+
+  const handleInlineDeleteBalloon = useCallback(
+    (dialogueId: string) => {
+      if (!selectedKoma) return;
+      const remaining = selectedKoma.dialogues.filter((d) => d.id !== dialogueId);
+      updateCurrentPageKomas((prev) =>
+        prev.map((k) => (k.id === selectedKoma.id ? { ...k, dialogues: remaining } : k)),
+      );
+      if (remaining[0]) {
+        onSelectDialogue(selectedKoma.id, remaining[0].id);
+      }
+    },
+    [onSelectDialogue, selectedKoma, updateCurrentPageKomas],
   );
 
   const snapAndClampPoint = useCallback(
@@ -685,20 +803,37 @@ export const PageEditor: React.FC<{
           <h2 className="gf-editor-title">Páginas e Interiores</h2>
           <p className="gf-editor-counter">
             PÁG. {safeIndex + 1} / {project.pages.length} · {komas.length} VIÑETAS ·{' '}
-            {preset.shortName.toUpperCase()} ({preset.exportWidthPx}×{preset.exportHeightPx})
+            {preset.shortName.toUpperCase()} ({preset.exportWidthPx}×{preset.exportHeightPx} px ·{' '}
+            Sangrado {preset.bleedMm} mm)
           </p>
         </div>
 
-        {page && (
-          <button
-            type="button"
-            onClick={() => onToggleLayer(page.id, 'L6_guides')}
-            className={`gf-guides-btn ${vis.L6_guides ? 'is-active' : ''}`}
-          >
-            <LayoutGrid size={14} strokeWidth={1.75} className="gf-icon-shrink" />
-            <span>{vis.L6_guides ? 'OCULTAR GUÍAS L6' : 'MOSTRAR GUÍAS L6'}</span>
-          </button>
-        )}
+        <div className="gf-editor-header-controls">
+          <div className="gf-editor-preset-pills" role="group" aria-label="Formato de página">
+            {PRINT_PRESET_LIST.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={`gf-editor-preset-pill ${preset.id === p.id ? 'is-active' : ''}`}
+                onClick={() => updateProject({ trimFormat: p.id as TrimFormatId })}
+                title={`${p.name} (${p.exportWidthPx}×${p.exportHeightPx} px · Bleed ${p.bleedMm} mm)`}
+              >
+                {p.shortName}
+              </button>
+            ))}
+          </div>
+
+          {page && (
+            <button
+              type="button"
+              onClick={() => onToggleLayer(page.id, 'L6_guides')}
+              className={`gf-guides-btn ${vis.L6_guides ? 'is-active' : ''}`}
+            >
+              <LayoutGrid size={14} strokeWidth={1.75} className="gf-icon-shrink" />
+              <span>{vis.L6_guides ? 'OCULTAR GUÍAS L6' : 'MOSTRAR GUÍAS L6'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Koma-wari Geometric Template Picker */}
@@ -1409,6 +1544,282 @@ export const PageEditor: React.FC<{
           </div>
         )}
       </div>
+
+      {/* Inline 7-Layer Stack (L6 → L0) & Koma / Fukidashi Quick Inspector */}
+      {page && (
+        <div className="gf-inline-workbench-grid" aria-label="Pila de 7 Capas L0-L6 e Inspector Rápido de Viñeta">
+          {/* 7-Layer Panel L6 -> L0 */}
+          <div className="gf-inline-layers-card">
+            <div className="gf-inline-card-head">
+              <span className="gf-inline-card-title">
+                <Layers size={13} strokeWidth={2} className="gf-icon-shrink" />
+                <span>Pila de 7 Capas (L6 → L0)</span>
+              </span>
+              <span className="gf-inline-card-badge">Export aplana L1 → L5 (excluye L0 y L6)</span>
+            </div>
+
+            <div className="gf-inline-layers-pills">
+              {LAYER_DEFINITIONS.map((layer) => {
+                const isVisible = vis[layer.key];
+                const opVal =
+                  layer.key === 'L0_nemu'
+                    ? opacity.L0_nemu
+                    : layer.key === 'L1_tones'
+                    ? opacity.L1_tones
+                    : null;
+
+                return (
+                  <div
+                    key={layer.key}
+                    className={`gf-inline-layer-chip ${isVisible ? 'is-visible' : 'is-hidden'} ${
+                      !layer.printable ? 'is-nonprint' : ''
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      className="gf-inline-layer-toggle"
+                      onClick={() => onToggleLayer(page.id, layer.key)}
+                      title={`${layer.code}: ${layer.label}${
+                        !layer.printable ? ' (No imprimible — excluida en export)' : ''
+                      }`}
+                    >
+                      {isVisible ? (
+                        <Eye size={12} strokeWidth={2} className="gf-icon-shrink" />
+                      ) : (
+                        <EyeOff size={12} strokeWidth={2} className="gf-icon-shrink" />
+                      )}
+                      <span className="gf-inline-layer-code">{layer.code}</span>
+                      <span className="gf-inline-layer-label">{layer.label}</span>
+                      {!layer.printable && (
+                        <span className="gf-inline-layer-nonprint">No export</span>
+                      )}
+                    </button>
+
+                    {layer.hasOpacity && opVal !== null && (
+                      <div className="gf-inline-layer-opacity">
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={opVal}
+                          onChange={(e) =>
+                            handleInlineLayerOpacity(
+                              layer.key as 'L0_nemu' | 'L1_tones',
+                              Number(e.target.value),
+                            )
+                          }
+                          aria-label={`Opacidad ${layer.code}`}
+                        />
+                        <span>{opVal}%</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Panel Inspector & Editable Vector Fukidashi (L5) Quick Controls */}
+          {selectedKoma && (
+            <div className="gf-inline-inspector-card">
+              <div className="gf-inline-card-head">
+                <span className="gf-inline-card-title">
+                  <SlidersHorizontal size={13} strokeWidth={2} className="gf-icon-shrink" />
+                  <span>Inspector · Viñeta #{selectedKoma.panelIndex}</span>
+                </span>
+                <div className="gf-inline-state-pills" role="group" aria-label="Estado de la viñeta">
+                  {KOMA_STATES.map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      className={`gf-inline-state-btn ${selectedKoma.state === st ? 'is-active' : ''}`}
+                      onClick={() =>
+                        updateCurrentPageKomas((prev) =>
+                          prev.map((k) => (k.id === selectedKoma.id ? { ...k, state: st } : k)),
+                        )
+                      }
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="gf-inline-inspector-fields">
+                <div className="gf-inline-field">
+                  <label htmlFor="gf-inline-camera">Cámara</label>
+                  <select
+                    id="gf-inline-camera"
+                    value={selectedKoma.cameraAngle || 'Plano Medio'}
+                    onChange={(e) =>
+                      updateCurrentPageKomas((prev) =>
+                        prev.map((k) =>
+                          k.id === selectedKoma.id ? { ...k, cameraAngle: e.target.value } : k,
+                        ),
+                      )
+                    }
+                  >
+                    {INLINE_CAMERA_ANGLES.map((ang) => (
+                      <option key={ang} value={ang}>
+                        {ang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="gf-inline-field">
+                  <label htmlFor="gf-inline-tone">Trama L1</label>
+                  <select
+                    id="gf-inline-tone"
+                    value={selectedKoma.screentonePreset || 'none'}
+                    onChange={(e) =>
+                      updateCurrentPageKomas((prev) =>
+                        prev.map((k) =>
+                          k.id === selectedKoma.id
+                            ? {
+                                ...k,
+                                screentonePreset: e.target.value as ScreentonePreset,
+                                state: k.state === 'PEN_IRE' ? 'TONE_FX' : k.state,
+                              }
+                            : k,
+                        ),
+                      )
+                    }
+                  >
+                    {INLINE_SCREENTONES.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="gf-inline-field">
+                  <label htmlFor="gf-inline-speed">Líneas L3</label>
+                  <select
+                    id="gf-inline-speed"
+                    value={selectedKoma.speedlinePreset || 'none'}
+                    onChange={(e) =>
+                      updateCurrentPageKomas((prev) =>
+                        prev.map((k) =>
+                          k.id === selectedKoma.id
+                            ? { ...k, speedlinePreset: e.target.value as SpeedlinePreset }
+                            : k,
+                        ),
+                      )
+                    }
+                  >
+                    {INLINE_SPEEDLINES.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Editable Vector Fukidashi Balloons (L5) Quick Bar */}
+              <div className="gf-inline-fukidashi-bar">
+                <div className="gf-inline-fukidashi-head">
+                  <span className="gf-inline-card-title">
+                    Globos Vectoriales Fukidashi L5 ({selectedKoma.dialogues.length})
+                  </span>
+                  <button
+                    type="button"
+                    className="gf-vector-btn is-active"
+                    onClick={handleInlineAddBalloon}
+                  >
+                    <MessageSquarePlus size={12} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>+ Añadir Globo</span>
+                  </button>
+                </div>
+
+                {selectedKoma.dialogues.length > 0 && (() => {
+                  const activeDlg =
+                    selectedKoma.dialogues.find((d) => d.id === selectedDialogueId) ??
+                    selectedKoma.dialogues[0];
+                  if (!activeDlg) return null;
+
+                  return (
+                    <div className="gf-inline-fukidashi-controls">
+                      {selectedKoma.dialogues.length > 1 && (
+                        <div className="gf-inline-dialogue-tabs">
+                          {selectedKoma.dialogues.map((d, idx) => (
+                            <button
+                              key={d.id}
+                              type="button"
+                              className={`gf-inline-state-btn ${
+                                activeDlg.id === d.id ? 'is-active' : ''
+                              }`}
+                              onClick={() => onSelectDialogue(selectedKoma.id, d.id)}
+                            >
+                              Globo #{idx + 1}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="gf-inline-fukidashi-inputs">
+                        <select
+                          aria-label="Estilo de globo Fukidashi"
+                          value={activeDlg.style}
+                          onChange={(e) =>
+                            onUpdateDialogue(page.id, selectedKoma.id, activeDlg.id, {
+                              style: e.target.value as DialogueStyle,
+                            })
+                          }
+                        >
+                          {INLINE_DIALOGUE_STYLES.map((st) => (
+                            <option key={st.value} value={st.value}>
+                              {st.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        <input
+                          type="text"
+                          aria-label="Texto del globo Fukidashi"
+                          value={activeDlg.text}
+                          placeholder="Diálogo del globo..."
+                          onChange={(e) =>
+                            onUpdateDialogue(page.id, selectedKoma.id, activeDlg.id, {
+                              text: e.target.value,
+                            })
+                          }
+                        />
+
+                        <input
+                          type="range"
+                          aria-label="Tamaño de fuente del globo"
+                          min={1.6}
+                          max={3.6}
+                          step={0.1}
+                          value={activeDlg.fontSize ?? 2.35}
+                          onChange={(e) =>
+                            onUpdateDialogue(page.id, selectedKoma.id, activeDlg.id, {
+                              fontSize: Number(e.target.value),
+                            })
+                          }
+                        />
+
+                        <button
+                          type="button"
+                          className="gf-vector-btn is-danger"
+                          title="Eliminar globo Fukidashi"
+                          onClick={() => handleInlineDeleteBalloon(activeDlg.id)}
+                        >
+                          <Trash2 size={12} strokeWidth={2} className="gf-icon-shrink" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Draft (L0) -> Final Art (L2) Flow with KAI */}
       {page && (

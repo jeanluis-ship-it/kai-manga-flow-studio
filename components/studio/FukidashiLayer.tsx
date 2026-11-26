@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import {
   buildShoutPath,
   buildTailPoints,
@@ -450,8 +451,14 @@ export const FukidashiLayer: React.FC<FukidashiLayerProps> = ({
               <span
                 className="gf-naiwaku-warn-pill"
                 title="Globo fuera del área segura Naiwaku (riesgo de corte en imprenta)"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                }}
               >
-                ⚠ NAIWAKU
+                <AlertTriangle size={10} strokeWidth={2.2} className="gf-icon-shrink" />
+                <span>NAIWAKU</span>
               </span>
             )}
           </div>

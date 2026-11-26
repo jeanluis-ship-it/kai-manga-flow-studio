@@ -49,7 +49,12 @@ export function getPrintBundleFilename(project: Project): string {
 
 export function runPreflightChecks(project: Project): PreflightReport {
   const preset = getPrintPreset(project.trimFormat);
-  const expectedSpine = computeSpineInches(project.pageCount, project.paperType);
+  const expectedSpine = computeSpineInches(
+    project.pageCount,
+    project.paperType,
+    project.colorMode,
+    project.bindingType,
+  );
   const actualSpine = project.cover.spineWidthInches;
   const spineSynced = Math.abs(expectedSpine - actualSpine) < 0.002;
   const spineMm = Number((expectedSpine * 25.4).toFixed(2));

@@ -31,13 +31,25 @@ test('Sprint 4: Supabase SSR auth routes, proxy.ts, and /login exist without blo
   assert.match(login, /Continuar con Google/);
 });
 
-test('Sprint 4: PLAN_CATALOG, 402 QUOTA_EXCEEDED server guards, and checkout modal exist', () => {
+test('Sprint 4: PLAN_CATALOG, 402 QUOTA_EXCEEDED server guards, QuotaMeter, and checkout modal exist', () => {
   const quotas = load('lib/plans/quotas.ts');
   assert.match(quotas, /maxPages:\s*10/);
   assert.match(quotas, /maxPages:\s*50/);
   assert.match(quotas, /maxPages:\s*100/);
   assert.match(quotas, /maxPages:\s*200/);
+  assert.match(quotas, /\$0\.00/);
+  assert.match(quotas, /\$2\.49/);
+  assert.match(quotas, /\$3\.49/);
+  assert.match(quotas, /\$4\.49/);
+  assert.match(quotas, /Motor Nano Banana 2 HD/);
+  assert.match(quotas, /Nano Banana 2 HD \+ Prioridad de Render/);
+  assert.match(quotas, /Empaque completo e ISBN/);
   assert.match(quotas, /export function checkQuota/);
+
+  assert.ok(existsSync(join(base, 'components/studio/QuotaMeter.tsx')));
+  const quotaMeter = load('components/studio/QuotaMeter.tsx');
+  assert.match(quotaMeter, /Páginas:\s*\{usedPages\}\s*\/\s*\{limitPages\}/);
+  assert.match(quotaMeter, /--genko-/);
 
   const kaiApi = load('app/api/kai/script/route.ts');
   assert.match(kaiApi, /QUOTA_EXCEEDED/);

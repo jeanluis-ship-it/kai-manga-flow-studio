@@ -47,10 +47,21 @@ test('Sprint 3: pre-press flattener explicitly excludes L0_nemu and L6_guides an
   assert.match(presets, /kdp_6x9/);
 });
 
-test('Sprint 3: EAN-13 pure SVG barcode encoder exists with full L/G/R parity tables', () => {
+test('Sprint 3: EAN-13 pure SVG barcode encoder exists with full L/G/R parity tables and editable CoverDesigner wiring', () => {
   const ean = load('lib/print/ean13.ts');
   assert.match(ean, /L_CODES/);
   assert.match(ean, /G_CODES/);
   assert.match(ean, /R_CODES/);
   assert.match(ean, /computeEan13CheckDigit/);
+
+  const cover = load('app/studio/components/CoverDesigner.tsx');
+  const coverCss = load('app/studio/components/CoverDesigner.css');
+  assert.match(cover, /PRINT_PRESET_LIST/);
+  assert.match(cover, /ISBN-13 Editable/);
+  assert.match(cover, /formatIsbn13/);
+  assert.match(coverCss, /var\(--genko-/);
+
+  const fukidashi = load('components/studio/FukidashiLayer.tsx');
+  assert.match(fukidashi, /AlertTriangle/);
+  assert.doesNotMatch(fukidashi, /⚠/);
 });

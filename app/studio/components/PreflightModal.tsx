@@ -42,7 +42,15 @@ export const PreflightModal: React.FC<{
 
   return (
     <div className="gf-modal-backdrop" onClick={() => !isBuilding && onClose()}>
-      <div className="gf-modal-card gf-preflight-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="gf-modal-card gf-preflight-modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--genko-panel, var(--gf-surface, #FFFFFF))',
+          borderColor: 'var(--genko-border, var(--gf-border-strong, #E2E0D8))',
+          color: 'var(--genko-ink, var(--gf-ink, #111111))',
+        }}
+      >
         <div className="gf-modal-head">
           <div className="gf-preflight-title-row">
             <div className={`gf-preflight-badge ${hasWarnings ? 'is-warn' : 'is-ok'}`}>
@@ -55,7 +63,9 @@ export const PreflightModal: React.FC<{
             <div>
               <h3 className="gf-modal-title">Semáforo Pre-Flight de Imprenta</h3>
               <p className="gf-preflight-sub">
-                Verificación automática antes de aplanar capas L1 → L5
+                Verificación automática antes de aplanar capas L1 → L5 ({report.preset.shortName} ·{' '}
+                {report.preset.exportWidthPx}×{report.preset.exportHeightPx} px · Sangrado{' '}
+                {report.preset.bleedMm} mm · Lomo {report.spineMm} mm)
               </p>
             </div>
           </div>

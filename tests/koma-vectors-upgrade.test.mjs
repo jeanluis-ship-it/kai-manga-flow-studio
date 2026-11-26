@@ -15,6 +15,9 @@ test('Koma Vectors: PageEditor.tsx and PageEditor.css exist and wire Light/Dark 
 
   assert.match(tsx, /^['"]use client['"];/);
   assert.match(tsx, /import\s+['"]\.\/PageEditor\.css['"]/);
+  assert.match(tsx, /Pila de 7 Capas \(L6 → L0\)/);
+  assert.match(tsx, /Globos Vectoriales Fukidashi L5/);
+  assert.match(css, /var\(--genko-/);
   assert.match(css, /var\(--gf-/);
   assert.match(css, /\.gf-studio-root\[data-theme='dark'\]/);
   assert.match(css, /\.gf-vector-overlay/);
