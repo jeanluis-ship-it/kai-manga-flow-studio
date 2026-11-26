@@ -228,6 +228,7 @@ export const PageEditor: React.FC<{
   isGeneratingPage = false,
   komaLoading,
 }) => {
+  const [zoom, setZoom] = useState(100);
   const sheetRef = useRef<HTMLDivElement | null>(null);
   const sketchUploadRef = useRef<HTMLInputElement | null>(null);
 
@@ -836,6 +837,7 @@ export const PageEditor: React.FC<{
         </div>
       </div>
 
+      <label className="studio-zoom">Zoom <input type="range" min="60" max="150" step="10" value={zoom} onChange={event => setZoom(Number(event.target.value))} /> {zoom}%</label>
       {/* Koma-wari Geometric Template Picker */}
       {page && (
         <div className="gf-koma-templates" role="group" aria-label="Plantillas Koma-wari">
@@ -1017,7 +1019,7 @@ export const PageEditor: React.FC<{
       <div
         ref={sheetRef}
         className="gf-sheet gf-sheet-koma"
-        style={{ aspectRatio: preset.aspectRatio }}
+        style={{ aspectRatio: preset.aspectRatio, zoom: zoom / 100 }}
       >
         {isGeneratingPage && (
           <div className="gf-task-overlay" role="status" aria-live="polite">

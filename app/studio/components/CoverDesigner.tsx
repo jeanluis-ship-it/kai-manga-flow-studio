@@ -455,7 +455,7 @@ export const CoverDesigner = forwardRef<
       </div>
 
       {/* Format Presets (Tankōbon B6, Canva B4 2150×3035 + 3.5mm, KDP 6×9") & Editable ISBN-13 */}
-      <div className="gf-cover-prepress-panel" aria-label="Presets de Imprenta e ISBN-13 Editable">
+      <details className="gf-cover-prepress-panel" aria-label="Presets de Imprenta e ISBN-13 Editable"><summary>Formato de impresión e ISBN-13</summary>
         <div className="gf-cover-presets-row" role="radiogroup" aria-label="Formato de corte y sangrado">
           {PRINT_PRESET_LIST.map((p) => {
             const active = preset.id === p.id;
@@ -579,7 +579,7 @@ export const CoverDesigner = forwardRef<
             </div>
           </div>
         </div>
-      </div>
+      </details>
 
       {/* Preview Tabs + Guides Toggle + KAI + Canvas PNG Export */}
       <div className="gf-cover-toolbar">

@@ -821,9 +821,9 @@ export const CharacterLibrary: React.FC<{
           >
             <div className="gf-settei-drawer-head">
               <div>
-                <h3 className="gf-modal-title">Ficha Settei (Biblia Visual)</h3>
+                <h3 className="gf-modal-title">Ficha Settei · Ancla de consistencia</h3>
                 <p className="gf-settei-drawer-sub">
-                  Edita en vivo sin bloquear tu chat con KAI a la derecha.
+                  Referencias, semilla y rasgos del personaje seleccionado.
                 </p>
               </div>
               <button

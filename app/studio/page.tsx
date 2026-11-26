@@ -107,6 +107,7 @@ import {
   type Project,
   type ScreentonePreset,
   type SpeedlinePreset,
+  toDataImageSrc,
   type StudioView,
 } from './types';
 import './studio.css';
@@ -257,8 +258,10 @@ function createEntityId(prefix: string): string {
 
 export default function StudioPage() {
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [storageMode, setStorageMode] = useState<StorageMode>('local');
+  const [welcome, setWelcome] = useState(true);
+  const [navOpen, setNavOpen] = useState(true);
   const [view, setView] = useState<StudioView>('project');
   const [project, setProject] = useState<Project>(() => createInitialStudioProject());
   const [extraProjects, setExtraProjects] = useState<Project[]>([]);
@@ -350,6 +353,7 @@ export default function StudioPage() {
       const params = new URLSearchParams(window.location.search);
       const rawTab = params.get('tab');
       const resolvedTab = resolveTabParam(rawTab);
+      setWelcome(!resolvedTab);
       if (resolvedTab) {
         setView(resolvedTab);
         if (rawTab?.trim().toLowerCase() === 'kai') {
@@ -628,6 +632,7 @@ export default function StudioPage() {
   };
 
   const handleSelectView = useCallback((nextView: StudioView) => {
+    setWelcome(false);
     setView(nextView);
     setRightPanelCollapsed(false);
     setRightPanelTab('kai');
@@ -1196,6 +1201,7 @@ export default function StudioPage() {
             <ArrowLeft size={16} strokeWidth={1.75} className="gf-icon-shrink" />
             <span>MANGAI STUDIO</span>
           </Link>
+          <button className="studio-nav-trigger" aria-expanded={navOpen} aria-controls="studio-navigation" onClick={() => setNavOpen(!navOpen)}>Menú</button>
           <span className="gf-topbar-divider" aria-hidden="true" />
           <span className="gf-topbar-project">{project.name || 'Manga sin título'}</span>
           {quotaProfile.isGuest ? (
@@ -1363,8 +1369,8 @@ export default function StudioPage() {
         </div>
       </header>
 
-      <div className={`manga-grid ${rightPanelCollapsed ? 'is-right-collapsed' : ''}`}>
-        <aside className="gf-sidebar-left no-scrollbar">
+      <div className={`manga-grid ${navOpen ? '' : 'nav-closed'} ${(welcome || rightPanelCollapsed) ? 'is-right-collapsed' : ''}`}>
+        <aside id="studio-navigation" hidden={!navOpen} className="gf-sidebar-left no-scrollbar">
           <div className="gf-sidebar-section">
             <Link
               href="/"
@@ -1375,16 +1381,7 @@ export default function StudioPage() {
               <ArrowLeft size={14} strokeWidth={1.75} className="gf-icon-shrink" />
               <span>MANGAI STUDIO</span>
             </Link>
-            <div className="gf-nav-list">
-              <NavItem active={view === 'flux'} icon={<Sparkles size={17} strokeWidth={1.75} />}
-                label="Ilustrar con FLUX" onClick={() => handleSelectView('flux')} />
-              <NavItem
-                active={view === 'project'}
-                icon={<Printer size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Configuración y Lomo"
-                onClick={() => handleSelectView('project')}
-              />
-              <NavItem
+            <nav aria-label="Herramientas del estudio"><details open className="studio-nav-group"><summary>Crear</summary><div className="gf-nav-list"><NavItem
                 active={view === 'characters'}
                 icon={<Users size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
                 label="Settei y Personajes"
@@ -1397,18 +1394,25 @@ export default function StudioPage() {
                 onClick={() => handleSelectView('cover')}
               />
               <NavItem
+                active={view === 'drawing_tablet'}
+                icon={<PenTool size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Tabla de Dibujo"
+                onClick={() => handleSelectView('drawing_tablet')}
+              /><NavItem active={view === 'flux'} icon={<Sparkles size={17} strokeWidth={1.75} />}
+                label="Ilustrar con FLUX" onClick={() => handleSelectView('flux')} />
+              </div></details><details open className="studio-nav-group"><summary>Páginas</summary><div className="gf-nav-list"><NavItem
                 active={view === 'pages'}
                 icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
                 label="Viñetas e Interiores"
                 onClick={() => handleSelectView('pages')}
               />
-              <NavItem
-                active={view === 'drawing_tablet'}
-                icon={<PenTool size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Tabla de Dibujo"
-                onClick={() => handleSelectView('drawing_tablet')}
+              </div></details><details open className="studio-nav-group"><summary>Imprenta</summary><div className="gf-nav-list"><NavItem
+                active={view === 'project'}
+                icon={<Printer size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                label="Configuración y Lomo"
+                onClick={() => handleSelectView('project')}
               />
-            </div>
+              </div></details></nav>
           </div>
 
           {view === 'pages' && (
@@ -1517,7 +1521,7 @@ export default function StudioPage() {
               }}
               disabled={generating.bundle || buildingPdf}
             >
-              {generating.bundle ? 'Empaquetando ZIP...' : 'Exportar Paquete ZIP'}
+              {generating.bundle ? 'Empaquetando ZIP...' : 'Exportar Paquete KDP (ZIP)'}
             </PillButton>
             {generating.bundle && (
               <div className="gf-status-text animate-pulse-slow">
@@ -1530,6 +1534,17 @@ export default function StudioPage() {
 
         <main className="gf-canvas-shell">
           <div className="gf-canvas-scroll dark-scrollbar">
+            {welcome && <section className="studio-welcome">
+              <div className="studio-book-jacket">
+                {project.cover.frontBase64 || project.cover.fullWrapBase64
+                  ? <img src={toDataImageSrc(project.cover.frontBase64 || project.cover.fullWrapBase64)} alt={`Portada de ${project.name}`} />
+                  : <span>{project.name || 'Manga sin título'}</span>}
+              </div>
+              <div><small>Proyecto activo</small><h1>{project.name || 'Manga sin título'}</h1>
+                <p>{project.pages.length} páginas · {project.characters.length} fichas Settei</p>
+                <button className="studio-continue" onClick={() => handleSelectView('pages')}>Continuar mi manga</button>
+              </div>
+            </section>}
             <div hidden={view !== 'flux'}>
               <FluxStudio key={project.id || project.volumeSlug || 'local'} project={project} updateProject={updateProject} />
             </div>
@@ -1573,8 +1588,11 @@ export default function StudioPage() {
                 isGeneratingCover={generating.cover}
               />
             )}
-            {view === 'project' && (
-              <ProjectManager project={project} updateProject={updateProject} />
+            {!welcome && view === 'project' && (
+              <div className="studio-print"><ProjectManager project={project} updateProject={updateProject} />
+                <section className="studio-preflight"><h2>Diagnóstico de imprenta</h2>{preflightReport.checks.map(check =>
+                  <details key={check.id}><summary>{check.status === 'ok' ? 'Correcto ·' : 'Revisar ·'} {check.title}</summary><p>{check.detail}</p></details>
+                )}<button className="studio-continue" onClick={() => setPreflightOpen(true)}>Exportar Paquete KDP</button></section></div>
             )}
             {view === 'drawing_tablet' && (
               <DrawingTabletWorkbench
@@ -1594,7 +1612,7 @@ export default function StudioPage() {
           </div>
         </main>
 
-        {!rightPanelCollapsed && (
+        {!welcome && !rightPanelCollapsed && (
           <aside className="gf-sidebar-right gf-sidebar-right-docked">
             {(view === 'pages' || view === 'cover') && (
               <div className="gf-right-dock-tabs" role="tablist" aria-label="Panel lateral derecho">
