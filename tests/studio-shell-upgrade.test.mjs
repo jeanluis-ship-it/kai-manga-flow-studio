@@ -19,6 +19,67 @@ test('Studio Shell: KAI docked never blocked/dimmed by .gf-modal-backdrop and pr
   assert.match(css, /\.gf-layer-l6\s*\{[\s\S]*?z-index:\s*70;/);
 });
 
+test('Studio Shell: exposes Genko Paper palette tokens (--genko-*) in light default and dark mode', () => {
+  const css = load('app/studio/studio.css');
+  const globals = load('app/globals.css');
+
+  for (const [token, lightVal] of [
+    ['--genko-desk', '#ECEAE4'],
+    ['--genko-panel', '#FFFFFF'],
+    ['--genko-border', '#E2E0D8'],
+    ['--genko-canvas', '#FAF8F5'],
+    ['--genko-guide', '#00AEEF'],
+    ['--genko-ink', '#111111'],
+    ['--genko-kai', '#4F46E5'],
+  ]) {
+    const re = new RegExp(`${token}\\s*:\\s*${lightVal}`, 'i');
+    assert.match(css, re, `studio.css missing light default token ${token}: ${lightVal}`);
+    assert.match(globals, re, `globals.css missing light default token ${token}: ${lightVal}`);
+  }
+
+  // Dark mode equivalents under .gf-studio-root[data-theme='dark']
+  assert.match(
+    css,
+    /\.gf-studio-root\[data-theme='dark'\]\s*\{[\s\S]*?--genko-desk:\s*#121316;[\s\S]*?--genko-panel:\s*#1A1C20;[\s\S]*?--genko-ink:\s*#F4F4F5;[\s\S]*?--genko-kai:\s*#818CF8;/i,
+  );
+});
+
+test('Studio Shell: deep links resolve kai, settei, koma, prepress and legacy slugs, plus mounts QuotaMeter in topbar', () => {
+  const page = load('app/studio/page.tsx');
+  const primitives = load('app/studio/components/Primitives.tsx');
+
+  // Deep link slugs required by landing flow cards (kai, settei, koma, prepress) + existing slugs
+  for (const slug of ['kai', 'settei', 'koma', 'prepress', 'pages', 'project', 'characters', 'cover']) {
+    assert.match(
+      page,
+      new RegExp(`slug\\s*===\\s*['"]${slug}['"]`),
+      `resolveTabParam must handle ?tab=${slug}`,
+    );
+  }
+
+  // QuotaMeter mounted in topbar and sidebar with Páginas: X / Y
+  assert.match(page, /<QuotaMeter[\s\S]*?variant="compact"/);
+  assert.match(primitives, /Páginas:\s*\{usedPages\}\s*\/\s*\{limitPages\}/);
+
+  // Per-target cover & koma loading isolation
+  assert.match(page, /coverTargetBusy/);
+  assert.match(page, /generating\.komas\[targetKomaId\]/);
+
+  // Zero Material Icons ligatures or broken tofu glyphs in shell files
+  for (const file of [
+    'app/studio/page.tsx',
+    'app/studio/components/KaiCopilotDrawer.tsx',
+    'app/studio/components/CharacterLibrary.tsx',
+    'app/studio/components/ProjectManager.tsx',
+    'app/studio/components/Primitives.tsx',
+    'app/studio/components/AuthModal.tsx',
+    'app/studio/components/MangaFlipbookViewer.tsx',
+  ]) {
+    const src = load(file);
+    assert.doesNotMatch(src, /material-symbols|material-icons|▯|✓|⚠/i, `Forbidden glyph in ${file}`);
+  }
+});
+
 test('Studio Shell: page.tsx keeps KAI open, listens to cross-worker contracts, and supports Llave IA & Beta local session', () => {
   const page = load('app/studio/page.tsx');
   assert.doesNotMatch(page, /Kai \+ Lienzo IA/);

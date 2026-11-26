@@ -221,6 +221,9 @@ export interface KaiCopilotDrawerProps {
   onApplyScript: (output: KaiDualOutput) => boolean;
   onSendPromptToTablet: (visualPrompt: string) => void;
   onQuotaBlocked?: (reason: string, requiredPlan?: PlanTier) => void;
+  setTaskLoading?: (task: 'cover' | 'bundle', value: boolean) => void;
+  setKomaLoading?: (komaId: string, value: boolean) => void;
+  setCharacterLoading?: (charId: string, value: boolean) => void;
 }
 
 export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
@@ -236,6 +239,9 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
   onApplyScript,
   onSendPromptToTablet,
   onQuotaBlocked,
+  setTaskLoading,
+  setKomaLoading,
+  setCharacterLoading,
 }) => {
   const [mode, setMode] = useState<'mentor' | 'script'>('mentor');
   const [prompt, setPrompt] = useState('');
@@ -527,6 +533,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     if (!msg.visualPrompt || msg.actionBusy) return;
     setError('');
     setMsgBusy(msg.id, true);
+    const charId = crypto.randomUUID();
+    setCharacterLoading?.(charId, true);
     try {
       const charNum = project.characters.length + 1;
       const parsed = parseSetteiAutofillFromMessage(msg);
@@ -545,7 +553,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
       });
 
       const newChar: Character = {
-        id: crypto.randomUUID(),
+        id: charId,
         entityType: parsed.entityType || 'character',
         tagHandle: handle,
         name: nameClean,
@@ -569,6 +577,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         onQuotaBlocked?.(err.message, err.requiredPlan as PlanTier | undefined);
       }
       setError(err instanceof Error ? err.message : 'No se pudo generar la ficha Settei.');
+    } finally {
+      setCharacterLoading?.(charId, false);
     }
   };
 
@@ -589,6 +599,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
     if (!coverPrompt || msg.actionBusy) return;
     setError('');
     setMsgBusy(msg.id, true);
+    setTaskLoading?.('cover', true);
     try {
       const seeds = activeCharacters
         .map((c) => c.characterSeed)
@@ -630,15 +641,24 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         onQuotaBlocked?.(err.message, err.requiredPlan as PlanTier | undefined);
       }
       setError(err instanceof Error ? err.message : 'No se pudo generar la portada con KAI.');
+    } finally {
+      setTaskLoading?.('cover', false);
     }
   };
 
   const handleGenerateActiveKomaFromKai = async (msg: KaiMessage) => {
     if (!msg.visualPrompt || !currentPage || !selectedKoma || msg.actionBusy) return;
+    const targetPageId = currentPage.id;
+    const targetKomaId = selectedKoma.id;
+    const targetPanelIdx = selectedKoma.panelIndex;
+    const targetHandles = selectedKoma.taggedHandles ?? [];
+    const targetArtStyle = currentPage.artStyle || 'Classic Shonen';
+
     setError('');
     setMsgBusy(msg.id, true);
+    setKomaLoading?.(targetKomaId, true);
     try {
-      const taggedSet = new Set((selectedKoma.taggedHandles ?? []).map((h) => h.toLowerCase()));
+      const taggedSet = new Set(targetHandles.map((h) => h.toLowerCase()));
       const matchingSettei = activeCharacters.filter((c) =>
         taggedSet.size > 0
           ? taggedSet.has(normalizeTagHandle(c.tagHandle || '', c.name).toLowerCase())
@@ -658,19 +678,19 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         prompt: `${msg.visualPrompt} (${colorModeLabel})`,
         mode: 'panel',
         aspectRatio: '3:4',
-        name: `${project.name || 'Manga'} · Viñeta #${selectedKoma.panelIndex}`,
-        style: `${currentPage.artStyle || 'Classic Shonen'} · ${colorModeLabel}`,
+        name: `${project.name || 'Manga'} · Viñeta #${targetPanelIdx}`,
+        style: `${targetArtStyle} · ${colorModeLabel}`,
         canon: seeds || undefined,
         notes: msg.visualPrompt,
         referenceImagesBase64: refs.length > 0 ? refs : undefined,
       });
 
       const nextPages = project.pages.map((p) => {
-        if (p.id !== currentPage.id) return p;
+        if (p.id !== targetPageId) return p;
         return {
           ...p,
           komas: (p.komas ?? []).map((k) =>
-            k.id === selectedKoma.id
+            k.id === targetKomaId
               ? {
                   ...k,
                   actionPrompt: msg.visualPrompt || k.actionPrompt,
@@ -691,6 +711,8 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
         onQuotaBlocked?.(err.message, err.requiredPlan as PlanTier | undefined);
       }
       setError(err instanceof Error ? err.message : 'No se pudo entintar la viñeta.');
+    } finally {
+      setKomaLoading?.(targetKomaId, false);
     }
   };
 
@@ -909,10 +931,16 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
               setteiDraft.open && (
                 <PillButton
                   variant="filled"
-                  icon={<UserCheck size={14} strokeWidth={2} />}
+                  icon={
+                    msg.applied ? (
+                      <Check size={14} strokeWidth={2} />
+                    ) : (
+                      <UserCheck size={14} strokeWidth={2} />
+                    )
+                  }
                   onClick={() => handleAutofillOpenSettei(msg)}
                 >
-                  {msg.applied ? 'Ficha Settei Rellenada ✓' : 'Rellenar Ficha Settei Abierta'}
+                  {msg.applied ? 'Ficha Settei Rellenada' : 'Rellenar Ficha Settei Abierta'}
                 </PillButton>
               )}
 
@@ -927,7 +955,7 @@ export const KaiCopilotDrawer: React.FC<KaiCopilotDrawerProps> = ({
                   onClick={() => handleAutocompleteProjectFromKai(msg)}
                 >
                   {msg.applied
-                    ? 'Obra y Sinopsis Aplicadas ✓'
+                    ? 'Obra y Sinopsis Aplicadas'
                     : 'Autocompletar Obra (Título + Sinopsis)'}
                 </PillButton>
               )}

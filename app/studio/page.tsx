@@ -13,7 +13,6 @@ import {
   Eye,
   EyeOff,
   FileText,
-  FolderPlus,
   HardDrive,
   Info,
   KeyRound,
@@ -76,7 +75,7 @@ import {
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { PricingUpgradeModal } from '@/components/studio/PricingUpgradeModal';
 import { Flow, QuotaExceededError } from './flow-sdk';
-import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
+import { FieldDropdown, PillButton, QuotaMeter, SectionLabel, TextInput } from './components/Primitives';
 import { AuthModal } from './components/AuthModal';
 import { CharacterLibrary } from './components/CharacterLibrary';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
@@ -197,7 +196,7 @@ const DIALOGUE_STYLE_OPTIONS: Array<{ value: DialogueStyle; label: string }> = [
   { value: 'system', label: 'Sistema / RPG (Marco Doble)' },
 ];
 
-function resolveTabParam(raw: string | null): StudioView | null {
+export function resolveTabParam(raw: string | null): StudioView | null {
   if (!raw) return null;
   const slug = raw.trim().toLowerCase();
   if (slug === 'project' || slug === 'lore' || slug === 'setup' || slug === 'config') {
@@ -206,10 +205,29 @@ function resolveTabParam(raw: string | null): StudioView | null {
   if (slug === 'characters' || slug === 'settei' || slug === 'personajes') {
     return 'characters';
   }
-  if (slug === 'cover' || slug === 'print' || slug === 'portada' || slug === 'tankobon') {
+  if (
+    slug === 'cover' ||
+    slug === 'prepress' ||
+    slug === 'pre-press' ||
+    slug === 'preprensa' ||
+    slug === 'pre-prensa' ||
+    slug === 'print' ||
+    slug === 'portada' ||
+    slug === 'tankobon' ||
+    slug === 'export'
+  ) {
     return 'cover';
   }
-  if (slug === 'pages' || slug === 'panels' || slug === 'paginas' || slug === 'interiores') {
+  if (
+    slug === 'pages' ||
+    slug === 'koma' ||
+    slug === 'komawari' ||
+    slug === 'koma-wari' ||
+    slug === 'panels' ||
+    slug === 'paginas' ||
+    slug === 'vinetas' ||
+    slug === 'interiores'
+  ) {
     return 'pages';
   }
   if (
@@ -325,12 +343,22 @@ export default function StudioPage() {
 
   useEffect(() => {
     let active = true;
-    const params = new URLSearchParams(window.location.search);
-    const initialTab = resolveTabParam(params.get('tab'));
+    const applyUrlTab = () => {
+      const params = new URLSearchParams(window.location.search);
+      const rawTab = params.get('tab');
+      const resolvedTab = resolveTabParam(rawTab);
+      if (resolvedTab) {
+        setView(resolvedTab);
+        if (rawTab?.trim().toLowerCase() === 'kai') {
+          setRightPanelCollapsed(false);
+          setRightPanelTab('kai');
+        }
+      }
+      return params;
+    };
+    const params = applyUrlTab();
     const volumeParam = params.get('volume')?.trim() || '';
-    if (initialTab) {
-      setView(initialTab);
-    }
+    window.addEventListener('popstate', applyUrlTab);
 
     let initialExtras: Project[] = [];
     try {
@@ -525,8 +553,15 @@ export default function StudioPage() {
 
     return () => {
       active = false;
+      window.removeEventListener('popstate', applyUrlTab);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -1138,13 +1173,6 @@ export default function StudioPage() {
   }
 
   const activePlanCfg = PLAN_CATALOG[quotaProfile.planTier];
-  const pagesPct = Math.min(100, Math.round((usageSnapshot.totalPages / Math.max(1, quotaProfile.maxPages)) * 100));
-  const projectsPct = Math.min(
-    100,
-    Math.round((usageSnapshot.projectCount / Math.max(1, quotaProfile.maxProjects)) * 100),
-  );
-  const pagesMeterTone = pagesPct >= 100 ? 'is-danger' : pagesPct >= 80 ? 'is-warn' : 'is-ok';
-  const projectsMeterTone = projectsPct >= 100 ? 'is-danger' : projectsPct >= 80 ? 'is-warn' : 'is-ok';
   const userInitials = (quotaProfile.displayName || quotaProfile.email || 'M')
     .split(/\s+/)
     .map((part) => part[0] || '')
@@ -1237,17 +1265,12 @@ export default function StudioPage() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => openUpgradeModal()}
-            className={`gf-quota-top-pill ${pagesMeterTone}`}
-            title="Ver cuotas y gestionar plan"
-          >
-            <Crown size={13} strokeWidth={2} className="gf-icon-shrink" />
-            <span>
-              {activePlanCfg.name} · Págs {usageSnapshot.totalPages}/{quotaProfile.maxPages}
-            </span>
-          </button>
+          <QuotaMeter
+            profile={quotaProfile}
+            usage={usageSnapshot}
+            onOpenUpgrade={() => openUpgradeModal()}
+            variant="compact"
+          />
 
           <button
             type="button"
@@ -1428,19 +1451,12 @@ export default function StudioPage() {
           )}
 
           {/* Sprint 4: Projects & Compact Quota Meter */}
-          <div className="gf-sidebar-section gf-quota-card">
-            <div className="gf-quota-card-head">
-              <SectionLabel>Plan {activePlanCfg.name}</SectionLabel>
-              <button
-                type="button"
-                className="gf-quota-upgrade-link"
-                onClick={() => openUpgradeModal()}
-              >
-                <Crown size={11} strokeWidth={2.2} className="gf-icon-shrink" />
-                <span>Upgrade</span>
-              </button>
-            </div>
-
+          <QuotaMeter
+            profile={quotaProfile}
+            usage={usageSnapshot}
+            onOpenUpgrade={() => openUpgradeModal()}
+            onCreateProject={handleCreateNewProject}
+          >
             {extraProjects.length > 0 && (
               <select
                 className="gf-project-switcher"
@@ -1456,46 +1472,7 @@ export default function StudioPage() {
                 ))}
               </select>
             )}
-
-            <div className="gf-quota-meter">
-              <div className="gf-quota-meter-row">
-                <span>Páginas</span>
-                <strong>
-                  {usageSnapshot.totalPages} / {quotaProfile.maxPages}
-                </strong>
-              </div>
-              <div className="gf-quota-bar-track">
-                <div
-                  className={`gf-quota-bar-fill ${pagesMeterTone}`}
-                  style={{ width: `${pagesPct}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="gf-quota-meter">
-              <div className="gf-quota-meter-row">
-                <span>Proyectos</span>
-                <strong>
-                  {usageSnapshot.projectCount} / {quotaProfile.maxProjects}
-                </strong>
-              </div>
-              <div className="gf-quota-bar-track">
-                <div
-                  className={`gf-quota-bar-fill ${projectsMeterTone}`}
-                  style={{ width: `${projectsPct}%` }}
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="gf-new-project-btn"
-              onClick={handleCreateNewProject}
-            >
-              <FolderPlus size={13} strokeWidth={2} className="gf-icon-shrink" />
-              <span>+ Nuevo Proyecto</span>
-            </button>
-          </div>
+          </QuotaMeter>
 
           <div className="gf-sidebar-bottom">
             <SectionLabel>Pre-Prensa & Entrega</SectionLabel>
@@ -1637,7 +1614,18 @@ export default function StudioPage() {
             )}
 
             <div className="gf-right-dock-body dark-scrollbar">
-              {rightPanelTab === 'kai' || (view !== 'pages' && view !== 'cover') ? (
+              <div
+                style={{
+                  display:
+                    rightPanelTab === 'kai' || (view !== 'pages' && view !== 'cover')
+                      ? 'flex'
+                      : 'none',
+                  flexDirection: 'column',
+                  flex: 1,
+                  minHeight: 0,
+                  height: '100%',
+                }}
+              >
                 <KaiCopilotDrawer
                   project={project}
                   activeView={view}
@@ -1654,8 +1642,20 @@ export default function StudioPage() {
                   onApplyScript={handleApplyKaiScript}
                   onSendPromptToTablet={(vp) => setTabletPromptFromKai(vp)}
                   onQuotaBlocked={openUpgradeModal}
+                  setTaskLoading={setTaskLoading}
+                  setKomaLoading={setKomaLoading}
+                  setCharacterLoading={setCharacterLoading}
                 />
-              ) : (
+              </div>
+              <div
+                style={{
+                  display:
+                    rightPanelTab === 'inspector' && (view === 'pages' || view === 'cover')
+                      ? 'block'
+                      : 'none',
+                  padding: '14px',
+                }}
+              >
                 <ViewControls
                   view={view}
                   project={project}
@@ -1685,7 +1685,7 @@ export default function StudioPage() {
                   onExportCover={() => coverDesignerRef.current?.exportCover()}
                   onOpenKai={openDockedKai}
                 />
-              )}
+              </div>
             </div>
           </aside>
         )}
@@ -1840,6 +1840,11 @@ function ViewControls({
 }) {
   const [style, setStyle] = useState<string>('Classic Shonen');
   const [coverError, setCoverError] = useState<string>('');
+  const [coverTargetBusy, setCoverTargetBusy] = useState<Record<'wrap' | 'front' | 'back', boolean>>({
+    wrap: false,
+    front: false,
+    back: false,
+  });
   const [komaErrors, setKomaErrors] = useState<Record<string, string>>({});
 
   const currentPage = project.pages[pageIndex];
@@ -1993,8 +1998,9 @@ function ViewControls({
   };
 
   const generateCoverTarget = async (target: 'wrap' | 'front' | 'back') => {
-    if (generating.cover) return;
+    if (coverTargetBusy[target]) return;
     setCoverError('');
+    setCoverTargetBusy((prev) => ({ ...prev, [target]: true }));
     setTaskLoading('cover', true);
     const promptSnapshot = coverPrompt;
 
@@ -2082,7 +2088,11 @@ function ViewControls({
         err instanceof Error ? err.message : 'No se pudo generar la cubierta Tankōbon.',
       );
     } finally {
-      setTaskLoading('cover', false);
+      setCoverTargetBusy((prev) => {
+        const next = { ...prev, [target]: false };
+        setTaskLoading('cover', Boolean(next.wrap || next.front || next.back));
+        return next;
+      });
     }
   };
 
@@ -2637,32 +2647,32 @@ function ViewControls({
           <PillButton
             variant="solid"
             icon={
-              isCoverBusy ? (
+              coverTargetBusy.wrap || (isCoverBusy && !coverTargetBusy.front && !coverTargetBusy.back) ? (
                 <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
               ) : (
                 <Sparkles size={16} strokeWidth={1.75} className="gf-icon-shrink" />
               )
             }
             onClick={() => generateCoverTarget('wrap')}
-            disabled={isCoverBusy}
+            disabled={coverTargetBusy.wrap}
           >
-            {isCoverBusy ? 'Generando Cubierta...' : 'Generar Full Wrap 16:9'}
+            {coverTargetBusy.wrap ? 'Generando Cubierta...' : 'Generar Full Wrap 16:9'}
           </PillButton>
 
           <PillButton
             variant="outline"
             onClick={() => generateCoverTarget('front')}
-            disabled={isCoverBusy}
+            disabled={coverTargetBusy.front}
           >
-            Generar Portada Frontal (3:4)
+            {coverTargetBusy.front ? 'Generando Portada Frontal...' : 'Generar Portada Frontal (3:4)'}
           </PillButton>
 
           <PillButton
             variant="outline"
             onClick={() => generateCoverTarget('back')}
-            disabled={isCoverBusy}
+            disabled={coverTargetBusy.back}
           >
-            Generar Contraportada (3:4)
+            {coverTargetBusy.back ? 'Generando Contraportada...' : 'Generar Contraportada (3:4)'}
           </PillButton>
 
           <PillButton

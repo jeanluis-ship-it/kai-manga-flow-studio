@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ArrowLeft } from 'lucide-react';
 import './demo.css';
 
 export const metadata: Metadata = { title: 'Anacaona · Prototipo visual de MANGAI' };
@@ -6,7 +7,13 @@ export const metadata: Metadata = { title: 'Anacaona · Prototipo visual de MANG
 export default function DemoPage() {
   return (
     <main className="demo-book">
-      <header><a href="/studio">← MANGAI Studio</a><span>Prototipo visual</span></header>
+      <header>
+        <a href="/studio" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <ArrowLeft size={14} strokeWidth={1.75} />
+          <span>MANGAI Studio</span>
+        </a>
+        <span>Prototipo visual</span>
+      </header>
       <h1>Anacaona<span>Flor de Guerra</span></h1>
       <p className="demo-intro">En la costa de Quisqueya, Anacaona reconoce las primeras velas en el horizonte. Así toma forma su historia en MANGAI.</p>
       <figure>

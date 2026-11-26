@@ -15,19 +15,31 @@ body {
    MANGAI STUDIO OS — THEME TOKENS (GENKŌ PAPER & SUMI INK)
    Light default (#ECEAE4 / #FFFFFF / #FAF8F5) + Dark Toggle
    ========================================================= */
-.gf-studio-root {
-  --gf-workspace: #eceae4;
-  --gf-surface: #ffffff;
+.gf-studio-root,
+.gf-studio-root[data-theme='light'] {
+  --genko-desk: #ECEAE4;
+  --genko-panel: #FFFFFF;
+  --genko-border: #E2E0D8;
+  --genko-canvas: #FAF8F5;
+  --genko-guide: #00AEEF;
+  --genko-ink: #111111;
+  --genko-kai: #4F46E5;
+
+  --gf-workspace: var(--genko-desk);
+  --gf-surface: var(--genko-panel);
+  --gf-panel: var(--genko-panel);
   --gf-surface-muted: #f5f3ee;
   --gf-surface-hover: #eeebe4;
-  --gf-border: #e2e0d8;
+  --gf-border: var(--genko-border);
   --gf-border-strong: #c8c5ba;
-  --gf-sheet: #faf8f5;
-  --gf-guide: #00aeef;
-  --gf-ink: #111111;
+  --gf-sheet: var(--genko-canvas);
+  --gf-guide: var(--genko-guide);
+  --gf-ink: var(--genko-ink);
+  --gf-text: var(--genko-ink);
   --gf-ink-secondary: #52525b;
+  --gf-muted: #52525b;
   --gf-ink-muted: #71717a;
-  --gf-ai-accent: #4f46e5;
+  --gf-ai-accent: var(--genko-kai);
   --gf-ai-soft: rgba(79, 70, 229, 0.1);
   --gf-seal: #e11d48;
   --gf-spine-accent: #047857;
@@ -47,28 +59,40 @@ body {
   --gf-error-fg: #9f1239;
   --gf-scrollbar: #c4c1b7;
 
+  color-scheme: light;
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100%;
-  background: var(--gf-workspace);
-  color: var(--gf-ink);
+  background: var(--genko-desk, var(--gf-workspace));
+  color: var(--genko-ink, var(--gf-ink));
   overflow: hidden;
 }
 
 .gf-studio-root[data-theme='dark'] {
-  --gf-workspace: #121316;
-  --gf-surface: #1a1c20;
+  --genko-desk: #121316;
+  --genko-panel: #1A1C20;
+  --genko-border: rgba(255, 255, 255, 0.11);
+  --genko-canvas: #FAF8F5;
+  --genko-guide: #00AEEF;
+  --genko-ink: #F4F4F5;
+  --genko-kai: #818CF8;
+
+  --gf-workspace: var(--genko-desk);
+  --gf-surface: var(--genko-panel);
+  --gf-panel: var(--genko-panel);
   --gf-surface-muted: #22252b;
   --gf-surface-hover: #2a2e36;
-  --gf-border: rgba(255, 255, 255, 0.11);
+  --gf-border: var(--genko-border);
   --gf-border-strong: rgba(255, 255, 255, 0.24);
-  --gf-sheet: #faf8f5;
-  --gf-guide: #00aeef;
-  --gf-ink: #f4f4f5;
+  --gf-sheet: var(--genko-canvas);
+  --gf-guide: var(--genko-guide);
+  --gf-ink: var(--genko-ink);
+  --gf-text: var(--genko-ink);
   --gf-ink-secondary: #a1a1aa;
-  --gf-ink-muted: #71717a;
-  --gf-ai-accent: #818cf8;
+  --gf-muted: #a1a1aa;
+  --gf-ink-muted: #9ca3af;
+  --gf-ai-accent: var(--genko-kai);
   --gf-ai-soft: rgba(129, 140, 248, 0.14);
   --gf-seal: #fb7185;
   --gf-spine-accent: #34d399;
@@ -87,6 +111,19 @@ body {
   --gf-error-border: rgba(244, 63, 94, 0.35);
   --gf-error-fg: #fda4af;
   --gf-scrollbar: #3f434e;
+
+  color-scheme: dark;
+}
+
+.gf-studio-root input,
+.gf-studio-root select,
+.gf-studio-root textarea {
+  color: var(--genko-ink, var(--gf-ink));
+}
+
+.gf-studio-root select option {
+  background: var(--genko-panel, var(--gf-surface));
+  color: var(--genko-ink, var(--gf-ink));
 }
 
 .gf-icon-shrink {
@@ -183,16 +220,17 @@ body {
 
 /* Top bar */
 .gf-topbar {
+  position: relative;
   height: 48px;
   flex-shrink: 0;
-  background: var(--gf-surface);
-  border-bottom: 1px solid var(--gf-border);
+  background: var(--genko-panel, var(--gf-surface));
+  border-bottom: 1px solid var(--genko-border, var(--gf-border));
   padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  z-index: 30;
+  z-index: 135;
 }
 
 .gf-topbar-left,
@@ -864,7 +902,10 @@ body {
 /* Modals */
 .gf-modal-backdrop {
   position: fixed;
-  inset: 0;
+  top: 48px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -874,8 +915,13 @@ body {
   padding: 24px;
 }
 
-@media (min-width: 961px) {
+@media (min-width: 901px) {
   .manga-grid:not(.is-right-collapsed) ~ .gf-modal-backdrop {
+    right: 368px;
+  }
+
+  .manga-grid:not(.is-right-collapsed) ~ .gf-auth-modal-overlay,
+  .manga-grid:not(.is-right-collapsed) ~ .gf-flipbook-overlay {
     right: 368px;
   }
 
