@@ -849,6 +849,8 @@ export const PageEditor: React.FC<{
                 type="button"
                 className={`gf-koma-template-btn ${isActive ? 'is-active' : ''}`}
                 onClick={() => onChangeLayout(page.id, tmpl.id)}
+                aria-pressed={isActive}
+                aria-label={`${tmpl.label}. Lectura de derecha a izquierda.`}
                 title={tmpl.description}
               >
                 <svg
@@ -857,14 +859,14 @@ export const PageEditor: React.FC<{
                   aria-hidden="true"
                 >
                   {tmpl.panels.map((poly, idx) => (
-                    <polygon
-                      key={idx}
-                      points={polygonToSvgPoints(poly)}
-                      fill={isActive ? 'rgba(79,70,229,0.16)' : 'rgba(17,17,17,0.06)'}
-                      stroke={isActive ? '#4F46E5' : 'currentColor'}
-                      strokeWidth="3.2"
-                      strokeLinejoin="round"
-                    />
+                    <g key={idx}>
+                      <polygon points={polygonToSvgPoints(poly)} fill="white" stroke="#111" strokeWidth="3" />
+                      <text x={poly.reduce((sum, point) => sum + point.x, 0) / poly.length}
+                        y={poly.reduce((sum, point) => sum + point.y, 0) / poly.length}
+                        textAnchor="middle" dominantBaseline="central" fill="#111" fontSize="16" fontWeight="700">
+                        {idx + 1}
+                      </text>
+                    </g>
                   ))}
                 </svg>
                 <span className="gf-koma-template-label">{tmpl.shortLabel}</span>

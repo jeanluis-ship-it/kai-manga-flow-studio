@@ -583,3 +583,6 @@
     display: none !important;
   }
 }
+
+.gf-koma-templates .gf-koma-template-svg { width:64px; height:76px; background:#101012; padding:3px; }
+.gf-koma-templates .gf-koma-template-btn.is-active { outline:2px solid #c8232c; outline-offset:-2px; }
