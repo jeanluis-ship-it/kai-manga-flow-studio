@@ -54,7 +54,7 @@ test('Landing Book Viewer: zero 1px GIF placeholders, 80 distinct spread page im
   assert.doesNotMatch(js, /data:image\/gif;base64|BLANK_LEAF_PIXEL/i, 'landing.js must not use 1px GIF placeholders');
   assert.doesNotMatch(html, /<h3 id="modalTitle">Título<\/h3>/i, 'Inspection modal must not contain generic "Título" placeholder');
 
-  const spreadImgMatches = [...js.matchAll(/image:\s*['"](\/landing\/assets\/mangai-art-\d+\.svg)['"]/g)].map((m) => m[1]);
+  const spreadImgMatches = [...js.matchAll(/image:\s*['"](\/landing\/samples\/[a-z0-9-]+\/[1-8]\.webp)['"]/g)].map((m) => m[1]);
   assert.equal(spreadImgMatches.length, 80, 'BOOKS must define 80 page images across 10 tomes (4 spreads × 2 pages each)');
   const uniqueSpreadImgs = new Set(spreadImgMatches);
   assert.equal(uniqueSpreadImgs.size, 80, 'All 80 spread page slots across the 10 tomes must use distinct art SVGs');
@@ -84,7 +84,7 @@ test('Landing Otaku & Kawaii KAI Redesign + Studio Project Deep-Links', () => {
     'ネーム → ペン入れ → 仕上げ',
     '原稿用紙 GENKŌ',
     '相棒カイ',
-    'openBookPagesBtn',
+    'openActiveBookBtn',
     'kaiBrushStudioLink',
     'collectionStudioLink',
     'modalStudioBtn',

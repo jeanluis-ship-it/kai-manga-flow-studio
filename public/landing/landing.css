@@ -2938,3 +2938,80 @@ img {
   text-decoration: underline; text-underline-offset: .24em;
 }
 .brush-panel-media, .folio-thumb { outline: 1px solid #17141b; }
+
+/* Paper mechanics are confined to the hero preview. */
+#bookStage { perspective: 2000px; }
+#bookStage .retiring-shelf { position:absolute; inset:0; margin:auto; pointer-events:none; }
+#mangaOpenBook {
+  perspective:2000px; transform-style:preserve-3d; animation:none; filter:none;
+  width:min(860px,calc(100% - 56px),108vh); aspect-ratio:16/9;
+  min-height:0; max-height:none; flex-shrink:0; touch-action:pan-y;
+}
+#mangaOpenBook .manga-page, #mangaOpenBook .manga-page:hover {
+  box-sizing:border-box; width:50%; min-width:0; transform:none; transition:none;
+}
+#mangaOpenBook .page-inner {
+  box-sizing:border-box; height:100%; display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto; gap:clamp(2px,.4vw,7px);
+  padding:clamp(4px,1vw,16px); text-align:left;
+}
+#mangaOpenBook .page-inner .manga-panel-art {
+  width:100%; height:100%; min-height:0; border:0; border-radius:1px; padding:0;
+  object-fit:contain; box-shadow:none; background:#faf7f0;
+}
+#mangaOpenBook .leaf-face { box-sizing:border-box; font:inherit; color:#17141b; }
+#mangaOpenBook .turning-leaf, #mangaOpenBook .leaf-curl-sheen,
+#mangaOpenBook .crease-cast-shadow { animation:none; }
+#mangaOpenBook .leaf-curl-sheen { opacity:var(--fold-shade,0); }
+#mangaOpenBook .crease-cast-shadow { opacity:var(--fold-shade,0); }
+#mangaOpenBook .opening-jacket {
+  position:absolute; left:50%; top:0; width:50%; height:100%; z-index:12;
+  border-radius:2px 8px 8px 2px; object-fit:cover; transform-origin:left top;
+  backface-visibility:hidden; pointer-events:none;
+}
+#mangaOpenBook :is(.page-stack-left,.page-stack-right) {
+  width:50%; top:0; bottom:0; background:none; box-shadow:none;
+}
+#mangaOpenBook .page-stack-left { left:0; --side:-1; }
+#mangaOpenBook .page-stack-right { right:0; --side:1; }
+#mangaOpenBook .page-stack-left img, #mangaOpenBook .page-stack-right img {
+  --offset:clamp(3px,1vw,13px);
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  border:3px solid #faf7f0; border-radius:6px; box-sizing:border-box;
+  box-shadow:0 3px 8px #211e1b44;
+  transform:translate3d(calc(var(--side)*var(--depth)*var(--offset)),1px,calc(var(--depth)*-2px)) scaleY(calc(1 - var(--depth)*.026));
+}
+#dockOpenControls { flex-wrap:wrap; justify-content:center; }
+#dockOpenControls :is(#closeBookBtn,#inspectOpenBookBtn) {
+  width:auto; padding-inline:.6rem; background:transparent; color:inherit; border:none; box-shadow:none; font:inherit; font-size:.82rem;
+}
+#inspectOpenBookBtn { text-decoration:underline; }
+#heroIndex { font: .78rem monospace; }
+@media(max-width:640px) {
+  #mangaOpenBook { width:calc(100% - 28px); aspect-ratio:1.45; }
+  #mangaOpenBook .manga-page-meta { font-size:8px; }
+  #mangaOpenBook .manga-caption h4 { font-size:10px; }
+  #mangaOpenBook .manga-caption p { font-size:9px; line-height:1.18; }
+}
+/* One double-width artboard is clipped on opposite sides of the binding.
+   Stationary pages and both rotating faces use the same local coordinates. */
+#mangaOpenBook .story-half {
+  position:relative; overflow:hidden; isolation:isolate; background:#faf7f0;
+  grid-template-rows:auto 1fr auto;
+}
+#mangaOpenBook .story-half::before {
+  content:""; position:absolute; z-index:-1; top:1.5%; bottom:1.5%; left:2%; width:196%;
+  background:var(--panorama) center 43% / cover no-repeat;
+}
+#mangaOpenBook .story-right::before { left:auto; right:2%; }
+#mangaOpenBook .story-half .manga-page-meta,
+#mangaOpenBook .story-half .manga-caption {
+  width:fit-content; max-width:95%; padding:.22em .45em; background:#faf7f0; color:#17141b;
+}
+#mangaOpenBook .story-half .manga-caption { align-self:end; grid-row:3; border-left:2px solid #211d21; }
+#mangaOpenBook .story-half .manga-caption p { display:none; }
+#mangaOpenBook .story-half:not(.story-right) .manga-panel-art { visibility:hidden; }
+#mangaOpenBook .story-half.story-right .manga-panel-art {
+  place-self:end; width:65%; height:75%; object-fit:cover;
+  border:3px solid white; outline:1px solid #211d21;
+}

@@ -51,7 +51,7 @@ test('Hero 3D Book Viewer: index.html preserves hero section, data-open-studio, 
   assert.match(html, /id="openActiveBookBtn"[\s\S]{0,90}Abrir Tomo/);
 });
 
-test('Hero 3D Book Viewer: zero unsplash.com URLs or leaked secrets; uses local /landing/assets/mangai-art- SVGs', () => {
+test('Hero 3D Book Viewer: zero unsplash.com URLs or leaked secrets; uses local illustrated WebP pages', () => {
   const html = load('public/landing/index.html');
   const js = load('public/landing/landing.js');
 
@@ -66,9 +66,24 @@ test('Hero 3D Book Viewer: zero unsplash.com URLs or leaked secrets; uses local 
       `${name} must not contain credentials or API key patterns`,
     );
     assert.ok(
-      source.includes('/landing/assets/mangai-art-'),
-      `${name} must reference local /landing/assets/mangai-art- assets`,
+      source.includes('/landing/samples/'),
+      `${name} must reference local illustrated pages`,
     );
+  }
+});
+
+test('Each of the ten books has eight distinct, readable WebP illustrations', () => {
+  const js = load('public/landing/landing.js');
+  const pages = new Set([...js.matchAll(/image: '(\/landing\/samples\/[^']+\.webp)'/g)].map(match => match[1]));
+  const books = new Set([...pages].map(page => page.slice(0, page.lastIndexOf('/'))));
+  assert.equal(books.size, 10);
+  assert.equal(pages.size, 80);
+  for (const book of books) {
+    for (let i = 1; i <= 8; i++) {
+      const page = book + '/' + i + '.webp';
+      assert.ok(pages.has(page), page);
+      assert.equal(readFileSync(join(base, 'public', page)).toString('ascii', 8, 12), 'WEBP', page);
+    }
   }
 });
 
@@ -200,7 +215,7 @@ test('Crease Carousel 0.1.0-prototype.1: preset validates contract, normalizes 1
     assert.match(slot.right.imageUrl, /^\/landing\/assets\/mangai-art-\d+\.svg$/);
   }
 
-  for (const cls of ['crease-spine-fold', 'crease-cast-shadow', 'leaf-face-front', 'leaf-face-back', 'crease-dots']) {
+  for (const cls of ['crease-spine-fold', 'crease-cast-shadow', 'leaf-face-front', 'leaf-face-back', 'page-stack-right', 'page-stack-left']) {
     assert.match(html, new RegExp(`\\bclass=["'][^"']*\\b${cls}\\b`, 'i'), `index.html missing .${cls}`);
     assert.ok(css.includes(`.${cls}`), `landing.css missing .${cls}`);
   }
@@ -233,5 +248,5 @@ test('Pinwheel Gallery 0.1.0-prototype.1: preset validates 10-panel rotor physic
   assert.equal(closedBooks.length, 10, 'Hero Pinwheel must render 10 .manga-closed-book panels');
   assert.match(html, /\bclass=["'][^"']*\bpinwheel-hub-ring\b/i);
   assert.ok(css.includes('.pinwheel-hub-ring'));
-  assert.ok(js.includes('switchOpenBookTo'));
+  assert.match(js, /settleTurn\(destination\)/);
 });
