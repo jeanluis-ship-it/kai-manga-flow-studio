@@ -36,8 +36,6 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
     'manga-closed-book',
     'manga-open-book',
     'dock-btn',
-    'dock-btn-kai',
-    'hero-marquee',
     'arch-flow-card',
   ]) {
     assert.match(
@@ -48,8 +46,8 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
   }
 
   assert.ok(
-    html.includes('GENKŌ YŌSHI · KOMA-WARI · KAI SENSEI · 300 DPI'),
-    'index.html must include the kinetic typographic marquee behind the 3D viewer',
+    !html.includes('GENKŌ YŌSHI · KOMA-WARI · KAI SENSEI · 300 DPI'),
+    'index.html must omit the kinetic typographic marquee behind the 3D viewer',
   );
 
   for (const [label, telemetry, href] of [
@@ -75,7 +73,7 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
   assert.match(html, /\bclass=["'][^"']*\bkai-chat-preview\b/i, 'index.html must include .kai-chat-preview');
   assert.match(
     html,
-    /<img\b[^>]*\bsrc=["']\/landing\/assets\/mangai-art-06\.svg["'][^>]*>/i,
+    /<img\b[^>]*\bsrc=["']\/landing\/assets\/cover-anacaona\.webp["'][^>]*>/i,
     'index.html must reference local /landing/assets/mangai-art-06.svg inside Kai brush preview',
   );
 

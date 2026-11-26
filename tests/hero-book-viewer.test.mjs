@@ -37,7 +37,6 @@ test('Hero 3D Book Viewer: index.html preserves hero section, data-open-studio, 
     'page-gutter-shadow-right',
     'turning-leaf',
     'dock-btn',
-    'dock-btn-kai',
   ];
 
   for (const cls of requiredClasses) {
@@ -48,11 +47,8 @@ test('Hero 3D Book Viewer: index.html preserves hero section, data-open-studio, 
     );
   }
 
-  assert.match(
-    html,
-    /<a\b[^>]*\bhref=["']\/studio\?tab=kai["'][^>]*>[\s\S]{0,160}?Editar en Estudio con Kai/i,
-    'index.html must include "Editar en Estudio con Kai" link pointing to /studio?tab=kai',
-  );
+  assert.doesNotMatch(html, /id="editWithKaiBtn"/);
+  assert.match(html, /id="openActiveBookBtn"[\s\S]{0,90}Abrir Tomo/);
 });
 
 test('Hero 3D Book Viewer: zero unsplash.com URLs or leaked secrets; uses local /landing/assets/mangai-art- SVGs', () => {

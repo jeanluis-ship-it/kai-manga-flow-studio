@@ -119,10 +119,10 @@ test('Landing Pass 2: header auth link, dedicated KAI rain panel SVG, and zero d
   assert.ok(css.includes('.nav-auth-link'), 'landing.css must style .nav-auth-link');
   assert.ok(js.includes('syncLandingAuthLink'), 'landing.js must define syncLandingAuthLink');
 
-  const panelPath = join(base, 'public/landing/assets/kai-anacaona-rain-panel.svg');
+  const panelPath = join(base, 'public/landing/assets/anacaona-lluvia.webp');
   assert.ok(existsSync(panelPath), 'Dedicated KAI rain panel SVG must exist');
   assert.ok(statSync(panelPath).size > 2560, 'Dedicated KAI rain panel SVG must be > 2.5 KB');
-  assert.match(html, /src=["']\/landing\/assets\/kai-anacaona-rain-panel\.svg["']/i);
+  assert.match(html, /src=["']\/landing\/assets\/anacaona-lluvia\.webp["']/i);
 
   const dueloMatches = html.match(/Duelo en la Selva/g) || [];
   assert.equal(dueloMatches.length, 1, 'Duelo en la Selva must appear once in initial DOM (no duplicate inside hidden turningLeaf)');

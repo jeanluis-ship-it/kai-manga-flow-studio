@@ -48,36 +48,14 @@
   <main>
     <section class="hero" id="inicio">
       <div class="shell hero-inner">
-        <div class="hero-top">
-          <div class="eyebrow">GENKŌ PAPER &amp; SUMI INK · ESTUDIO EDITORIAL DE MANGA</div>
-          <div class="vertical-caption eyebrow">
-            <span class="tech-stamp stamp-tilt-left">L2 INK</span>
-            <span class="tech-stamp stamp-tilt-right">600 DPI</span>
-            <span class="tech-stamp stamp-tilt-left">B6 TANKŌBON</span>
-            <span class="tech-stamp stamp-tilt-right">CANVA B4</span>
-          </div>
-        </div>
-
-        <div class="hero-marquee" aria-hidden="true">
-          <div class="hero-marquee-track">
-            <span>GENKŌ YŌSHI · KOMA-WARI · KAI SENSEI · 300 DPI ·&nbsp;</span>
-            <span>GENKŌ YŌSHI · KOMA-WARI · KAI SENSEI · 300 DPI ·&nbsp;</span>
-          </div>
-        </div>
-
-        <div class="hero-watermark" aria-hidden="true">STORIES WITHOUT LIMITS</div>
-
         <div class="mangai-hero-stage" id="heroBookStage">
           <header class="mangai-hero-header">
             <div class="hero-stamps-bar">
               <span class="mangai-badge" id="heroGenre">MANGAI ORIGINALS · FANTASÍA HISTÓRICA</span>
-              <span class="tech-stamp stamp-crimson">L2 INK · 600 DPI</span>
             </div>
             <h1 class="mangai-hero-title caps">
               <span id="heroBookTitle">AnaCaona: Flor Guerrera</span>
-              <span class="sumi-brush-accent">墨と原稿</span>
             </h1>
-            <p class="mangai-hero-subtitle" id="heroBookSubtitle">Gira la rueda Pinwheel 3D o haz clic en el tomo frontal para abrir sus pliegos con efecto Crease</p>
           </header>
 
           <div class="mangai-stage-center" id="bookStage" aria-label="Pinwheel gallery de tomos MANGAI">
@@ -149,7 +127,7 @@
             <div class="mangai-dock-nav" id="dockClosedControls">
               <button type="button" class="dock-btn" id="prevBook" aria-label="Tomo anterior en Pinwheel" title="Girar al tomo anterior">‹</button>
               <button type="button" class="dock-btn-primary" id="openActiveBookBtn"><span class="ink-face"><span>Abrir Tomo</span></span></button>
-              <button type="button" class="dock-btn-secondary" id="inspectActiveBookBtn" aria-haspopup="dialog" aria-controls="modal">Ficha Técnica</button>
+              <button type="button" class="dock-btn-secondary" id="inspectActiveBookBtn" aria-haspopup="dialog" aria-controls="modal">Ver ficha</button>
               <button type="button" class="dock-btn" id="nextBook" aria-label="Siguiente tomo en Pinwheel" title="Girar al siguiente tomo">›</button>
             </div>
             <div class="mangai-dock-nav" id="dockOpenControls" hidden>
@@ -160,8 +138,6 @@
               <button type="button" class="dock-btn-secondary" id="switchNextTomeBtn" title="Saltar al siguiente tomo del Pinwheel">Siguiente Tomo ↻</button>
               <a class="dock-btn-secondary dock-btn-pages" id="openBookPagesBtn" href="/studio?tab=koma">Abrir Páginas ↗</a>
             </div>
-            <a class="dock-btn-kai" id="editWithKaiBtn" href="/studio?tab=kai">Editar en Estudio con Kai ↗</a>
-            <span class="dock-counter" id="heroIndex">01 / 10</span>
           </div>
         </div>
       </div>
@@ -250,8 +226,8 @@
                 <div class="msg-kai"><strong>Kai:</strong> ¡Listo! Apliqué contrapicado, líneas cinéticas y alto contraste en tinta sumi.</div>
               </div>
               <div class="brush-panel-media">
-                <img src="/landing/assets/kai-anacaona-rain-panel.svg" alt="Viñeta generada con Kai: AnaCaona deteniendo la espada bajo la lluvia en tinta sumi" class="brush-panel-img" loading="lazy">
-                <img src="/landing/assets/mangai-art-06.svg" alt="Referencia canónica de AnaCaona" class="brush-panel-ref-badge" loading="lazy">
+                <img src="/landing/assets/anacaona-lluvia.webp" alt="Viñeta generada con Kai: AnaCaona deteniendo la espada bajo la lluvia en tinta sumi" class="brush-panel-img" loading="lazy">
+                <img src="/landing/assets/cover-anacaona.webp" alt="Referencia canónica de AnaCaona" class="brush-panel-ref-badge" loading="lazy">
                 <div class="brush-panel-tone" aria-hidden="true"></div>
               </div>
               <div class="brush-finish-bar" role="group" aria-label="Acabado de demostración">
@@ -346,18 +322,18 @@
               <button type="button" class="folio-card folio-back" data-folio="0" data-volume="anacaona-vol1" aria-pressed="false">
                 <span class="folio-kanji-stamp">第一話 · CAPÍTULO 01</span>
                 <h4>El Despertar</h4>
-                <img src="/landing/assets/mangai-art-12.svg" alt="Capítulo 01 El Despertar" class="folio-thumb" loading="lazy">
+                <img src="/landing/samples/anacaona-vol1/1.webp" alt="Capítulo 01 El Despertar" class="folio-thumb" loading="lazy">
               </button>
               <button type="button" class="folio-card folio-mid" data-folio="1" data-volume="atlas-sketchbook" aria-pressed="false">
                 <span class="folio-kanji-stamp">第二話 · CAPÍTULO 02</span>
                 <h4>Sombra de Tinta</h4>
-                <img src="/landing/assets/mangai-art-14.svg" alt="Capítulo 02 Sombra de Tinta" class="folio-thumb" loading="lazy">
+                <img src="/landing/samples/anacaona-vol1/3.webp" alt="Capítulo 02 Sombra de Tinta" class="folio-thumb" loading="lazy">
               </button>
               <button type="button" class="folio-card folio-front is-focused" data-folio="2" data-volume="anacaona-vol1" aria-pressed="true">
                 <div class="folio-badge">完成原稿 • LISTO PARA KDP • 300 DPI</div>
                 <h4>Tu Serie Completa Organizada</h4>
                 <p>Cada panel, boceto y portada se guarda automáticamente en tus tomos personales listos para leer o exportar.</p>
-                <img src="/landing/assets/mangai-art-22.svg" alt="Serie organizada lista para Amazon KDP 300 DPI" class="folio-thumb" loading="lazy">
+                <img src="/landing/samples/anacaona-vol1/8.webp" alt="Serie organizada lista para Amazon KDP 300 DPI" class="folio-thumb" loading="lazy">
               </button>
             </div>
           </div>
@@ -435,7 +411,6 @@
               <div class="featured-ribbon">一番人気 • Más Popular</div>
               <div class="plan-top-meta">
                 <span class="plan-kanji">師範 • ESTUDIO PRO</span>
-                <span class="tech-stamp stamp-crimson">B6 &amp; CANVA B4</span>
               </div>
               <h3>Pro</h3>
               <div class="plan-price"><strong>$3.49</strong><span>/ mes</span></div>
@@ -525,7 +500,7 @@
       </button>
       <div class="modal-img">
         <div class="modal-cover-frame">
-          <img id="modalArt" src="/landing/assets/mangai-art-06.svg" width="640" height="900" alt="Portada de AnaCaona: Flor Guerrera">
+          <img id="modalArt" src="/landing/assets/cover-anacaona.webp" width="640" height="900" alt="Portada de AnaCaona: Flor Guerrera">
           <div class="modal-cover-fallback" id="modalArtFallback" hidden>
             <span class="eyebrow" id="modalFallbackVol">VOL. I</span>
             <strong id="modalFallbackTitle">AnaCaona: Flor Guerrera</strong>
@@ -537,7 +512,6 @@
         <div class="modal-meta-chips">
           <span class="eyebrow" id="modalTag">MANGAI ORIGINALS · VOL. I · FANTASÍA HISTÓRICA</span>
           <span class="tech-stamp" id="modalVolumeChip">VOL. I</span>
-          <span class="tech-stamp stamp-crimson" id="modalGenreChip">Fantasía histórica</span>
         </div>
         <h3 id="modalTitle">AnaCaona: Flor Guerrera</h3>
         <p class="modal-subtitle" id="modalSubtitle">Serie AnaCaona · Flor de guerra · 4 pliegos (8 páginas Genkō)</p>

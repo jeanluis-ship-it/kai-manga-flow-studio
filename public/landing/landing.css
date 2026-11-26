@@ -2932,3 +2932,9 @@ img {
     animation: none !important;
   }
 }
+
+#inspectActiveBookBtn {
+  background: transparent; color: inherit; border: 0; box-shadow: none;
+  text-decoration: underline; text-underline-offset: .24em;
+}
+.brush-panel-media, .folio-thumb { outline: 1px solid #17141b; }
