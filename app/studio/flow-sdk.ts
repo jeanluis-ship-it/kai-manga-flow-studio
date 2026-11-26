@@ -6,6 +6,7 @@ export type ImageMode = 'sheet' | 'cover_wrap' | 'panel' | 'portrait' | 'sketch_
 
 export interface GenerateImageParams {
   prompt: string;
+  provider?: 'flux';
   modelDisplayName?: string;
   aspectRatio?: AspectRatio;
   referenceImageMediaIds?: string[];
@@ -147,6 +148,7 @@ export const Flow = {
 
       const formData = new FormData();
       formData.set('mode', mode);
+      if (params.provider) formData.set('provider', params.provider);
       formData.set('aspectRatio', aspectRatio);
       formData.set('preferredModel', preferredModel);
       if (params.useHdModel) formData.set('useHdModel', 'true');

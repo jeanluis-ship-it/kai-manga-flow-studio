@@ -84,6 +84,7 @@ import { DrawingTabletWorkbench } from './components/DrawingTabletWorkbench';
 import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
 import { PageEditor } from './components/PageEditor';
 import { PreflightModal } from './components/PreflightModal';
+import { FluxStudio } from './components/FluxStudio';
 import { ProjectManager } from './components/ProjectManager';
 
 const MangaFlipbookViewer = dynamic(() => import('./components/MangaFlipbookViewer'), {
@@ -200,6 +201,7 @@ const DIALOGUE_STYLE_OPTIONS: Array<{ value: DialogueStyle; label: string }> = [
 export function resolveTabParam(raw: string | null): StudioView | null {
   if (!raw) return null;
   const slug = raw.trim().toLowerCase();
+  if (slug === 'flux') return 'flux';
   if (slug === 'project' || slug === 'lore' || slug === 'setup' || slug === 'config') {
     return 'project';
   }
@@ -1374,6 +1376,8 @@ export default function StudioPage() {
               <span>MANGAI STUDIO</span>
             </Link>
             <div className="gf-nav-list">
+              <NavItem active={view === 'flux'} icon={<Sparkles size={17} strokeWidth={1.75} />}
+                label="Ilustrar con FLUX" onClick={() => handleSelectView('flux')} />
               <NavItem
                 active={view === 'project'}
                 icon={<Printer size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
@@ -1526,6 +1530,9 @@ export default function StudioPage() {
 
         <main className="gf-canvas-shell">
           <div className="gf-canvas-scroll dark-scrollbar">
+            <div hidden={view !== 'flux'}>
+              <FluxStudio key={project.id || project.volumeSlug || 'local'} project={project} updateProject={updateProject} />
+            </div>
             {view === 'pages' && (
               <PageEditor
                 project={project}
