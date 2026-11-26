@@ -7,7 +7,7 @@ export type ColorMode = 'bw' | 'color';
 
 export type BindingType = 'rustica_pegada' | 'tapa_dura' | 'grapa';
 
-export type StudioView = 'project' | 'characters' | 'cover' | 'pages' | 'drawing_tablet' | 'flux';
+export type StudioView = 'project' | 'characters' | 'cover' | 'pages' | 'drawing_tablet';
 
 export type SetteiEntityType = 'character' | 'prop' | 'location' | 'lore_rule';
 

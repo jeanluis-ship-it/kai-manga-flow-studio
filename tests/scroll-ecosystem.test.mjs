@@ -37,12 +37,34 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
     'manga-open-book',
     'dock-btn',
     'dock-btn-kai',
+    'hero-marquee',
+    'arch-flow-card',
   ]) {
     assert.match(
       html,
       new RegExp(`\\bclass=["'][^"']*\\b${cls}\\b`, 'i'),
-      `index.html must preserve Hero 3D class .${cls}`,
+      `index.html must preserve Hero 3D / Flow class .${cls}`,
     );
+  }
+
+  assert.ok(
+    html.includes('GENKŌ YŌSHI · KOMA-WARI · KAI SENSEI · 300 DPI'),
+    'index.html must include the kinetic typographic marquee behind the 3D viewer',
+  );
+
+  for (const [label, telemetry, href] of [
+    ['01 · KAI SENSEI', 'DUAL JSON · NEMU AUTO', '/studio?tab=kai'],
+    ['02 · SETTEI HUB', '@ANCLAS · SEED LOCKED', '/studio?tab=settei'],
+    ['03 · KOMA-WARI &amp; L0–L6', 'FUKIDASHI SVG · SCREENTONES', '/studio?tab=koma'],
+    ['04 · PRE-PRENSA', 'B6 · CANVA B4 2150×3035 · KDP', '/studio?tab=prepress'],
+  ]) {
+    assert.ok(html.includes(label), `index.html must include flow card title ${label}`);
+    assert.ok(html.includes(telemetry), `index.html must include flow telemetry ${telemetry}`);
+    assert.ok(html.includes(`href="${href}"`), `index.html must link flow card to ${href}`);
+  }
+
+  for (const stamp of ['L2 INK', '600 DPI', 'B6 TANKŌBON', 'CANVA B4']) {
+    assert.ok(html.includes(stamp), `index.html must include technical stamp ${stamp}`);
   }
 
   assert.match(html, /\bclass=["'][^"']*\bsuminagashi-waves\b/i, 'index.html must include .suminagashi-waves SVG');
@@ -53,8 +75,8 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
   assert.match(html, /\bclass=["'][^"']*\bkai-chat-preview\b/i, 'index.html must include .kai-chat-preview');
   assert.match(
     html,
-    /<img\b[^>]*\bsrc=["']\/landing\/assets\/kai-anacaona-rain-panel\.svg["'][^>]*>/i,
-    'index.html must reference local /landing/assets/kai-anacaona-rain-panel.svg inside Kai brush preview',
+    /<img\b[^>]*\bsrc=["']\/landing\/assets\/mangai-art-06\.svg["'][^>]*>/i,
+    'index.html must reference local /landing/assets/mangai-art-06.svg inside Kai brush preview',
   );
 
   for (const finish of ['gpen', 'tone', 'crimson']) {
@@ -76,10 +98,22 @@ test('Sumi Ink Story Flow: index.html orders #inicio -> #storyFlow -> #kai -> #c
   assert.ok(html.includes('300 DPI'), 'index.html must include 300 DPI KDP badge copy');
 
   const planCards = html.match(/\bclass=["'][^"']*\bmanga-plan-card\b[^"']*["']/g) || [];
-  assert.equal(planCards.length, 4, 'index.html must include exactly 4 .manga-plan-card items');
-  for (const planToken of ['Trial', '$0.00', 'Starter', '$2.49', 'Pro', '$3.49', 'Master', '$4.49', 'Más Popular']) {
+  assert.equal(planCards.length, 4, 'index.html must include exactly 4 .manga-plan-card bento items');
+  for (const planToken of [
+    'Trial',
+    '$0.00',
+    'Starter',
+    '$2.49',
+    'Pro',
+    '$3.49',
+    'Más Popular',
+    'Master',
+    '$4.49',
+    'Nano Banana 2 HD',
+  ]) {
     assert.ok(html.includes(planToken), `index.html must include pricing copy "${planToken}"`);
   }
+  assert.doesNotMatch(html, /\$19|\$49/, 'index.html must not contain legacy $19 or $49 pricing');
 
   assert.match(html, /\bclass=["'][^"']*\bfinal-cta-scroll\b/i, 'index.html must include .final-cta-scroll');
   assert.ok(html.includes('道心静'), 'index.html must include 道心静 kanji watermark');
@@ -105,6 +139,7 @@ test('Sumi Ink Story Flow: zero unsplash.com URLs or leaked secrets in landing H
       /OPENAI_API_KEY|GEMINI_API_KEY|NEXT_PUBLIC_GEMINI|VITE_GEMINI|sk-proj-|AIza[0-9A-Za-z_-]{20,}/i,
       `${name} must not contain API keys or credentials`,
     );
+    assert.doesNotMatch(source, /\$19|\$49/, `${name} must not contain legacy $19 or $49 references`);
   }
 });
 
@@ -118,6 +153,13 @@ test('Sumi Ink Story Flow: landing.css preserves --cream:#f4f0e7, balanced brace
   assert.equal(openBraces, closeBraces, 'landing.css must have balanced curly braces');
 
   const requiredSelectors = [
+    '.nav-pill-shell',
+    '.hero-marquee',
+    '.hero-marquee-track',
+    '.tech-stamp',
+    '.arch-flow-grid',
+    '.arch-flow-card',
+    '.arch-telemetry-strip',
     '.mangai-story-flow',
     '.suminagashi-waves',
     '.sumi-ink-stream-track',
@@ -185,6 +227,7 @@ test('Sumi Ink Story Flow: landing.js wires initSumiStoryFlow, scroll thread, pa
     '.folio-card',
     '#kaiBrushCard',
     '.brush-finish-btn',
+    'populateInspectionModal',
     "window.location.assign('/studio')",
   ]) {
     assert.ok(js.includes(token), `landing.js must wire ${token}`);

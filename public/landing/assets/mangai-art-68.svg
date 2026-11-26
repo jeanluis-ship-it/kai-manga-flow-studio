@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="tone-68" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.35" fill="#17141b" opacity="0.22"/>
+    </pattern>
+    <pattern id="hatch-68" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(76)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#34d399" stroke-width="1.5" opacity="0.32"/>
+    </pattern>
+    <pattern id="genko-68" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.65" opacity="0.22"/>
+    </pattern>
+    <linearGradient id="bg-68" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#082026"/>
+      <stop offset="100%" stop-color="#090a0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="900" fill="#faf7f0"/>
+  <rect x="20" y="20" width="600" height="860" fill="url(#genko-68)" stroke="#00aeef" stroke-width="1" stroke-dasharray="6 4" opacity="0.75"/>
+  <rect x="40" y="44" width="560" height="812" rx="8" fill="#faf7f0" stroke="#17141b" stroke-width="3.5"/>
+  <rect x="56" y="62" width="528" height="54" rx="4" fill="#17141b"/>
+  <text x="74" y="86" fill="#34d399" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" letter-spacing="1.8">KAZE · ÓRBITA CERO</text>
+  <text x="74" y="105" fill="#faf7f0" font-family="monospace" font-size="11" font-weight="700">PÁG. 06 · IMPACTO DE RIEL</text>
+  <text x="566" y="95" text-anchor="end" fill="#00aeef" font-family="monospace" font-size="11" font-weight="800">L2 INK · 600 DPI</text>
+
+  <rect x="56" y="128" width="528" height="260" fill="url(#bg-68)" stroke="#17141b" stroke-width="3"/>
+  <rect x="56" y="128" width="528" height="260" fill="url(#tone-68)"/>
+  <polygon points="56,404 584,376 584,696 56,696" fill="url(#bg-68)" stroke="#17141b" stroke-width="3"/>
+  
+    <g id="scene-68-railgun_shot">
+      <line x1="336" y1="302" x2="312" y2="140" stroke="#34d399" stroke-width="1.2" opacity="0.28"/>
+    <line x1="336" y1="302" x2="359" y2="720" stroke="#34d399" stroke-width="1.8" opacity="0.28"/>
+    <line x1="336" y1="302" x2="406" y2="140" stroke="#34d399" stroke-width="2.4" opacity="0.28"/>
+    <line x1="336" y1="302" x2="453" y2="720" stroke="#34d399" stroke-width="1.2" opacity="0.28"/>
+    <line x1="336" y1="302" x2="500" y2="140" stroke="#34d399" stroke-width="1.8" opacity="0.28"/>
+    <line x1="336" y1="302" x2="547" y2="720" stroke="#34d399" stroke-width="2.4" opacity="0.28"/>
+    <line x1="336" y1="302" x2="74" y2="140" stroke="#34d399" stroke-width="1.2" opacity="0.28"/>
+    <line x1="336" y1="302" x2="121" y2="720" stroke="#34d399" stroke-width="1.8" opacity="0.28"/>
+    <line x1="336" y1="302" x2="168" y2="140" stroke="#34d399" stroke-width="2.4" opacity="0.28"/>
+    <line x1="336" y1="302" x2="215" y2="720" stroke="#34d399" stroke-width="1.2" opacity="0.28"/>
+    <line x1="336" y1="302" x2="262" y2="140" stroke="#34d399" stroke-width="1.8" opacity="0.28"/>
+    <line x1="336" y1="302" x2="309" y2="720" stroke="#34d399" stroke-width="2.4" opacity="0.28"/>
+      <circle cx="336" cy="302" r="118" fill="none" stroke="#34d399" stroke-width="1.8" stroke-dasharray="10 6" opacity="0.55"/>
+      <circle cx="336" cy="302" r="84" fill="#34d399" opacity="0.2"/>
+      <circle cx="336" cy="302" r="32" fill="#faf7f0" stroke="#17141b" stroke-width="3"/>
+      <path d="M218 434 Q336 252 418 434 L453 690 L183 690 Z" fill="#17141b" stroke="#34d399" stroke-width="2.2"/>
+      <path d="M72 394 L568 370 L568 385 L72 449 Z" fill="url(#hatch-68)" stroke="#17141b" stroke-width="2.5"/>
+      <g transform="translate(336,302) rotate(124)">
+        <polygon points="0,-102 18,-14 102,0 18,14 0,102 -18,14 -102,0 -18,-14" fill="#34d399" stroke="#17141b" stroke-width="2.4" opacity="0.88"/>
+        <circle cx="0" cy="0" r="11" fill="#17141b" stroke="#faf7f0" stroke-width="2"/>
+      </g>
+      <path d="M261 560 C306 470 366 470 411 560 Z" fill="#34d399" stroke="#17141b" stroke-width="2.6"/>
+      <rect x="84" y="468" width="210" height="86" rx="6" fill="#faf7f0" stroke="#17141b" stroke-width="2.8"/>
+      <path d="M126 554 L148 584 L164 554 Z" fill="#faf7f0" stroke="#17141b" stroke-width="2.4"/>
+    </g>
+  <text x="189" y="506" text-anchor="middle" fill="#17141b" font-family="Arial Black,Arial,sans-serif" font-size="15" font-weight="900">ドォン!! CAÑÓN</text>
+  <text x="189" y="530" text-anchor="middle" fill="#57515e" font-family="Arial,sans-serif" font-size="11" font-weight="700">KOMA-WARI · FUKIDASHI SVG</text>
+
+  <rect x="56" y="712" width="528" height="124" rx="6" fill="#17141b" stroke="#34d399" stroke-width="2"/>
+  <text x="76" y="744" fill="#34d399" font-family="monospace" font-size="12" font-weight="800" letter-spacing="1.4">CONTRASTE EXTREMO · TRAMAS METÁLICAS</text>
+  <text x="76" y="772" fill="#faf7f0" font-family="Arial,sans-serif" font-size="14" font-weight="800">PÁG. 06 · IMPACTO DE RIEL</text>
+  <text x="76" y="798" fill="#cbd5e1" font-family="monospace" font-size="11">GENKŌ YŌSHI · B6 TANKŌBON · CANVA B4 2150×3035 · SEED #5964</text>
+  <rect x="464" y="734" width="98" height="32" rx="4" fill="#34d399"/>
+  <text x="513" y="755" text-anchor="middle" fill="#17141b" font-family="monospace" font-size="12" font-weight="900">FOLIO #68</text>
+</svg>

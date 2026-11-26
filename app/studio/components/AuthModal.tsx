@@ -96,7 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onClose, onAuthSucce
     <div
       className="gf-auth-modal-overlay"
       role="dialog"
-      aria-modal="false"
+      aria-modal="true"
       aria-label="Autenticación de MANGAI Studio"
       onClick={() => !busy && onClose()}
     >

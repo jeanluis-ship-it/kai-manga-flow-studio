@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="tone-79" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.35" fill="#17141b" opacity="0.22"/>
+    </pattern>
+    <pattern id="hatch-79" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(83)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#fbbf24" stroke-width="1.5" opacity="0.32"/>
+    </pattern>
+    <pattern id="genko-79" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.65" opacity="0.22"/>
+    </pattern>
+    <linearGradient id="bg-79" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#090a0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="900" fill="#faf7f0"/>
+  <rect x="20" y="20" width="600" height="860" fill="url(#genko-79)" stroke="#00aeef" stroke-width="1" stroke-dasharray="6 4" opacity="0.75"/>
+  <rect x="40" y="44" width="560" height="812" rx="8" fill="#faf7f0" stroke="#17141b" stroke-width="3.5"/>
+  <rect x="56" y="62" width="528" height="54" rx="4" fill="#17141b"/>
+  <text x="74" y="86" fill="#fbbf24" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" letter-spacing="1.8">SENSEI · TINTA VIVA</text>
+  <text x="74" y="105" fill="#faf7f0" font-family="monospace" font-size="11" font-weight="700">PÁG. 01 · MESA DE TRABAJO · 03:00 AM</text>
+  <text x="566" y="95" text-anchor="end" fill="#00aeef" font-family="monospace" font-size="11" font-weight="800">L2 INK · 600 DPI</text>
+
+  <rect x="56" y="128" width="528" height="260" fill="url(#bg-79)" stroke="#17141b" stroke-width="3"/>
+  <rect x="56" y="128" width="528" height="260" fill="url(#tone-79)"/>
+  <polygon points="56,404 584,376 584,696 56,696" fill="url(#bg-79)" stroke="#17141b" stroke-width="3"/>
+  
+    <g id="scene-79-studio_desk">
+      <line x1="343" y1="341" x2="521" y2="140" stroke="#fbbf24" stroke-width="1.2" opacity="0.28"/>
+    <line x1="343" y1="341" x2="568" y2="720" stroke="#fbbf24" stroke-width="1.8" opacity="0.28"/>
+    <line x1="343" y1="341" x2="95" y2="140" stroke="#fbbf24" stroke-width="2.4" opacity="0.28"/>
+    <line x1="343" y1="341" x2="142" y2="720" stroke="#fbbf24" stroke-width="1.2" opacity="0.28"/>
+    <line x1="343" y1="341" x2="189" y2="140" stroke="#fbbf24" stroke-width="1.8" opacity="0.28"/>
+    <line x1="343" y1="341" x2="236" y2="720" stroke="#fbbf24" stroke-width="2.4" opacity="0.28"/>
+    <line x1="343" y1="341" x2="283" y2="140" stroke="#fbbf24" stroke-width="1.2" opacity="0.28"/>
+    <line x1="343" y1="341" x2="330" y2="720" stroke="#fbbf24" stroke-width="1.8" opacity="0.28"/>
+    <line x1="343" y1="341" x2="377" y2="140" stroke="#fbbf24" stroke-width="2.4" opacity="0.28"/>
+    <line x1="343" y1="341" x2="424" y2="720" stroke="#fbbf24" stroke-width="1.2" opacity="0.28"/>
+    <line x1="343" y1="341" x2="471" y2="140" stroke="#fbbf24" stroke-width="1.8" opacity="0.28"/>
+    <line x1="343" y1="341" x2="518" y2="720" stroke="#fbbf24" stroke-width="2.4" opacity="0.28"/>
+      <circle cx="343" cy="341" r="126" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="10 6" opacity="0.55"/>
+      <circle cx="343" cy="341" r="92" fill="#fbbf24" opacity="0.2"/>
+      <circle cx="343" cy="341" r="51" fill="#faf7f0" stroke="#17141b" stroke-width="3"/>
+      <path d="M109 447 Q343 241 439 447 L474 690 L74 690 Z" fill="#17141b" stroke="#fbbf24" stroke-width="2.2"/>
+      <path d="M72 412 L568 322 L568 427 L72 437 Z" fill="url(#hatch-79)" stroke="#17141b" stroke-width="2.5"/>
+      <g transform="translate(343,341) rotate(17)">
+        <polygon points="0,-110 18,-14 110,0 18,14 0,110 -18,14 -110,0 -18,-14" fill="#fbbf24" stroke="#17141b" stroke-width="2.4" opacity="0.88"/>
+        <circle cx="0" cy="0" r="11" fill="#17141b" stroke="#faf7f0" stroke-width="2"/>
+      </g>
+      <path d="M268 560 C313 470 373 470 418 560 Z" fill="#fbbf24" stroke="#17141b" stroke-width="2.6"/>
+      <rect x="84" y="468" width="210" height="86" rx="6" fill="#faf7f0" stroke="#17141b" stroke-width="2.8"/>
+      <path d="M126 554 L148 584 L164 554 Z" fill="#faf7f0" stroke="#17141b" stroke-width="2.4"/>
+    </g>
+  <text x="189" y="506" text-anchor="middle" fill="#17141b" font-family="Arial Black,Arial,sans-serif" font-size="15" font-weight="900">TALLER DE MANGAKA</text>
+  <text x="189" y="530" text-anchor="middle" fill="#57515e" font-family="Arial,sans-serif" font-size="11" font-weight="700">KOMA-WARI · FUKIDASHI SVG</text>
+
+  <rect x="56" y="712" width="528" height="124" rx="6" fill="#17141b" stroke="#fbbf24" stroke-width="2"/>
+  <text x="76" y="744" fill="#fbbf24" font-family="monospace" font-size="12" font-weight="800" letter-spacing="1.4">PAPEL GENKŌ 135 KG · PLUMILLA G-PEN</text>
+  <text x="76" y="772" fill="#faf7f0" font-family="Arial,sans-serif" font-size="14" font-weight="800">PÁG. 01 · MESA DE TRABAJO · 03:00 AM</text>
+  <text x="76" y="798" fill="#cbd5e1" font-family="monospace" font-size="11">GENKŌ YŌSHI · B6 TANKŌBON · CANVA B4 2150×3035 · SEED #6767</text>
+  <rect x="464" y="734" width="98" height="32" rx="4" fill="#fbbf24"/>
+  <text x="513" y="755" text-anchor="middle" fill="#17141b" font-family="monospace" font-size="12" font-weight="900">FOLIO #79</text>
+</svg>

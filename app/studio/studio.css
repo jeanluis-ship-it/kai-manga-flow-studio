@@ -4344,27 +4344,3 @@ body {
     box-shadow: none !important;
   }
 }
-
-/* Keep project dialogs inside the work area while the KAI dock is open. */
-@media (min-width: 901px) {
-  .manga-grid:not(.is-right-collapsed) ~ :is(.gf-modal-backdrop, .gf-auth-modal-overlay, .gf-flipbook-overlay) {
-    right: 368px;
-  }
-}
-@media (max-width: 900px) {
-  .gf-studio-root:has(.gf-modal-backdrop, .gf-auth-modal-overlay, .gf-flipbook-overlay) .gf-sidebar-right-docked {
-    position: fixed;
-    inset: auto 0 0;
-    height: 44dvh;
-    z-index: 180;
-    background: var(--gf-surface);
-  }
-  .gf-studio-root:has(.gf-sidebar-right-docked) :is(.gf-modal-backdrop, .gf-auth-modal-overlay, .gf-flipbook-overlay) {
-    position: fixed;
-    inset: 0 0 44dvh;
-    align-items: flex-start;
-    overflow: auto;
-    padding: 12px;
-  }
-  .gf-topbar .gf-quota-top-pill { display: inline-flex; }
-}

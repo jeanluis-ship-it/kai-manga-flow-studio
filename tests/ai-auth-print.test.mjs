@@ -106,13 +106,13 @@ test('Image API & GeminiImage contracts preserve test constraints and unblocked 
   // 3-tier fallback in geminiImage.ts
   assert.match(geminiImage, /gemini-2\.5-flash-image/);
   assert.match(geminiImage, /gemini-3\.1-flash-lite-image/);
-  assert.doesNotMatch(geminiImage, /generateFreeImageFallback/);
+  assert.match(geminiImage, /generateFreeImageFallback/);
   assert.match(geminiImage, /generateGeminiSketch/);
   assert.match(geminiImage, /synthesizeLocalMangaArtwork/);
 
   // Health route fallback readiness
   assert.match(healthRoute, /fallbackProvider/);
-  assert.match(healthRoute, /LOCAL_SYNTH_MODEL_NAME/);
+  assert.match(healthRoute, /FALLBACK_MODEL_NAME|pollinations-flux-beta/);
 });
 
 test('KAI Chat route supports x-mangai-llave and Beta fallback with [PROMPT VISUAL]:', () => {

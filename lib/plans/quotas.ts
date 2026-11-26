@@ -1,5 +1,3 @@
-import catalog from './catalog.json';
-
 export type PlanTier = 'trial' | 'starter' | 'pro' | 'master';
 
 export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled';
@@ -17,7 +15,73 @@ export interface PlanConfig {
   features: string[];
 }
 
-export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = catalog as Record<PlanTier, PlanConfig>;
+export const PLAN_CATALOG: Record<PlanTier, PlanConfig> = {
+  trial: {
+    id: 'trial',
+    name: 'Trial',
+    priceLabel: '$0.00',
+    periodLabel: '3 días',
+    maxProjects: 1,
+    maxPages: 10,
+    hdModelEnabled: false,
+    renderPriority: false,
+    features: [
+      '1 proyecto activo',
+      'Hasta 10 páginas totales',
+      'KAI Sensei estándar',
+      'Guías Genkō y Koma-wari',
+    ],
+  },
+  starter: {
+    id: 'starter',
+    name: 'Starter',
+    priceLabel: '$2.49',
+    periodLabel: '/ mes',
+    maxProjects: 5,
+    maxPages: 50,
+    hdModelEnabled: false,
+    renderPriority: false,
+    features: [
+      '5 proyectos activos',
+      'Hasta 50 páginas totales',
+      'Guardado en nube Supabase',
+      'Exportación ZIP pre-prensa',
+    ],
+  },
+  pro: {
+    id: 'pro',
+    name: 'Pro',
+    priceLabel: '$3.49',
+    periodLabel: '/ mes',
+    maxProjects: 10,
+    maxPages: 100,
+    hdModelEnabled: true,
+    renderPriority: false,
+    highlighted: true,
+    features: [
+      '10 proyectos activos',
+      'Hasta 100 páginas totales',
+      'Gemini 3.1 Flash Image HD',
+      'Presets Tankōbon B6 y Canva B4',
+    ],
+  },
+  master: {
+    id: 'master',
+    name: 'Master',
+    priceLabel: '$4.49',
+    periodLabel: '/ mes',
+    maxProjects: 20,
+    maxPages: 200,
+    hdModelEnabled: true,
+    renderPriority: true,
+    features: [
+      '20 proyectos activos',
+      'Hasta 200 páginas totales',
+      'Gemini 3.1 Flash Image HD + Prioridad',
+      'Empaque Tankōbon completo e ISBN',
+    ],
+  },
+};
 
 export const PLAN_ORDER: PlanTier[] = ['trial', 'starter', 'pro', 'master'];
 

@@ -9,9 +9,9 @@ const BOOKS = [
     subtitle: 'Flor de guerra',
     volume: 'VOL. I',
     genre: 'Fantasía histórica',
-    desc: 'Una leyenda caribeña reimaginada en tinta, memoria y aventura.',
-    art: '/landing/assets/mangai-art-01.svg',
-    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/cover-anacaona.webp',
+    desc: 'Una leyenda caribeña reimaginada en tinta sumi, memoria ancestral y aventura épica. Quisqueya resiste bajo la tormenta mientras AnaCaona lidera el Areíto con trazos G-Pen a 600 DPI.',
+    art: '/landing/assets/mangai-art-06.svg',
+    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/mangai-art-06.svg',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Taino warrior queen AnaCaona standing defiantly in a moonlit Caribbean rainforest, ceremonial golden ornaments, flowing hair, dramatic sumi ink hatching and dynamic manga framing',
@@ -20,14 +20,14 @@ const BOOKS = [
         left: {
           title: 'Capítulo 1: El Despertar de Quisqueya',
           text: 'Trazos iniciales de entintado y composición atmosférica para el primer acto.',
-          image: '/landing/samples/anacaona-vol1/1.webp',
+          image: '/landing/assets/mangai-art-12.svg',
           focalX: creaseCarouselOptions.slots[0]?.left.focalX ?? 50,
           focalY: creaseCarouselOptions.slots[0]?.left.focalY ?? 50,
         },
         right: {
           title: 'Duelo en la Selva',
           text: 'Perspectiva dramática y contraste de tinta sumi sobre papel Genkō.',
-          image: '/landing/samples/anacaona-vol1/2.webp',
+          image: '/landing/assets/mangai-art-19.svg',
           focalX: creaseCarouselOptions.slots[0]?.right.focalX ?? 50,
           focalY: creaseCarouselOptions.slots[0]?.right.focalY ?? 50,
         },
@@ -36,36 +36,36 @@ const BOOKS = [
         left: {
           title: 'Settei de Personaje · Canon',
           text: 'Expresiones, silueta ceremonial y anclas visuales bloqueadas para el tomo.',
-          image: '/landing/samples/anacaona-vol1/3.webp',
+          image: '/landing/assets/mangai-art-21.svg',
         },
         right: {
           title: 'Edición Coleccionista Tankōbon',
           text: 'Maquetación de cubierta conceptual lista para exportación editorial.',
-          image: '/landing/samples/anacaona-vol1/4.webp',
+          image: '/landing/assets/mangai-art-22.svg',
         },
       },
       {
         left: {
           title: 'Areíto bajo la Lluvia',
           text: 'Ritmo secuencial en cinco viñetas con líneas cinéticas y tramas tradicionales.',
-          image: '/landing/samples/anacaona-vol1/5.webp',
+          image: '/landing/assets/mangai-art-14.svg',
         },
         right: {
           title: 'Juramento de Oro y Coral',
           text: 'Doble página de clímax narrativo asistida por Kai con sangrado KDP.',
-          image: '/landing/samples/anacaona-vol1/6.webp',
+          image: '/landing/assets/mangai-art-20.svg',
         },
       },
       {
         left: {
           title: 'Epílogo: Semilla de Fuego',
           text: 'Cierre de capítulo con iluminación dramática y globos vectoriales Fukidashi.',
-          image: '/landing/samples/anacaona-vol1/7.webp',
+          image: '/landing/assets/mangai-art-06.svg',
         },
         right: {
           title: 'Ficha Técnica de Imprenta',
           text: 'Revisión Pre-Flight a 300 DPI lista para publicación física y digital.',
-          image: '/landing/samples/anacaona-vol1/8.webp',
+          image: '/landing/assets/mangai-art-11.svg',
         },
       },
     ],
@@ -77,9 +77,9 @@ const BOOKS = [
     subtitle: 'Los mapas del olvido',
     volume: 'VOL. I',
     genre: 'Fantasía / Misterio',
-    desc: 'Cada noche, un reino desaparece de los mapas de la ciudad.',
-    art: '/landing/assets/mangai-art-02.svg',
-    coverArt: pinwheelOptions.items[1]?.imageUrl || '/landing/assets/cover-atlas.webp',
+    desc: 'Cada medianoche, un distrito entero desaparece de los mapas imperiales. Un joven cartógrafo arcano rastrea las coordenadas borradas con una brújula astral de tinta viva.',
+    art: '/landing/assets/mangai-art-07.svg',
+    coverArt: pinwheelOptions.items[1]?.imageUrl || '/landing/assets/mangai-art-07.svg',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Young arcane cartographer holding a glowing astral compass inside a midnight archive where ancient ink maps float in mid-air, cyan rim lighting and deep slate shadows',
@@ -88,48 +88,48 @@ const BOOKS = [
         left: {
           title: 'Archivo de Cartografía Arcana',
           text: 'Secuencia de viñetas con tramas limpias y profundidad espacial.',
-          image: '/landing/samples/atlas-sketchbook/1.webp',
+          image: '/landing/assets/mangai-art-23.svg',
         },
         right: {
           title: 'La Brújula Astral',
           text: 'Encuadre vertical estilizado y ritmo narrativo asistido por Kai.',
-          image: '/landing/samples/atlas-sketchbook/2.webp',
+          image: '/landing/assets/mangai-art-24.svg',
         },
       },
       {
         left: {
           title: 'Portada de Cuaderno de Campo',
           text: 'Estudio cromático en azules nocturnos e iluminación de contraste.',
-          image: '/landing/samples/atlas-sketchbook/3.webp',
+          image: '/landing/assets/mangai-art-25.svg',
         },
         right: {
           title: 'Horizonte Desaparecido',
           text: 'Escena panorámica de transición entre distritos olvidados.',
-          image: '/landing/samples/atlas-sketchbook/4.webp',
+          image: '/landing/assets/mangai-art-26.svg',
         },
       },
       {
         left: {
           title: 'Meridiano de Ceniza',
           text: 'Planos arquitectónicos imposibles generados manteniendo el canon del mundo.',
-          image: '/landing/samples/atlas-sketchbook/5.webp',
+          image: '/landing/assets/mangai-art-27.svg',
         },
         right: {
           title: 'El Relojero sin Sombra',
           text: 'Encuentro clave en la torre sumergida con contraluces cian.',
-          image: '/landing/samples/atlas-sketchbook/6.webp',
+          image: '/landing/assets/mangai-art-28.svg',
         },
       },
       {
         left: {
           title: 'Índice de Regiones Borradas',
           text: 'Mapa conceptual de lore sincronizado con la Biblia del Universo.',
-          image: '/landing/samples/atlas-sketchbook/7.webp',
+          image: '/landing/assets/mangai-art-29.svg',
         },
         right: {
           title: 'Última Coordenada',
           text: 'Gancho final del primer tomo preparado para continuar en Estudio.',
-          image: '/landing/samples/atlas-sketchbook/8.webp',
+          image: '/landing/assets/mangai-art-30.svg',
         },
       },
     ],
@@ -141,9 +141,9 @@ const BOOKS = [
     subtitle: 'La última frecuencia',
     volume: 'VOL. II',
     genre: 'Ciencia ficción',
-    desc: 'Una señal imposible transforma una ciudad dormida.',
-    art: '/landing/assets/mangai-art-03.svg',
-    coverArt: pinwheelOptions.items[2]?.imageUrl || '/landing/assets/cover-nox.webp',
+    desc: 'Una transmisión imposible en 99.4 MHz despierta a los corredores de señal del Distrito Cero. Persecución cibernética en tres puntos de fuga sobre rascacielos empapados en neón.',
+    art: '/landing/assets/mangai-art-08.svg',
+    coverArt: pinwheelOptions.items[2]?.imageUrl || '/landing/assets/mangai-art-08.svg',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Cyberpunk signal runner perched on a rain-soaked neon rooftop overlooking a sleeping megacity, violet holographic frequencies pulsing across the night sky, 3-point perspective',
@@ -152,48 +152,48 @@ const BOOKS = [
         left: {
           title: 'Transmisión en el Distrito Cero',
           text: 'Perspectiva urbana de tres puntos y líneas cinéticas nocturnas.',
-          image: '/landing/samples/nox-signal-vol2/1.webp',
+          image: '/landing/assets/mangai-art-31.svg',
         },
         right: {
           title: 'Frecuencia Desconocida · Vol. II',
           text: 'Diseño cromático violeta-magenta para la portada del segundo volumen.',
-          image: '/landing/samples/nox-signal-vol2/2.webp',
+          image: '/landing/assets/mangai-art-32.svg',
         },
       },
       {
         left: {
           title: 'Eco en las Antenas',
           text: 'Secuencia de acción en azoteas con ritmo de lectura dinámico.',
-          image: '/landing/samples/nox-signal-vol2/3.webp',
+          image: '/landing/assets/mangai-art-33.svg',
         },
         right: {
           title: 'Señal Interceptada',
           text: 'Primer plano con globo de diálogo y composición de alto impacto.',
-          image: '/landing/samples/nox-signal-vol2/4.webp',
+          image: '/landing/assets/mangai-art-34.svg',
         },
       },
       {
         left: {
           title: 'Protocolo Fantasma',
           text: 'Infiltración en el núcleo orbital con hologramas en tinta carmesí.',
-          image: '/landing/samples/nox-signal-vol2/5.webp',
+          image: '/landing/assets/mangai-art-35.svg',
         },
         right: {
           title: 'Pulso Magnético',
           text: 'Doble splash page con efectos Kakimoji integrados en capa vectorial.',
-          image: '/landing/samples/nox-signal-vol2/6.webp',
+          image: '/landing/assets/mangai-art-36.svg',
         },
       },
       {
         left: {
           title: 'Archivo de Personajes · Nox',
           text: 'Hoja de referencia cibernética con visor y proporciones bloqueadas.',
-          image: '/landing/samples/nox-signal-vol2/7.webp',
+          image: '/landing/assets/mangai-art-37.svg',
         },
         right: {
           title: 'Fin de Transmisión',
           text: 'Cierre de volumen listo para lectura vertical Webtoon o Tankōbon.',
-          image: '/landing/samples/nox-signal-vol2/8.webp',
+          image: '/landing/assets/mangai-art-38.svg',
         },
       },
     ],
@@ -205,9 +205,9 @@ const BOOKS = [
     subtitle: 'El peso del silencio',
     volume: 'VOL. I',
     genre: 'Drama / Acción',
-    desc: 'Dos hermanos descubren el precio de guardar un secreto.',
-    art: '/landing/assets/mangai-art-04.svg',
-    coverArt: pinwheelOptions.items[3]?.imageUrl || '/landing/assets/cover-kuro.webp',
+    desc: 'Dos hermanos separados por un juramento de sangre se reencuentran bajo un patio de piedra azotado por la lluvia. Entintado monocromo de alto contraste con pausas dramáticas.',
+    art: '/landing/assets/mangai-art-09.svg',
+    coverArt: pinwheelOptions.items[3]?.imageUrl || '/landing/assets/mangai-art-09.svg',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Two estranged brothers facing each other across a rain-swept stone courtyard under a dim lantern, heavy monochrome brush shadows, intense silent manga standoff framing',
@@ -216,48 +216,48 @@ const BOOKS = [
         left: {
           title: 'Los Silencios También Gritan',
           text: 'Composición minimalista en tinta negra y pausas dramáticas entre viñetas.',
-          image: '/landing/samples/kuro-vol1/1.webp',
+          image: '/landing/assets/mangai-art-39.svg',
         },
         right: {
           title: 'Lámina de Portada · Kuro',
           text: 'Contraste editorial limpio sobre papel marfil con tipografía bold.',
-          image: '/landing/samples/kuro-vol1/2.webp',
+          image: '/landing/assets/mangai-art-40.svg',
         },
       },
       {
         left: {
           title: 'Ficha de Continuidad Visual',
           text: 'Referencias de vestuario y proporciones para mantener consistencia.',
-          image: '/landing/samples/kuro-vol1/3.webp',
+          image: '/landing/assets/mangai-art-41.svg',
         },
         right: {
           title: 'Juramento en el Patio',
           text: 'Viñeta clave de diálogo con tramas finas y sombreado intenso.',
-          image: '/landing/samples/kuro-vol1/4.webp',
+          image: '/landing/assets/mangai-art-42.svg',
         },
       },
       {
         left: {
           title: 'Bajo la Linterna Rota',
           text: 'Secuencia muda de tensión psicológica trabajada con plumilla G-Pen.',
-          image: '/landing/samples/kuro-vol1/5.webp',
+          image: '/landing/assets/mangai-art-43.svg',
         },
         right: {
           title: 'La Carta Sellada',
           text: 'Detalle narrativo de utilería registrado como entidad Settei.',
-          image: '/landing/samples/kuro-vol1/6.webp',
+          image: '/landing/assets/mangai-art-44.svg',
         },
       },
       {
         left: {
           title: 'Desenlace en Nieve',
           text: 'Alto contraste blanco y negro puro listo para impresión offset.',
-          image: '/landing/samples/kuro-vol1/7.webp',
+          image: '/landing/assets/mangai-art-45.svg',
         },
         right: {
           title: 'Avance del Volumen II',
           text: 'Página final de adelanto editorial generada dentro de MANGAI Studio.',
-          image: '/landing/samples/kuro-vol1/8.webp',
+          image: '/landing/assets/mangai-art-46.svg',
         },
       },
     ],
@@ -269,9 +269,9 @@ const BOOKS = [
     subtitle: 'El cielo fracturado',
     volume: 'VOL. I',
     genre: 'Fantasía oscura',
-    desc: 'Donde termina la noche, comienza una nueva guerra.',
-    art: '/landing/assets/mangai-art-05.svg',
-    coverArt: pinwheelOptions.items[4]?.imageUrl || '/landing/assets/cover-eclipse.webp',
+    desc: 'Cuando el sol negro fractura la bóveda celeste, los centinelas de la Ciudadela de Ceniza alzan sus hojas reliquia. Fantasía oscura monumental con tramas densas y laca carmesí.',
+    art: '/landing/assets/mangai-art-10.svg',
+    coverArt: pinwheelOptions.items[4]?.imageUrl || '/landing/assets/mangai-art-10.svg',
     studioStyle: 'cover_art',
     studioPrompt:
       'Lone armored sentinel standing before a fractured crimson solar eclipse tearing open an obsidian sky, swirling embers, monumental dark fantasy manga volume cover composition',
@@ -280,48 +280,48 @@ const BOOKS = [
         left: {
           title: 'Prólogo: El Cielo Fracturado',
           text: 'Apertura dramática preparada para exportación Amazon KDP.',
-          image: '/landing/samples/eclipse-vol1/1.webp',
+          image: '/landing/assets/mangai-art-47.svg',
         },
         right: {
           title: 'Panel Doble · Ruptura Carmesí',
           text: 'Líneas cinéticas radiales y foco de tensión sobre la viñeta central.',
-          image: '/landing/samples/eclipse-vol1/2.webp',
+          image: '/landing/assets/mangai-art-48.svg',
         },
       },
       {
         left: {
           title: 'La Vigilia del Centinela',
           text: 'Encuadre contrapicado con sombreado geométrico y tramas densas.',
-          image: '/landing/samples/eclipse-vol1/3.webp',
+          image: '/landing/assets/mangai-art-49.svg',
         },
         right: {
           title: 'Arte Final de Volumen',
           text: 'Acabado conceptual para contraportada, lomo y tapa frontal.',
-          image: '/landing/samples/eclipse-vol1/4.webp',
+          image: '/landing/assets/mangai-art-50.svg',
         },
       },
       {
         left: {
           title: 'Ciudadela de Ceniza',
           text: 'Escenario monumental Dark Fantasy con acentos en laca roja Akai.',
-          image: '/landing/samples/eclipse-vol1/5.webp',
+          image: '/landing/assets/mangai-art-51.svg',
         },
         right: {
           title: 'El Pacto de Hierro',
           text: 'Composición diagonal dinámica de cinco viñetas para combate.',
-          image: '/landing/samples/eclipse-vol1/6.webp',
+          image: '/landing/assets/mangai-art-52.svg',
         },
       },
       {
         left: {
           title: 'Armamento Ceremonial',
           text: 'Lámina extra de diseño de props y emblemas para el lector.',
-          image: '/landing/samples/eclipse-vol1/7.webp',
+          image: '/landing/assets/mangai-art-53.svg',
         },
         right: {
           title: 'Cubierta Integral KDP',
           text: 'Maqueta con lomo, sangrado de 3.5 mm y código EAN-13 vectorial.',
-          image: '/landing/samples/eclipse-vol1/8.webp',
+          image: '/landing/assets/mangai-art-54.svg',
         },
       },
     ],
@@ -333,9 +333,9 @@ const BOOKS = [
     subtitle: 'La senda de la tinta roja',
     volume: 'VOL. I',
     genre: 'Seinen / Acción Samurái',
-    desc: 'Una espada forjada en laca carmesí despierta el linaje prohibido de Akai.',
-    art: '/landing/assets/mangai-art-06.svg',
-    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/cover-akai.webp',
+    desc: 'Una katana templada en laca carmesí despierta el linaje prohibido de Akai sobre los puentes de bambú de Edo. Acción samurái de alta velocidad con cortes diagonales Koma-wari.',
+    art: '/landing/assets/mangai-art-01.svg',
+    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/mangai-art-01.svg',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Lone samurai warrior unsheathing a crimson-lacquered katana amidst falling autumn leaves, stark black sumi ink brushwork with dramatic Akai red slash accents',
@@ -344,48 +344,48 @@ const BOOKS = [
         left: {
           title: 'Acto I: El Sello Carmesí',
           text: 'Apertura en tinta sumi con acento rojo Akai y corte diagonal de acción.',
-          image: '/landing/samples/akai-ronin-vol1/1.webp',
+          image: '/landing/assets/mangai-art-55.svg',
         },
         right: {
           title: 'Duelo en el Puente de Bambú',
           text: 'Secuencia cinética de espada con líneas de velocidad de alta precisión.',
-          image: '/landing/samples/akai-ronin-vol1/2.webp',
+          image: '/landing/assets/mangai-art-56.svg',
         },
       },
       {
         left: {
           title: 'Settei · Armadura Akai',
           text: 'Diseño canónico de guardamano, haori rasgado y cicatrices del protagonista.',
-          image: '/landing/samples/akai-ronin-vol1/3.webp',
+          image: '/landing/assets/mangai-art-57.svg',
         },
         right: {
           title: 'Luna de Sangre sobre Edo',
           text: 'Doble página panorámica preparada para edición coleccionista B6.',
-          image: '/landing/samples/akai-ronin-vol1/4.webp',
+          image: '/landing/assets/mangai-art-58.svg',
         },
       },
       {
         left: {
-          title: 'juramento del Herrero',
+          title: 'Juramento del Herrero',
           text: 'Primeros planos expresivos entintados con plumilla japonesa G-Pen.',
-          image: '/landing/samples/akai-ronin-vol1/5.webp',
+          image: '/landing/assets/mangai-art-59.svg',
         },
         right: {
           title: 'Corte Relámpago',
           text: 'Onomatopeyas vectoriales Kakimoji integradas sobre trama dramática.',
-          image: '/landing/samples/akai-ronin-vol1/6.webp',
+          image: '/landing/assets/mangai-art-60.svg',
         },
       },
       {
         left: {
           title: 'Epílogo en Nieve Roja',
           text: 'Silueta minimalista cerrando el primer volumen de la saga Akai.',
-          image: '/landing/samples/akai-ronin-vol1/7.webp',
+          image: '/landing/assets/mangai-art-61.svg',
         },
         right: {
           title: 'Sobrecubierta Editorial Akai',
           text: 'Arte final de cubierta validado a 300 DPI para tirada impresa.',
-          image: '/landing/samples/akai-ronin-vol1/8.webp',
+          image: '/landing/assets/mangai-art-62.svg',
         },
       },
     ],
@@ -397,9 +397,9 @@ const BOOKS = [
     subtitle: 'Pilotos del anillo solar',
     volume: 'VOL. I',
     genre: 'Mecha / Sci-Fi',
-    desc: 'En los astilleros orbitales, un chasis antiguo vuelve a encender su reactor.',
-    art: '/landing/assets/mangai-art-07.svg',
-    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/cover-kaze.webp',
+    desc: 'En los astilleros del Anillo Solar, el chasis experimental Kaze-01 vuelve a encender su reactor esmeralda. Geometría mecánica de precisión y batallas en gravedad cero.',
+    art: '/landing/assets/mangai-art-02.svg',
+    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/mangai-art-02.svg',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Sleek orbital mecha frame launching from a zero-gravity hangar bay with emerald thrusters igniting against Earth curvature, detailed mechanical lineart',
@@ -408,48 +408,48 @@ const BOOKS = [
         left: {
           title: 'Hangar 09 · Despresurización',
           text: 'Geometría mecánica detallada con perspectiva técnica asistida por Kai.',
-          image: '/landing/samples/kaze-orbit-vol1/1.webp',
+          image: '/landing/assets/mangai-art-63.svg',
         },
         right: {
           title: 'Ignición en Gravedad Cero',
           text: 'Estela orbital y paneles dinámicos para secuencias de alta velocidad.',
-          image: '/landing/samples/kaze-orbit-vol1/2.webp',
+          image: '/landing/assets/mangai-art-64.svg',
         },
       },
       {
         left: {
           title: 'Cabina Neural · Sincronía',
           text: 'Interfaz holográfica e iluminación esmeralda sobre el rostro del piloto.',
-          image: '/landing/samples/kaze-orbit-vol1/3.webp',
+          image: '/landing/assets/mangai-art-65.svg',
         },
         right: {
           title: 'Planos del Chasis Kaze-01',
           text: 'Hoja técnica de proporciones mecánicas bloqueada en Settei Hub.',
-          image: '/landing/samples/kaze-orbit-vol1/4.webp',
+          image: '/landing/assets/mangai-art-66.svg',
         },
       },
       {
         left: {
           title: 'Escombros del Sector Siete',
           text: 'Maniobra evasiva entre estaciones abandonadas en doble página.',
-          image: '/landing/samples/kaze-orbit-vol1/5.webp',
+          image: '/landing/assets/mangai-art-67.svg',
         },
         right: {
           title: 'Impacto de Riel',
           text: 'Contraste extremo de luces y sombras con tramas metálicas.',
-          image: '/landing/samples/kaze-orbit-vol1/6.webp',
+          image: '/landing/assets/mangai-art-68.svg',
         },
       },
       {
         left: {
           title: 'Reentrada Atmosférica',
           text: 'Clímax ardiente rumbo a la superficie terrestre.',
-          image: '/landing/samples/kaze-orbit-vol1/7.webp',
+          image: '/landing/assets/mangai-art-69.svg',
         },
         right: {
           title: 'Catálogo de Unidades',
           text: 'Apéndice ilustrado incluido al final del tomo coleccionista.',
-          image: '/landing/samples/kaze-orbit-vol1/8.webp',
+          image: '/landing/assets/mangai-art-70.svg',
         },
       },
     ],
@@ -461,9 +461,9 @@ const BOOKS = [
     subtitle: 'Detectives del crepúsculo',
     volume: 'VOL. I',
     genre: 'Fantasía Sobrenatural',
-    desc: 'Una librería de Kioto custodia los contratos de cien espíritus antiguos.',
-    art: '/landing/assets/mangai-art-08.svg',
-    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/cover-yokai.webp',
+    desc: 'Una librería oculta en los callejones de Kioto custodia los contratos sellados de cien espíritus antiguos. Detectives del crepúsculo, talismanes Ofuda y caligrafía sumi.',
+    art: '/landing/assets/mangai-art-03.svg',
+    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/mangai-art-03.svg',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Mystical lantern-lit Kyoto alley at midnight where paper talismans swirl around a young exorcist detective, supernatural violet spirit silhouettes',
@@ -472,48 +472,48 @@ const BOOKS = [
         left: {
           title: 'La Librería de las Doce Lunas',
           text: 'Ambientación tradicional japonesa con pergaminos y linternas flotantes.',
-          image: '/landing/samples/yokai-archive-vol1/1.webp',
+          image: '/landing/assets/mangai-art-71.svg',
         },
         right: {
           title: 'El Zorro de Tinta',
           text: 'Aparición sobrenatural renderizada con degradados de semitono.',
-          image: '/landing/samples/yokai-archive-vol1/2.webp',
+          image: '/landing/assets/mangai-art-72.svg',
         },
       },
       {
         left: {
           title: 'Talismán de Contención',
           text: 'Composición vertical de conjuro con caligrafía integrada.',
-          image: '/landing/samples/yokai-archive-vol1/3.webp',
+          image: '/landing/assets/mangai-art-73.svg',
         },
         right: {
           title: 'Bestiario Ilustrado',
           text: 'Fichas canónicas de criaturas registradas para mantener continuidad.',
-          image: '/landing/samples/yokai-archive-vol1/4.webp',
+          image: '/landing/assets/mangai-art-74.svg',
         },
       },
       {
         left: {
           title: 'Tren de Medianoche',
           text: 'Misterio en vagón solitario con juegos de reflejos en las ventanas.',
-          image: '/landing/samples/yokai-archive-vol1/5.webp',
+          image: '/landing/assets/mangai-art-75.svg',
         },
         right: {
           title: 'Ruptura del Velo',
           text: 'Clímax visual en doble pliego con espirales de tinta y papel.',
-          image: '/landing/samples/yokai-archive-vol1/6.webp',
+          image: '/landing/assets/mangai-art-76.svg',
         },
       },
       {
         left: {
           title: 'Sello Archivado · Caso 01',
           text: 'Resolución del primer expediente lista para lectura digital.',
-          image: '/landing/samples/yokai-archive-vol1/7.webp',
+          image: '/landing/assets/mangai-art-77.svg',
         },
         right: {
           title: 'Cubierta de Edición Nocturna',
           text: 'Diseño editorial con reserva UV conceptual y lomo numerado.',
-          image: '/landing/samples/yokai-archive-vol1/8.webp',
+          image: '/landing/assets/mangai-art-78.svg',
         },
       },
     ],
@@ -525,9 +525,9 @@ const BOOKS = [
     subtitle: 'Crónicas del taller',
     volume: 'ED. ESPECIAL',
     genre: 'Slice of Life / Arte',
-    desc: 'El viaje íntimo de una autora independiente hasta publicar su primer Tankōbon.',
-    art: '/landing/assets/mangai-art-09.svg',
-    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/cover-sensei.webp',
+    desc: 'El viaje íntimo de una autora independiente desde las madrugadas frente al papel Genkō hasta ver su primer Tankōbon B6 en las estanterías de Tokio.',
+    art: '/landing/assets/mangai-art-04.svg',
+    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/mangai-art-04.svg',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Warm sunlit mangaka studio desk covered with Genko manuscript paper, G-pen nibs, ink bottles, and character sketches coming alive in delicate sumi lines',
@@ -536,48 +536,48 @@ const BOOKS = [
         left: {
           title: 'Mesa de Trabajo · 03:00 AM',
           text: 'Homenaje al oficio del manga sobre papel Genkō de 135 kg.',
-          image: '/landing/samples/sensei-ink-vol1/1.webp',
+          image: '/landing/assets/mangai-art-79.svg',
         },
         right: {
           title: 'Del Boceto Nemu al Entintado',
-          text: 'Comparativa real del flujo de capas L0 a L5 dentro del Estudio.',
-          image: '/landing/samples/sensei-ink-vol1/2.webp',
+          text: 'Comparativa real del flujo de capas L0 a L6 dentro del Estudio.',
+          image: '/landing/assets/mangai-art-80.svg',
         },
       },
       {
         left: {
           title: 'Correcciones Editoriales',
           text: 'Diálogo cálido de mentoría creativa y ritmo de página.',
-          image: '/landing/samples/sensei-ink-vol1/3.webp',
+          image: '/landing/assets/mangai-art-81.svg',
         },
         right: {
           title: 'El Primer Tomo Impreso',
           text: 'Escena emotiva en librería con detalle de estanterías.',
-          image: '/landing/samples/sensei-ink-vol1/4.webp',
+          image: '/landing/assets/mangai-art-82.svg',
         },
       },
       {
         left: {
           title: 'Estudio de Manos y Expresiones',
           text: 'Láminas de referencia anatómica y gestual para la protagonista.',
-          image: '/landing/samples/sensei-ink-vol1/5.webp',
+          image: '/landing/assets/mangai-art-83.svg',
         },
         right: {
           title: 'Lluvia sobre Tokio',
           text: 'Paisaje urbano contemplativo con tramas suaves al 20%.',
-          image: '/landing/samples/sensei-ink-vol1/6.webp',
+          image: '/landing/assets/mangai-art-84.svg',
         },
       },
       {
         left: {
           title: 'Notas de la Autora',
           text: 'Extras de cierre de tomo maquetados con plantillas MANGAI.',
-          image: '/landing/samples/sensei-ink-vol1/7.webp',
+          image: '/landing/assets/mangai-art-85.svg',
         },
         right: {
           title: 'Colofón Editorial',
           text: 'Créditos e ISBN EAN-13 listos para distribución global.',
-          image: '/landing/samples/sensei-ink-vol1/8.webp',
+          image: '/landing/assets/mangai-art-86.svg',
         },
       },
     ],
@@ -589,9 +589,9 @@ const BOOKS = [
     subtitle: 'Navegantes del arco',
     volume: 'VOL. II',
     genre: 'Aventura Épica',
-    desc: 'Flotas de vela solar cruzan un archipiélago suspendido entre tormentas eternas.',
-    art: '/landing/assets/mangai-art-10.svg',
-    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/cover-hijos-del-huracan.webp',
+    desc: 'Flotas de vela solar cruzan un archipiélago celeste suspendido entre tormentas eternas. Cartografía naval bloqueada en Settei y batallas aéreas a doble página.',
+    art: '/landing/assets/mangai-art-05.svg',
+    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/mangai-art-05.svg',
     studioStyle: 'cover_art',
     studioPrompt:
       'Skyship fleet with billowing solar sails carving through towering storm clouds above floating tropical islands, dynamic wide-angle shonen adventure cover art',
@@ -600,48 +600,48 @@ const BOOKS = [
         left: {
           title: 'Zarpar hacia el Ojo Celeste',
           text: 'Gran angular épico de aventura con nubes volumétricas y velámenes.',
-          image: '/landing/samples/huracan-vol2/1.webp',
+          image: '/landing/assets/mangai-art-87.svg',
         },
         right: {
           title: 'Abordaje en la Corriente Alta',
           text: 'Acción acrobática entre cubiertas con perspectiva dinámica.',
-          image: '/landing/samples/huracan-vol2/2.webp',
+          image: '/landing/assets/mangai-art-88.svg',
         },
       },
       {
         left: {
           title: 'Carta Náutica del Archipiélago',
           text: 'Doble mapa ilustrado de islas flotantes y rutas de viento.',
-          image: '/landing/samples/huracan-vol2/3.webp',
+          image: '/landing/assets/mangai-art-13.svg',
         },
         right: {
           title: 'La Capitana del Alisio',
           text: 'Retrato heroico con emblemas y vestuario fijados en el canon.',
-          image: '/landing/samples/huracan-vol2/4.webp',
+          image: '/landing/assets/mangai-art-89.svg',
         },
       },
       {
         left: {
           title: 'Tormenta de Relámpagos Rojos',
           text: 'Contraste dramático de tinta negra y destellos carmesí.',
-          image: '/landing/samples/huracan-vol2/5.webp',
+          image: '/landing/assets/mangai-art-90.svg',
         },
         right: {
           title: 'El Faro Ancestral',
           text: 'Descubrimiento de ruinas colosales al cierre del capítulo.',
-          image: '/landing/samples/huracan-vol2/6.webp',
+          image: '/landing/assets/mangai-art-91.svg',
         },
       },
       {
         left: {
           title: 'Tripulación Completa · Settei',
           text: 'Comparativa de alturas y equipo de navegación del escuadrón.',
-          image: '/landing/samples/huracan-vol2/7.webp',
+          image: '/landing/assets/mangai-art-92.svg',
         },
         right: {
           title: 'Próximo Destino · Vol. III',
           text: 'Ilustración de cierre lista para exportar a KDP y Webtoon.',
-          image: '/landing/samples/huracan-vol2/8.webp',
+          image: '/landing/assets/mangai-art-93.svg',
         },
       },
     ],
@@ -670,9 +670,18 @@ let isDraggingPinwheel = false;
 let dragStartX = 0;
 let dragStartAngle = 0;
 let dragMovedPx = 0;
+let cachedStageWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+let cachedStageRect = null;
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+function refreshStageMetrics() {
+  const stage = $('#bookStage');
+  if (!stage) return;
+  cachedStageRect = stage.getBoundingClientRect();
+  cachedStageWidth = cachedStageRect.width || window.innerWidth;
+}
 
 function normalizeSignedAngle(rad) {
   let a = (rad + Math.PI) % (Math.PI * 2);
@@ -709,6 +718,7 @@ function applyHeroPresetsConfig() {
       img.style.objectPosition = `${item.focalX}% ${item.focalY}%`;
     }
   });
+  refreshStageMetrics();
 }
 
 function renderPinwheelFrame() {
@@ -728,14 +738,15 @@ function renderPinwheelFrame() {
   pointerTiltX += tiltDiffX * 0.12;
   pointerTiltY += tiltDiffY * 0.12;
 
-  const stageWidth = stage.clientWidth || window.innerWidth;
-  const compact = stageWidth < 690;
-  const hubOffset = pinwheelOptions.hub * (compact ? 0.65 : 1.25);
-  const radiusX = Math.min(430, Math.max(132, stageWidth * (compact ? 0.34 : 0.35))) + hubOffset;
-  const radiusZ = Math.min(255, Math.max(105, stageWidth * (compact ? 0.22 : 0.21)));
+  const stageWidth = cachedStageWidth || window.innerWidth;
+  const compact = stageWidth < 760;
+  const hubOffset = pinwheelOptions.hub * (compact ? 0.25 : 1.25);
+  const radiusX = Math.min(430, Math.max(92, stageWidth * (compact ? 0.27 : 0.35))) + hubOffset;
+  const radiusZ = Math.min(255, Math.max(85, stageWidth * (compact ? 0.18 : 0.21)));
   const pullPx = pinwheelOptions.pull * (compact ? 0.95 : 1.45);
   const leanFactor = pinwheelOptions.lean * (compact ? 0.24 : 0.4);
   const bendFactor = pinwheelOptions.bend * 0.56;
+  const shadeRatio = pinwheelOptions.shade / 100;
 
   shelf.style.transform = `rotateX(${(-3.5 + pointerTiltY).toFixed(2)}deg) rotateY(${pointerTiltX.toFixed(2)}deg)`;
 
@@ -744,7 +755,7 @@ function renderPinwheelFrame() {
     const theta = normalizeSignedAngle(i * STEP_RAD + rotorAngle);
     const cosT = Math.cos(theta);
     const sinT = Math.sin(theta);
-    const depth01 = (cosT + 1) * 0.5; // 1 at front, 0 at back
+    const depth01 = (cosT + 1) * 0.5;
     const frontness = Math.max(0, cosT);
     const focusCurve = Math.pow(frontness, 3.4);
 
@@ -754,9 +765,11 @@ function renderPinwheelFrame() {
     const rotY = sinT * -40 * (1 - focusCurve * 0.75);
     const rotZ = sinT * bendFactor * (1 - focusCurve * 0.86);
     const scale = (compact ? 0.68 : 0.72) + depth01 * 0.28 + focusCurve * 0.1;
+    const brightness = (1 - (1 - depth01) * shadeRatio * 1.18).toFixed(3);
     const opacity = (0.34 + depth01 * 0.66).toFixed(3);
 
     card.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, ${z.toFixed(1)}px) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+    card.style.filter = `brightness(${brightness})`;
     card.style.opacity = opacity;
     card.style.zIndex = String(Math.round(200 + z));
   });
@@ -834,18 +847,14 @@ function buildKaiDeepLink(book) {
 }
 
 function clearTurningLeaf() {
-  for (const prefix of ['leafFront', 'leafBack']) {
-    const numEl = $(`#${prefix}Num`);
-    const volEl = $(`#${prefix}Vol`);
-    const imgEl = $(`#${prefix}Img`);
-    const titleEl = $(`#${prefix}Title`);
-    const textEl = $(`#${prefix}Text`);
-    if (numEl) numEl.textContent = '';
-    if (volEl) volEl.textContent = '';
-    if (imgEl) imgEl.removeAttribute('src');
-    if (titleEl) titleEl.textContent = '';
-    if (textEl) textEl.textContent = '';
-  }
+  const book = BOOKS[currentBook] || BOOKS[0];
+  const spreads = getActiveSpreads(book);
+  const nextIdx = (spreadIndex + 1) % Math.max(1, spreads.length);
+  const standbySpread = spreads[nextIdx] || spreads[0];
+  if (!standbySpread) return;
+
+  populatePageSide('leafFront', standbySpread.left, nextIdx * 2 + 1, book);
+  populatePageSide('leafBack', standbySpread.right, nextIdx * 2 + 2, book);
 }
 
 function cancelFlip() {
@@ -861,6 +870,56 @@ function cancelFlip() {
   if (leaf) leaf.hidden = true;
   if (shadow) shadow.hidden = true;
   clearTurningLeaf();
+}
+
+function populateInspectionModal(bookIndex = currentBook) {
+  const book = BOOKS[wrapIndex(bookIndex)] || BOOKS[0];
+  const spreads = getActiveSpreads(book);
+  const coverSrc = book.coverArt || book.art;
+
+  const modalArt = $('#modalArt');
+  const modalArtFallback = $('#modalArtFallback');
+  const modalFallbackVol = $('#modalFallbackVol');
+  const modalFallbackTitle = $('#modalFallbackTitle');
+  const modalFallbackGenre = $('#modalFallbackGenre');
+  const modalTag = $('#modalTag');
+  const modalVolumeChip = $('#modalVolumeChip');
+  const modalGenreChip = $('#modalGenreChip');
+  const modalTitle = $('#modalTitle');
+  const modalSubtitle = $('#modalSubtitle');
+  const modalDesc = $('#modalDesc');
+  const modalStudioBtn = $('#modalStudioBtn');
+
+  if (modalArt) {
+    modalArt.hidden = false;
+    modalArt.src = coverSrc;
+    modalArt.alt = `Portada oficial: ${book.title} (${book.volume})`;
+  }
+  if (modalArtFallback) modalArtFallback.hidden = true;
+  if (modalFallbackVol) modalFallbackVol.textContent = book.volume;
+  if (modalFallbackTitle) modalFallbackTitle.textContent = book.title;
+  if (modalFallbackGenre) modalFallbackGenre.textContent = book.genre.toUpperCase();
+
+  if (modalTag) {
+    modalTag.textContent = `MANGAI ORIGINALS · ${book.volume} · ${book.genre.toUpperCase()}`;
+  }
+  if (modalVolumeChip) modalVolumeChip.textContent = book.volume;
+  if (modalGenreChip) modalGenreChip.textContent = book.genre;
+  if (modalTitle) modalTitle.textContent = book.title;
+  if (modalSubtitle) {
+    modalSubtitle.textContent = `Serie ${book.series} · ${book.subtitle} · ${spreads.length} pliegos (${spreads.length * 2} páginas Genkō)`;
+  }
+  if (modalDesc) modalDesc.textContent = book.desc;
+  if (modalStudioBtn) modalStudioBtn.href = buildKaiDeepLink(book);
+}
+
+function openInspectionModal(bookIndex = currentBook) {
+  const modal = $('#modal');
+  if (!modal) return;
+  populateInspectionModal(bookIndex);
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('#modalClose')?.focus?.({ preventScroll: true });
 }
 
 function renderCreaseDots(spreadsCount) {
@@ -915,7 +974,6 @@ function renderHeroBookViewer() {
   const heroIndex = $('#heroIndex');
   const editWithKaiBtn = $('#editWithKaiBtn');
   const openBookPagesBtn = $('#openBookPagesBtn');
-  const modalStudioBtn = $('#modalStudioBtn');
   const stageEl = $('#bookStage');
 
   if (heroGenre) heroGenre.textContent = 'MANGAI ORIGINALS · ' + book.genre.toUpperCase();
@@ -934,11 +992,10 @@ function renderHeroBookViewer() {
     editWithKaiBtn.href = buildKaiDeepLink(book);
   }
   if (openBookPagesBtn) {
-    openBookPagesBtn.href = buildStudioDeepLink(book, 'pages');
+    openBookPagesBtn.href = buildStudioDeepLink(book, 'koma');
   }
-  if (modalStudioBtn) {
-    modalStudioBtn.href = buildKaiDeepLink(book);
-  }
+  populateInspectionModal(currentBook);
+
   if (stageEl) {
     stageEl.setAttribute(
       'aria-label',
@@ -983,6 +1040,9 @@ function renderHeroBookViewer() {
   if (spread) {
     populatePageSide('leftPage', spread.left, spreadIndex * 2 + 1, book);
     populatePageSide('rightPage', spread.right, spreadIndex * 2 + 2, book);
+  }
+  if (!isFlipping) {
+    clearTurningLeaf();
   }
 
   const atLastSpread = spreadIndex >= spreads.length - 1;
@@ -1197,6 +1257,14 @@ $('#openActiveBookBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   openBook(currentBook);
 });
+$('#inspectActiveBookBtn')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  openInspectionModal(currentBook);
+});
+$('#inspectOpenBookBtn')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  openInspectionModal(currentBook);
+});
 $('#switchNextTomeBtn')?.addEventListener('click', (e) => {
   e.stopPropagation();
   switchOpenBookTo(currentBook + 1);
@@ -1294,6 +1362,7 @@ if (bookStage) {
   bookStage.addEventListener('pointerdown', (e) => {
     downX = e.clientX;
     didSwipe = false;
+    refreshStageMetrics();
     if (!isBookOpen && e.button === 0) {
       isDraggingPinwheel = true;
       dragStartX = e.clientX;
@@ -1303,8 +1372,8 @@ if (bookStage) {
   });
 
   window.addEventListener('pointermove', (e) => {
-    if (!isBookOpen && !reducedMotion) {
-      const rect = bookStage.getBoundingClientRect();
+    if (!isBookOpen && !reducedMotion && cachedStageRect) {
+      const rect = cachedStageRect;
       if (
         e.clientY >= rect.top &&
         e.clientY <= rect.bottom &&
@@ -1322,7 +1391,7 @@ if (bookStage) {
     if (!isDraggingPinwheel || isBookOpen) return;
     const dx = e.clientX - dragStartX;
     dragMovedPx = Math.max(dragMovedPx, Math.abs(dx));
-    const spinSensitivity = (0.0022 + pinwheelOptions.pointerSpin * 0.00042);
+    const spinSensitivity = 0.0022 + pinwheelOptions.pointerSpin * 0.00042;
     targetRotorAngle = dragStartAngle + dx * spinSensitivity;
     const nearestIdx = wrapIndex(Math.round(-targetRotorAngle / STEP_RAD));
     if (nearestIdx !== currentBook) {
@@ -1374,9 +1443,14 @@ if (bookStage) {
   });
 }
 
-window.addEventListener('resize', () => {
-  if (!isBookOpen) schedulePinwheelFrame();
-});
+window.addEventListener(
+  'resize',
+  () => {
+    refreshStageMetrics();
+    if (!isBookOpen) schedulePinwheelFrame();
+  },
+  { passive: true },
+);
 
 applyHeroPresetsConfig();
 renderHeroBookViewer();
@@ -1384,41 +1458,25 @@ schedulePinwheelFrame();
 setupCreaseAutoplay();
 
 const modal = $('#modal');
-const inspectButton = $('#inspectBookBtn');
-inspectButton?.addEventListener('click', () => {
-  const book = BOOKS[currentBook];
-  const cover = $('#modalArt');
-  cover.src = book.coverArt;
-  cover.alt = 'Portada de ' + book.title;
-  $('#modalTag').textContent = book.volume + ' · ' + book.genre;
-  $('#modalTitle').textContent = book.title;
-  $('#modalDesc').textContent = book.desc;
-  $('#modalStudioBtn').href = buildKaiDeepLink(book);
-  modal.hidden = false;
-  document.body.style.overflow = 'hidden';
-  $('#modalClose').focus();
+const modalArtImg = $('#modalArt');
+modalArtImg?.addEventListener('error', () => {
+  modalArtImg.hidden = true;
+  const fallback = $('#modalArtFallback');
+  if (fallback) fallback.hidden = false;
 });
-modal?.addEventListener('keydown', (event) => {
-  if (event.key !== 'Tab') return;
-  const first = $('#modalClose');
-  const last = $('#modalExplore');
-  if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  }
-});
+
 function closeModal() {
   if (!modal) return;
   modal.hidden = true;
-  inspectButton?.focus();
   document.body.style.overflow = '';
 }
 
 $('#modalClose')?.addEventListener('click', closeModal);
 $('#modalExplore')?.addEventListener('click', closeModal);
+$('#modalOpenSpreadsBtn')?.addEventListener('click', () => {
+  closeModal();
+  openBook(currentBook);
+});
 modal?.addEventListener('click', (e) => {
   if (e.target === modal) closeModal();
 });
@@ -1456,15 +1514,28 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-$('#menuToggle')?.addEventListener('click', () => {
-  const m = $('#mobileDropdown');
-  if (!m) return;
-  const on = m.classList.toggle('show');
-  $('#menuToggle').setAttribute('aria-expanded', String(on));
+const menuToggle = $('#menuToggle');
+const mobileDropdown = $('#mobileDropdown');
+function setMobileMenuOpen(open) {
+  if (!mobileDropdown || !menuToggle) return;
+  mobileDropdown.classList.toggle('show', open);
+  menuToggle.setAttribute('aria-expanded', String(open));
+}
+
+menuToggle?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = mobileDropdown?.classList.contains('show');
+  setMobileMenuOpen(!isOpen);
 });
-$$('#mobileDropdown a').forEach((a) =>
-  a.addEventListener('click', () => $('#mobileDropdown')?.classList.remove('show')),
+$$('#mobileDropdown a, #mobileDropdown button').forEach((el) =>
+  el.addEventListener('click', () => setMobileMenuOpen(false)),
 );
+document.addEventListener('click', (e) => {
+  if (!mobileDropdown?.classList.contains('show')) return;
+  if (e.target instanceof Element && !e.target.closest('#top')) {
+    setMobileMenuOpen(false);
+  }
+});
 
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(
@@ -1479,18 +1550,6 @@ if ('IntersectionObserver' in window) {
   $$('.fadeup, .reveal-card').forEach((e) => e.classList.add('in-view'));
 }
 
-function trackHeroWatermark() {
-  if (reducedMotion) return;
-  const hero = $('.hero');
-  const watermark = $('.hero-watermark');
-  if (hero && watermark) {
-    const h = hero.getBoundingClientRect();
-    watermark.style.setProperty('--drift', `${Math.min(75, Math.max(-75, -h.top * 0.1))}px`);
-  }
-}
-window.addEventListener('scroll', trackHeroWatermark, { passive: true });
-trackHeroWatermark();
-
 if (location.hash === '#studio') startStudio();
 
 function initSumiStoryFlow() {
@@ -1501,34 +1560,47 @@ function initSumiStoryFlow() {
   const cloudTop = $('#ukiyoCloudTop');
   const cloudBottom = $('#ukiyoCloudBottom');
   const waves = $('#suminagashiWaves');
+  const watermark = $('.hero-watermark');
+
+  // Cache layout metrics outside scroll handler to avoid layout thrashing on scroll
+  let storyFlowTopDoc = 0;
+  let storyFlowHeight = 1;
+  let viewportHeight = window.innerHeight || 800;
   let scrollRafId = null;
+
+  function cacheScrollMetrics() {
+    viewportHeight = window.innerHeight || 800;
+    const rect = storyFlow.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    storyFlowTopDoc = rect.top + scrollY;
+    storyFlowHeight = Math.max(1, rect.height);
+  }
 
   function updateStoryScroll() {
     scrollRafId = null;
-    const rect = storyFlow.getBoundingClientRect();
-    const totalHeight = rect.height - window.innerHeight;
-    const progress =
-      totalHeight > 0
-        ? Math.min(1, Math.max(0, -rect.top / totalHeight))
-        : rect.top <= 0
-          ? 1
-          : 0;
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    const relativeTop = storyFlowTopDoc - scrollY;
+    const totalScrollable = Math.max(1, storyFlowHeight - viewportHeight);
+    const progress = Math.min(1, Math.max(0, -relativeTop / totalScrollable));
 
     if (inkFill) {
-      inkFill.style.height = reducedMotion
-        ? '100%'
-        : `${Math.min(100, Math.max(4, progress * 108)).toFixed(2)}%`;
+      const scaleY = reducedMotion ? 1 : Math.min(1, Math.max(0.04, progress * 1.04));
+      inkFill.style.transform = `scaleY(${scaleY.toFixed(3)})`;
     }
 
     if (!reducedMotion) {
+      if (watermark) {
+        const drift = Math.min(75, Math.max(-75, scrollY * 0.1));
+        watermark.style.transform = `translate3d(${drift.toFixed(1)}px, 0, 0)`;
+      }
       if (cloudTop) {
-        cloudTop.style.transform = `translateY(${(progress * -70).toFixed(1)}px)`;
+        cloudTop.style.transform = `translate3d(0, ${(progress * -70).toFixed(1)}px, 0)`;
       }
       if (cloudBottom) {
-        cloudBottom.style.transform = `translateY(${(progress * 50).toFixed(1)}px)`;
+        cloudBottom.style.transform = `translate3d(0, ${(progress * 50).toFixed(1)}px, 0)`;
       }
       if (waves) {
-        waves.style.transform = `translateY(${(progress * -35).toFixed(1)}px)`;
+        waves.style.transform = `translate3d(0, ${(progress * -35).toFixed(1)}px, 0)`;
       }
     }
   }
@@ -1538,8 +1610,16 @@ function initSumiStoryFlow() {
     scrollRafId = window.requestAnimationFrame(updateStoryScroll);
   }
 
+  cacheScrollMetrics();
   window.addEventListener('scroll', scheduleStoryScroll, { passive: true });
-  window.addEventListener('resize', scheduleStoryScroll, { passive: true });
+  window.addEventListener(
+    'resize',
+    () => {
+      cacheScrollMetrics();
+      scheduleStoryScroll();
+    },
+    { passive: true },
+  );
   updateStoryScroll();
 
   const folioCards = $$('#collectionFanStack .folio-card');
@@ -1548,7 +1628,7 @@ function initSumiStoryFlow() {
     if (!collectionStudioLink || !card) return;
     const volId = card.dataset.volume || BOOKS[0].id;
     const matched = BOOKS.find((b) => b.id === volId) || BOOKS[0];
-    collectionStudioLink.href = buildStudioDeepLink(matched, 'pages');
+    collectionStudioLink.href = buildStudioDeepLink(matched, 'koma');
   };
   const initialFolio = folioCards.find((item) => item.classList.contains('is-focused')) || folioCards[0];
   if (initialFolio) updateCollectionStudioLink(initialFolio);
@@ -1609,7 +1689,7 @@ function initSumiStoryFlow() {
   });
 }
 
-async function syncLandingAuthLink() {
+function syncLandingAuthLink() {
   const navAuth = $('#navAuthLink');
   const mobileAuth = $('#mobileAuthLink');
   if (!navAuth && !mobileAuth) return;
@@ -1627,11 +1707,8 @@ async function syncLandingAuthLink() {
     // Ignore storage access errors.
   }
 
-  try {
-    const response = await fetch('/api/session', { cache: 'no-store' });
-    if (response.ok && (await response.json()).signedIn) signedInLabel = 'Mi perfil';
-  } catch {
-    // El perfil local del modo Beta sigue disponible sin conexión.
+  if (!signedInLabel && typeof document !== 'undefined' && /sb-[a-z0-9]+-auth-token/i.test(document.cookie || '')) {
+    signedInLabel = 'Mi Cuenta';
   }
 
   if (signedInLabel) {

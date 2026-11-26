@@ -7,10 +7,10 @@ import { join } from 'node:path';
 const base = process.cwd();
 const load = (p) => readFileSync(join(base, p), 'utf8');
 
-test('Landing SVGs: all 22 mangai-art SVGs exist, exceed 2.5 KB, and have 22 unique SHA-256 hashes', () => {
+test('Landing SVGs: all 93 mangai-art SVGs exist, exceed 2.5 KB, and have unique SHA-256 hashes', () => {
   const hashes = new Set();
 
-  for (let i = 1; i <= 22; i += 1) {
+  for (let i = 1; i <= 93; i += 1) {
     const num = String(i).padStart(2, '0');
     const relPath = `public/landing/assets/mangai-art-${num}.svg`;
     const fullPath = join(base, relPath);
@@ -28,7 +28,7 @@ test('Landing SVGs: all 22 mangai-art SVGs exist, exceed 2.5 KB, and have 22 uni
     hashes.add(digest);
   }
 
-  assert.equal(hashes.size, 22, 'All 22 manga SVGs must have unique content hashes');
+  assert.equal(hashes.size, 93, 'All 93 manga SVGs must have unique content hashes');
 });
 
 test('Landing SVGs: AnaCaona and Hijos del Huracán series preserve visual continuity', () => {
@@ -45,9 +45,19 @@ test('Landing SVGs: AnaCaona and Hijos del Huracán series preserve visual conti
   assert.ok(huracanChart.includes('ARCHIPIÉLAGO'), 'mangai-art-13.svg must depict Archipelago nautical chart');
 });
 
-test('Landing Book Viewer: fixes lateral clipping, displays full Genkō pages, and upgrades Tankōbon flip physics', () => {
+test('Landing Book Viewer: zero 1px GIF placeholders, 80 distinct spread page images across 10 tomes, and real modal metadata', () => {
+  const html = load('public/landing/index.html');
   const css = load('public/landing/landing.css');
   const js = load('public/landing/landing.js');
+
+  assert.doesNotMatch(html, /data:image\/gif;base64/i, 'index.html must not use 1px GIF placeholders in turningLeaf or viewer');
+  assert.doesNotMatch(js, /data:image\/gif;base64|BLANK_LEAF_PIXEL/i, 'landing.js must not use 1px GIF placeholders');
+  assert.doesNotMatch(html, /<h3 id="modalTitle">Título<\/h3>/i, 'Inspection modal must not contain generic "Título" placeholder');
+
+  const spreadImgMatches = [...js.matchAll(/image:\s*['"](\/landing\/assets\/mangai-art-\d+\.svg)['"]/g)].map((m) => m[1]);
+  assert.equal(spreadImgMatches.length, 80, 'BOOKS must define 80 page images across 10 tomes (4 spreads × 2 pages each)');
+  const uniqueSpreadImgs = new Set(spreadImgMatches);
+  assert.equal(uniqueSpreadImgs.size, 80, 'All 80 spread page slots across the 10 tomes must use distinct art SVGs');
 
   assert.match(css, /\.mangai-stage-center\s*\{[^}]*overflow\s*:\s*visible/i);
   assert.match(css, /\.manga-open-book\s*\{[^}]*overflow\s*:\s*visible/i);
@@ -60,6 +70,7 @@ test('Landing Book Viewer: fixes lateral clipping, displays full Genkō pages, a
 
   assert.ok(js.includes('--left-stack-px'), 'landing.js must dynamically update left page stack thickness');
   assert.ok(js.includes('--right-stack-px'), 'landing.js must dynamically update right page stack thickness');
+  assert.ok(js.includes('openInspectionModal'), 'landing.js must wire openInspectionModal with real cover and metadata');
 });
 
 test('Landing Otaku & Kawaii KAI Redesign + Studio Project Deep-Links', () => {
@@ -103,7 +114,7 @@ test('Landing Pass 2: header auth link, dedicated KAI rain panel SVG, and zero d
   const css = load('public/landing/landing.css');
   const js = load('public/landing/landing.js');
 
-  assert.match(html, /id=["']navAuthLink["'][^>]*href=["']\/login["'][^>]*>INICIAR SESIÓN/i);
+  assert.match(html, /id=["']navAuthLink["'][^>]*href=["']\/login["'][^>]*>Iniciar Sesión/i);
   assert.match(html, /id=["']mobileAuthLink["'][^>]*href=["']\/login["']/i);
   assert.ok(css.includes('.nav-auth-link'), 'landing.css must style .nav-auth-link');
   assert.ok(js.includes('syncLandingAuthLink'), 'landing.js must define syncLandingAuthLink');
@@ -115,5 +126,5 @@ test('Landing Pass 2: header auth link, dedicated KAI rain panel SVG, and zero d
 
   const dueloMatches = html.match(/Duelo en la Selva/g) || [];
   assert.equal(dueloMatches.length, 1, 'Duelo en la Selva must appear once in initial DOM (no duplicate inside hidden turningLeaf)');
-  assert.ok(js.includes('clearTurningLeaf'), 'landing.js must clear turningLeaf after flip');
+  assert.ok(js.includes('clearTurningLeaf'), 'landing.js must refresh turningLeaf after flip');
 });

@@ -101,11 +101,6 @@ const STEP_PIPELINE: Array<{
     icon: <BookMarked size={12} strokeWidth={2} />,
   },
   {
-    id: 'flux', stepNum: 6, shortLabel: 'FLUX', title: 'Ilustrar con FLUX',
-    tip: 'Describe el sujeto, el encuadre y la luz para generar una ilustración con tus referencias.',
-    icon: <PenTool size={12} strokeWidth={2} />,
-  },
-  {
     id: 'drawing_tablet',
     stepNum: 5,
     shortLabel: '5. Tabla de Dibujo',
@@ -116,7 +111,6 @@ const STEP_PIPELINE: Array<{
 ];
 
 const STEP_SUGGESTIONS: Record<StudioView, string[]> = {
-  flux: ['Escribe una dirección de arte para una cubierta a color con la protagonista a la derecha.'],
   project: [
     'Propón Título, Autor/Tono y Sinopsis de contraportada lista para mi manga.',
     'Ayúdame a estructurar el primer volumen de fantasía oscura en formato Tankōbon B6.',

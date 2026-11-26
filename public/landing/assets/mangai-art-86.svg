@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <defs>
+    <pattern id="tone-86" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.35" fill="#17141b" opacity="0.22"/>
+    </pattern>
+    <pattern id="hatch-86" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#dc2626" stroke-width="1.5" opacity="0.32"/>
+    </pattern>
+    <pattern id="genko-86" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#00aeef" stroke-width="0.65" opacity="0.22"/>
+    </pattern>
+    <linearGradient id="bg-86" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#090a0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="900" fill="#faf7f0"/>
+  <rect x="20" y="20" width="600" height="860" fill="url(#genko-86)" stroke="#00aeef" stroke-width="1" stroke-dasharray="6 4" opacity="0.75"/>
+  <rect x="40" y="44" width="560" height="812" rx="8" fill="#faf7f0" stroke="#17141b" stroke-width="3.5"/>
+  <rect x="56" y="62" width="528" height="54" rx="4" fill="#17141b"/>
+  <text x="74" y="86" fill="#dc2626" font-family="Arial Black,Arial,sans-serif" font-size="13" font-weight="900" letter-spacing="1.8">SENSEI · TINTA VIVA</text>
+  <text x="74" y="105" fill="#faf7f0" font-family="monospace" font-size="11" font-weight="700">PÁG. 08 · COLOFÓN EDITORIAL</text>
+  <text x="566" y="95" text-anchor="end" fill="#00aeef" font-family="monospace" font-size="11" font-weight="800">L2 INK · 600 DPI</text>
+
+  <rect x="56" y="128" width="528" height="260" fill="url(#bg-86)" stroke="#17141b" stroke-width="3"/>
+  <rect x="56" y="128" width="528" height="260" fill="url(#tone-86)"/>
+  <polygon points="56,404 584,376 584,696 56,696" fill="url(#bg-86)" stroke="#17141b" stroke-width="3"/>
+  
+    <g id="scene-86-colophon_isbn">
+      <line x1="402" y1="404" x2="134" y2="140" stroke="#dc2626" stroke-width="1.2" opacity="0.28"/>
+    <line x1="402" y1="404" x2="181" y2="720" stroke="#dc2626" stroke-width="1.8" opacity="0.28"/>
+    <line x1="402" y1="404" x2="228" y2="140" stroke="#dc2626" stroke-width="2.4" opacity="0.28"/>
+    <line x1="402" y1="404" x2="275" y2="720" stroke="#dc2626" stroke-width="1.2" opacity="0.28"/>
+    <line x1="402" y1="404" x2="322" y2="140" stroke="#dc2626" stroke-width="1.8" opacity="0.28"/>
+    <line x1="402" y1="404" x2="369" y2="720" stroke="#dc2626" stroke-width="2.4" opacity="0.28"/>
+    <line x1="402" y1="404" x2="416" y2="140" stroke="#dc2626" stroke-width="1.2" opacity="0.28"/>
+    <line x1="402" y1="404" x2="463" y2="720" stroke="#dc2626" stroke-width="1.8" opacity="0.28"/>
+    <line x1="402" y1="404" x2="510" y2="140" stroke="#dc2626" stroke-width="2.4" opacity="0.28"/>
+    <line x1="402" y1="404" x2="557" y2="720" stroke="#dc2626" stroke-width="1.2" opacity="0.28"/>
+    <line x1="402" y1="404" x2="84" y2="140" stroke="#dc2626" stroke-width="1.8" opacity="0.28"/>
+    <line x1="402" y1="404" x2="131" y2="720" stroke="#dc2626" stroke-width="2.4" opacity="0.28"/>
+      <circle cx="402" cy="404" r="127" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="10 6" opacity="0.55"/>
+      <circle cx="402" cy="404" r="93" fill="#dc2626" opacity="0.2"/>
+      <circle cx="402" cy="404" r="30" fill="#faf7f0" stroke="#17141b" stroke-width="3"/>
+      <path d="M116 488 Q402 264 496 488 L531 690 L81 690 Z" fill="#17141b" stroke="#dc2626" stroke-width="2.2"/>
+      <path d="M72 358 L568 322 L568 413 L72 449 Z" fill="url(#hatch-86)" stroke="#17141b" stroke-width="2.5"/>
+      <g transform="translate(402,404) rotate(178)">
+        <polygon points="0,-111 18,-14 111,0 18,14 0,111 -18,14 -111,0 -18,-14" fill="#dc2626" stroke="#17141b" stroke-width="2.4" opacity="0.88"/>
+        <circle cx="0" cy="0" r="11" fill="#17141b" stroke="#faf7f0" stroke-width="2"/>
+      </g>
+      <path d="M327 560 C372 470 432 470 477 560 Z" fill="#dc2626" stroke="#17141b" stroke-width="2.6"/>
+      <rect x="84" y="468" width="210" height="86" rx="6" fill="#faf7f0" stroke="#17141b" stroke-width="2.8"/>
+      <path d="M126 554 L148 584 L164 554 Z" fill="#faf7f0" stroke="#17141b" stroke-width="2.4"/>
+    </g>
+  <text x="189" y="506" text-anchor="middle" fill="#17141b" font-family="Arial Black,Arial,sans-serif" font-size="15" font-weight="900">CANVA B4 · B6 KDP</text>
+  <text x="189" y="530" text-anchor="middle" fill="#57515e" font-family="Arial,sans-serif" font-size="11" font-weight="700">KOMA-WARI · FUKIDASHI SVG</text>
+
+  <rect x="56" y="712" width="528" height="124" rx="6" fill="#17141b" stroke="#dc2626" stroke-width="2"/>
+  <text x="76" y="744" fill="#dc2626" font-family="monospace" font-size="12" font-weight="800" letter-spacing="1.4">ISBN EAN-13 · DISTRIBUCIÓN GLOBAL</text>
+  <text x="76" y="772" fill="#faf7f0" font-family="Arial,sans-serif" font-size="14" font-weight="800">PÁG. 08 · COLOFÓN EDITORIAL</text>
+  <text x="76" y="798" fill="#cbd5e1" font-family="monospace" font-size="11">GENKŌ YŌSHI · B6 TANKŌBON · CANVA B4 2150×3035 · SEED #7278</text>
+  <rect x="464" y="734" width="98" height="32" rx="4" fill="#dc2626"/>
+  <text x="513" y="755" text-anchor="middle" fill="#17141b" font-family="monospace" font-size="12" font-weight="900">FOLIO #86</text>
+</svg>
