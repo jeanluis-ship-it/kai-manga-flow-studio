@@ -1,0 +1,57 @@
+/* From Uiverse.io by augustin_4687 - https://uiverse.io/augustin_4687/modern-husky-6
+   MIT License, Copyright (c) augustin_4687 (Augustin Hiebel) */
+#openActiveBookBtn {
+  --ink: #292524;
+  --paper: #fafaf9;
+  --yellow: #facc15;
+  position: relative;
+  cursor: pointer;
+  padding: 1px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--ink);
+  color: var(--ink);
+  font: bold 1rem/1 Rubik, sans-serif;
+  transform: translate(-4px,-4px);
+  outline: 2px solid transparent;
+  outline-offset: 5px;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0.5px 0.5px 0 0px var(--ink),
+    1px 1px 0 0px var(--ink),
+    1.5px 1.5px 0 0px var(--ink),
+    2px 2px 0 0px var(--ink),
+    2.5px 2.5px 0 0px var(--ink),
+    3px 3px 0 0px var(--ink),
+    0px 0px 0 2px var(--paper),
+    0.5px 0.5px 0 2px var(--paper),
+    1px 1px 0 2px var(--paper),
+    1.5px 1.5px 0 2px var(--paper),
+    2px 2px 0 2px var(--paper),
+    2.5px 2.5px 0 2px var(--paper),
+    3px 3px 0 2px var(--paper),
+    3.5px 3.5px 0 2px var(--paper),
+    4px 4px 0 2px var(--paper);
+}
+#openActiveBookBtn:hover { transform: translate(0,0); box-shadow: 0 0 0 2px var(--paper); }
+#openActiveBookBtn:active, #openActiveBookBtn:focus-visible { outline-color: var(--yellow); }
+#openActiveBookBtn:focus-visible { outline-style: dashed; }
+#openActiveBookBtn .ink-face {
+  display: block; position: relative; pointer-events: none;
+  background: var(--yellow); border: 2px solid rgb(255 255 255 / 30%); border-radius: inherit;
+}
+#openActiveBookBtn .ink-face::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: .5;
+  background-image: radial-gradient(rgb(255 255 255 / 80%) 20%, transparent 20%), radial-gradient(white 20%, transparent 20%);
+  background-position: 0 0, 4px 4px; background-size: 8px 8px;
+  mix-blend-mode: hard-light; animation: hero-ink-dots .5s infinite linear;
+}
+#openActiveBookBtn .ink-face > span {
+  display: flex; align-items: center; justify-content: center; position: relative;
+  padding: .75rem 1.25rem; filter: drop-shadow(0 -1px 0 rgb(255 255 255 / 25%));
+}
+#openActiveBookBtn:active .ink-face > span { transform: translateY(2px); }
+@keyframes hero-ink-dots { to { background-position: 8px 0, 12px 4px; } }
+@media (prefers-reduced-motion: reduce) {
+  #openActiveBookBtn { transition: none; }
+  #openActiveBookBtn .ink-face::before { animation: none; }
+}

@@ -11,7 +11,7 @@ const BOOKS = [
     genre: 'Fantasía histórica',
     desc: 'Una leyenda caribeña reimaginada en tinta sumi, memoria ancestral y aventura épica. Quisqueya resiste bajo la tormenta mientras AnaCaona lidera el Areíto con trazos G-Pen a 600 DPI.',
     art: '/landing/assets/mangai-art-06.svg',
-    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/mangai-art-06.svg',
+    coverArt: pinwheelOptions.items[0]?.imageUrl || '/landing/assets/cover-anacaona.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Taino warrior queen AnaCaona standing defiantly in a moonlit Caribbean rainforest, ceremonial golden ornaments, flowing hair, dramatic sumi ink hatching and dynamic manga framing',
@@ -79,7 +79,7 @@ const BOOKS = [
     genre: 'Fantasía / Misterio',
     desc: 'Cada medianoche, un distrito entero desaparece de los mapas imperiales. Un joven cartógrafo arcano rastrea las coordenadas borradas con una brújula astral de tinta viva.',
     art: '/landing/assets/mangai-art-07.svg',
-    coverArt: pinwheelOptions.items[1]?.imageUrl || '/landing/assets/mangai-art-07.svg',
+    coverArt: pinwheelOptions.items[1]?.imageUrl || '/landing/assets/cover-atlas.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Young arcane cartographer holding a glowing astral compass inside a midnight archive where ancient ink maps float in mid-air, cyan rim lighting and deep slate shadows',
@@ -143,7 +143,7 @@ const BOOKS = [
     genre: 'Ciencia ficción',
     desc: 'Una transmisión imposible en 99.4 MHz despierta a los corredores de señal del Distrito Cero. Persecución cibernética en tres puntos de fuga sobre rascacielos empapados en neón.',
     art: '/landing/assets/mangai-art-08.svg',
-    coverArt: pinwheelOptions.items[2]?.imageUrl || '/landing/assets/mangai-art-08.svg',
+    coverArt: pinwheelOptions.items[2]?.imageUrl || '/landing/assets/cover-nox.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Cyberpunk signal runner perched on a rain-soaked neon rooftop overlooking a sleeping megacity, violet holographic frequencies pulsing across the night sky, 3-point perspective',
@@ -207,7 +207,7 @@ const BOOKS = [
     genre: 'Drama / Acción',
     desc: 'Dos hermanos separados por un juramento de sangre se reencuentran bajo un patio de piedra azotado por la lluvia. Entintado monocromo de alto contraste con pausas dramáticas.',
     art: '/landing/assets/mangai-art-09.svg',
-    coverArt: pinwheelOptions.items[3]?.imageUrl || '/landing/assets/mangai-art-09.svg',
+    coverArt: pinwheelOptions.items[3]?.imageUrl || '/landing/assets/cover-kuro.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Two estranged brothers facing each other across a rain-swept stone courtyard under a dim lantern, heavy monochrome brush shadows, intense silent manga standoff framing',
@@ -271,7 +271,7 @@ const BOOKS = [
     genre: 'Fantasía oscura',
     desc: 'Cuando el sol negro fractura la bóveda celeste, los centinelas de la Ciudadela de Ceniza alzan sus hojas reliquia. Fantasía oscura monumental con tramas densas y laca carmesí.',
     art: '/landing/assets/mangai-art-10.svg',
-    coverArt: pinwheelOptions.items[4]?.imageUrl || '/landing/assets/mangai-art-10.svg',
+    coverArt: pinwheelOptions.items[4]?.imageUrl || '/landing/assets/cover-eclipse.webp',
     studioStyle: 'cover_art',
     studioPrompt:
       'Lone armored sentinel standing before a fractured crimson solar eclipse tearing open an obsidian sky, swirling embers, monumental dark fantasy manga volume cover composition',
@@ -335,7 +335,7 @@ const BOOKS = [
     genre: 'Seinen / Acción Samurái',
     desc: 'Una katana templada en laca carmesí despierta el linaje prohibido de Akai sobre los puentes de bambú de Edo. Acción samurái de alta velocidad con cortes diagonales Koma-wari.',
     art: '/landing/assets/mangai-art-01.svg',
-    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/mangai-art-01.svg',
+    coverArt: pinwheelOptions.items[5]?.imageUrl || '/landing/assets/cover-akai.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Lone samurai warrior unsheathing a crimson-lacquered katana amidst falling autumn leaves, stark black sumi ink brushwork with dramatic Akai red slash accents',
@@ -399,7 +399,7 @@ const BOOKS = [
     genre: 'Mecha / Sci-Fi',
     desc: 'En los astilleros del Anillo Solar, el chasis experimental Kaze-01 vuelve a encender su reactor esmeralda. Geometría mecánica de precisión y batallas en gravedad cero.',
     art: '/landing/assets/mangai-art-02.svg',
-    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/mangai-art-02.svg',
+    coverArt: pinwheelOptions.items[6]?.imageUrl || '/landing/assets/cover-kaze.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Sleek orbital mecha frame launching from a zero-gravity hangar bay with emerald thrusters igniting against Earth curvature, detailed mechanical lineart',
@@ -463,7 +463,7 @@ const BOOKS = [
     genre: 'Fantasía Sobrenatural',
     desc: 'Una librería oculta en los callejones de Kioto custodia los contratos sellados de cien espíritus antiguos. Detectives del crepúsculo, talismanes Ofuda y caligrafía sumi.',
     art: '/landing/assets/mangai-art-03.svg',
-    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/mangai-art-03.svg',
+    coverArt: pinwheelOptions.items[7]?.imageUrl || '/landing/assets/cover-yokai.webp',
     studioStyle: 'webtoon_color',
     studioPrompt:
       'Mystical lantern-lit Kyoto alley at midnight where paper talismans swirl around a young exorcist detective, supernatural violet spirit silhouettes',
@@ -527,7 +527,7 @@ const BOOKS = [
     genre: 'Slice of Life / Arte',
     desc: 'El viaje íntimo de una autora independiente desde las madrugadas frente al papel Genkō hasta ver su primer Tankōbon B6 en las estanterías de Tokio.',
     art: '/landing/assets/mangai-art-04.svg',
-    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/mangai-art-04.svg',
+    coverArt: pinwheelOptions.items[8]?.imageUrl || '/landing/assets/cover-sensei.webp',
     studioStyle: 'manga_ink',
     studioPrompt:
       'Warm sunlit mangaka studio desk covered with Genko manuscript paper, G-pen nibs, ink bottles, and character sketches coming alive in delicate sumi lines',
@@ -591,7 +591,7 @@ const BOOKS = [
     genre: 'Aventura Épica',
     desc: 'Flotas de vela solar cruzan un archipiélago celeste suspendido entre tormentas eternas. Cartografía naval bloqueada en Settei y batallas aéreas a doble página.',
     art: '/landing/assets/mangai-art-05.svg',
-    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/mangai-art-05.svg',
+    coverArt: pinwheelOptions.items[9]?.imageUrl || '/landing/assets/cover-hijos-del-huracan.webp',
     studioStyle: 'cover_art',
     studioPrompt:
       'Skyship fleet with billowing solar sails carving through towering storm clouds above floating tropical islands, dynamic wide-angle shonen adventure cover art',
