@@ -37,7 +37,9 @@ const BINDING_OPTIONS: Array<{ id: BindingType; label: string; sub: string }> = 
 export const ProjectManager: React.FC<{
   project: Project;
   updateProject: (updates: Partial<Project>) => void;
-}> = ({ project, updateProject }) => {
+  onOpenFlipbook?: () => void;
+  onOpenPages?: () => void;
+}> = ({ project, updateProject, onOpenFlipbook, onOpenPages }) => {
   const [copies, setCopies] = useState<number>(50);
 
   const activePreset = getPrintPreset(project.trimFormat);
@@ -90,6 +92,61 @@ export const ProjectManager: React.FC<{
           <span>Asistir Obra y Sinopsis con KAI</span>
         </button>
       </div>
+
+      {/* Estante Virtual 3D — Biblioteca Tankōbon (Stitch DESIGN.md) */}
+      <section className="gf-pm-shelf-card" aria-label="Estante Virtual 3D Tankōbon">
+        <div className="gf-pm-shelf-head">
+          <div>
+            <span className="gf-pm-shelf-kicker">
+              ESTANTE VIRTUAL 3D · FORMATO FÍSICO {activePreset.shortName.toUpperCase()}
+            </span>
+            <h2 className="gf-pm-shelf-title">
+              {project.name || 'Manga sin título'} · Lomo {budget.spineMm.toFixed(1)} mm
+            </h2>
+          </div>
+          <div className="gf-pm-shelf-actions">
+            {onOpenPages && (
+              <button type="button" className="gf-pm-shelf-btn-primary" onClick={onOpenPages}>
+                <BookOpen size={14} strokeWidth={2} className="gf-icon-shrink" />
+                <span>Abrir en Editor de Páginas</span>
+              </button>
+            )}
+            {onOpenFlipbook && (
+              <button type="button" className="gf-pm-shelf-btn-secondary" onClick={onOpenFlipbook}>
+                <Layers size={14} strokeWidth={2} className="gf-icon-shrink" />
+                <span>Simular Hojeo 3D</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="gf-pm-shelf-stage">
+          <div className="gf-pm-shelf-books">
+            <div
+              className="gf-pm-spine is-active"
+              style={{
+                width: `${Math.max(46, Math.min(82, Math.round(budget.spineMm * 4.2)))}px`,
+              }}
+              title={`${project.name} — ${project.pageCount} págs · ${budget.spineMm.toFixed(1)} mm`}
+            >
+              <span className="gf-pm-spine-seal">ACTIVO</span>
+              <span className="gf-pm-spine-vol">VOL. 01</span>
+              <span className="gf-pm-spine-title">{project.name || 'Sin título'}</span>
+              <span className="gf-pm-spine-meta">{project.pageCount}P · KDP</span>
+            </div>
+
+            <div className="gf-pm-spine is-ghost" aria-hidden="true">
+              <span className="gf-pm-spine-vol">VOL. 02</span>
+              <span className="gf-pm-spine-title">Próximo Tomo</span>
+              <span className="gf-pm-spine-meta">B6 · 600 DPI</span>
+            </div>
+          </div>
+          <div className="gf-pm-shelf-plank">
+            <span>SERIALIZACIÓN MANGAI STUDIO · {activePreset.badge}</span>
+            <span>LOMO {budget.spineMm.toFixed(2)} MM · SANGRADO 3.5 MM</span>
+          </div>
+        </div>
+      </section>
 
       {/* 3 Real Print Presets */}
       <div className="gf-preset-section">

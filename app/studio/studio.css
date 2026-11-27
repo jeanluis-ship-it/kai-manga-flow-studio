@@ -25,6 +25,16 @@ body {
   --genko-ink: #111111;
   --genko-kai: #4F46E5;
 
+  /* Stitch DESIGN.md — Carmesí Sumi & Editorial Typography Tokens */
+  --mangai-surface: #fbf9f4;
+  --mangai-paper: #f7f5f0;
+  --mangai-primary: #c8232c;
+  --mangai-primary-dark: #a30018;
+  --mangai-ink: #1a1a1a;
+  --mangai-hairline: rgba(26, 26, 26, 0.12);
+  --mangai-font-display: 'Epilogue', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mangai-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
   --gf-workspace: var(--genko-desk);
   --gf-surface: var(--genko-panel);
   --gf-panel: var(--genko-panel);

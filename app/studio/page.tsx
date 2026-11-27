@@ -1586,7 +1586,13 @@ export default function StudioPage() {
               />
             )}
             {!welcome && view === 'project' && (
-              <div className="studio-print"><ProjectManager project={project} updateProject={updateProject} />
+              <div className="studio-print">
+                <ProjectManager
+                  project={project}
+                  updateProject={updateProject}
+                  onOpenFlipbook={() => setFlipbookOpen(true)}
+                  onOpenPages={() => setView('pages')}
+                />
                 <section className="studio-preflight"><h2>Diagnóstico de imprenta</h2>{preflightReport.checks.map(check =>
                   <details key={check.id}><summary>{check.status === 'ok' ? 'Correcto ·' : 'Revisar ·'} {check.title}</summary><p>{check.detail}</p></details>
                 )}<button className="studio-continue" onClick={() => setPreflightOpen(true)}>Exportar Paquete KDP</button></section></div>
