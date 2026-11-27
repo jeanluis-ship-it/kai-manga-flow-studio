@@ -1,86 +1,127 @@
-/* CharacterLibrary — Biblia Visual Settei (Stitch DESIGN.md: Carmesí Sumi & Genkō Editorial) */
+/* CharacterLibrary — Elenco y Fichas Settei (Stitch Character Roster + DESIGN.md) */
 
 .gf-roster-wrap {
   --settei-card-bg: var(--genko-panel, var(--gf-surface, #ffffff));
   --settei-surface: var(--mangai-surface, var(--genko-panel, var(--gf-surface, #fbf9f4)));
-  --settei-paper: var(--mangai-paper, var(--genko-canvas, var(--gf-surface-muted, #f7f5f0)));
+  --settei-paper: var(--mangai-paper, var(--genko-canvas, var(--gf-surface-muted, #f5f3ee)));
   --settei-ink: var(--mangai-ink, var(--genko-ink, var(--gf-ink, #1a1a1a)));
+  --settei-muted: var(--gf-ink-secondary, #52525b);
   --settei-hairline: var(
     --mangai-hairline,
     var(--genko-border, var(--gf-border, rgba(26, 26, 26, 0.12)))
   );
-  --settei-hairline-strong: rgba(26, 26, 26, 0.24);
+  --settei-hairline-strong: rgba(26, 26, 26, 0.22);
   --settei-hairline-hover: rgba(26, 26, 26, 0.34);
-  --settei-grid-line: rgba(26, 26, 26, 0.045);
+  --settei-grid-line: rgba(26, 26, 26, 0.04);
   --settei-primary: var(--mangai-primary, #c8232c);
   --settei-primary-dark: var(--mangai-primary-dark, #a30018);
   --settei-primary-soft: rgba(200, 35, 44, 0.08);
-  --settei-primary-border: rgba(200, 35, 44, 0.38);
+  --settei-primary-border: rgba(200, 35, 44, 0.36);
   --settei-input-bg: #ffffff;
-  --settei-input-border: rgba(26, 26, 26, 0.18);
+  --settei-input-border: rgba(26, 26, 26, 0.16);
 
-  max-width: 1180px;
+  width: 100%;
+  max-width: 1220px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .gf-studio-root[data-theme='dark'] .gf-roster-wrap {
-  --settei-card-bg: var(--genko-panel, var(--gf-surface, #111114));
-  --settei-surface: var(--genko-panel, var(--gf-surface, #111114));
-  --settei-paper: var(--gf-surface-muted, #161619);
+  --settei-card-bg: #111114;
+  --settei-surface: #0d0d0f;
+  --settei-paper: #16161a;
   --settei-ink: var(--genko-ink, var(--gf-ink, #f4f4f5));
-  --settei-hairline: var(--genko-border, var(--gf-border, rgba(255, 255, 255, 0.12)));
-  --settei-hairline-strong: var(--gf-border-strong, rgba(255, 255, 255, 0.24));
-  --settei-hairline-hover: rgba(255, 255, 255, 0.38);
-  --settei-grid-line: rgba(255, 255, 255, 0.045);
+  --settei-muted: var(--gf-ink-secondary, #9e9b97);
+  --settei-hairline: rgba(255, 255, 255, 0.1);
+  --settei-hairline-strong: rgba(255, 255, 255, 0.2);
+  --settei-hairline-hover: rgba(255, 255, 255, 0.34);
+  --settei-grid-line: rgba(255, 255, 255, 0.04);
   --settei-primary: var(--mangai-primary, #c8232c);
   --settei-primary-dark: var(--mangai-primary-dark, #a30018);
   --settei-primary-soft: rgba(200, 35, 44, 0.18);
-  --settei-primary-border: rgba(200, 35, 44, 0.55);
-  --settei-input-bg: var(--gf-input-bg, #161619);
-  --settei-input-border: var(--gf-border-strong, rgba(255, 255, 255, 0.2));
+  --settei-primary-border: rgba(200, 35, 44, 0.54);
+  --settei-input-bg: #0c0c0f;
+  --settei-input-border: rgba(255, 255, 255, 0.16);
 }
 
 .gf-roster-wrap.has-drawer {
-  max-width: 1240px;
+  max-width: 1280px;
 }
 
-/* Editorial Topbar & Typography */
+/* Minimal Stitch Editorial Topbar */
 .gf-roster-wrap .gf-roster-topbar {
-  padding-bottom: 16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--settei-hairline);
+}
+
+.gf-roster-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 620px;
+}
+
+.gf-settei-kicker-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .gf-settei-kicker {
   display: inline-block;
-  margin-bottom: 4px;
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
   font-size: 11px;
   font-weight: 600;
   line-height: 16px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--settei-primary);
 }
 
+.gf-settei-kicker-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--settei-primary);
+}
+
+.gf-settei-kicker-meta {
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--settei-muted);
+}
+
 .gf-roster-wrap .gf-page-title {
+  margin: 0;
   font-family: var(--mangai-font-display, 'Epilogue', 'Inter', sans-serif);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
   color: var(--settei-ink);
 }
 
 .gf-roster-wrap .gf-page-subtitle {
-  margin-top: 6px;
+  margin: 2px 0 0;
   font-size: 13.5px;
-  color: var(--gf-ink-secondary);
+  line-height: 1.45;
+  color: var(--settei-muted);
 }
 
 .gf-settei-inline-code {
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
   font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.04em;
   padding: 1px 6px;
   border-radius: 4px;
   background: var(--settei-paper);
@@ -92,38 +133,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
-.gf-canon-summary-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline);
-  background: var(--settei-card-bg);
-  color: var(--gf-ink-secondary);
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.gf-canon-summary-pill strong {
-  color: var(--settei-primary);
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-weight: 700;
-}
-
-/* Carmesí Sumi Primary & Editorial Secondary CTA Overrides */
+/* Primary & Secondary CTAs */
 .gf-roster-wrap .gf-settei-primary-cta {
   background: var(--settei-primary);
   border: 1px solid var(--settei-primary);
   color: #ffffff;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 600;
   box-shadow: none;
   transition: background 0.15s ease, border-color 0.15s ease;
@@ -138,7 +156,7 @@
   background: var(--settei-card-bg);
   border: 1px solid var(--settei-hairline-strong);
   color: var(--settei-ink);
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 500;
   box-shadow: none;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -149,33 +167,53 @@
   background: var(--settei-paper);
 }
 
-/* Filter Tabs — Architectural Studio Pills */
+/* Single-Row Stitch Filter Pill Bar + Search */
+.gf-settei-control-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--settei-paper);
+  border: 1px solid var(--settei-hairline);
+}
+
 .gf-roster-wrap .gf-settei-tabs {
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
 }
 
 .gf-roster-wrap .gf-settei-tab {
-  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
   padding: 0 12px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline);
-  background: var(--settei-card-bg);
-  color: var(--gf-ink-secondary);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--settei-muted);
   font-size: 12.5px;
   font-weight: 500;
+  cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .gf-roster-wrap .gf-settei-tab:hover {
   color: var(--settei-ink);
-  border-color: var(--settei-hairline-hover);
-  background: var(--settei-paper);
+  background: var(--settei-card-bg);
 }
 
 .gf-roster-wrap .gf-settei-tab.is-active {
-  background: var(--settei-primary);
-  color: #ffffff;
-  border-color: var(--settei-primary);
+  background: var(--settei-card-bg);
+  color: var(--settei-ink);
+  border-color: var(--settei-hairline);
   font-weight: 600;
 }
 
@@ -183,53 +221,107 @@
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  opacity: 0.85;
+  opacity: 0.72;
 }
 
-/* Empty State — Tactile Genkō Drafting Sheet */
-.gf-roster-wrap .gf-roster-empty {
-  border: 1px dashed var(--settei-hairline-strong);
-  background-color: var(--settei-paper);
-  background-image:
-    linear-gradient(to right, var(--settei-grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--settei-grid-line) 1px, transparent 1px);
-  background-size: 24px 24px;
-  border-radius: 8px;
-  box-shadow: none;
+.gf-settei-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 260px;
+  max-width: 100%;
 }
 
+.gf-settei-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--settei-muted);
+  pointer-events: none;
+}
+
+.gf-settei-search-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 28px 0 32px;
+  border-radius: 6px;
+  border: 1px solid var(--settei-hairline);
+  background: var(--settei-card-bg);
+  color: var(--settei-ink);
+  font-size: 12.5px;
+  transition: border-color 0.15s ease;
+}
+
+.gf-settei-search-input::placeholder {
+  color: var(--settei-muted);
+}
+
+.gf-settei-search-input:focus {
+  outline: none;
+  border-color: var(--settei-primary);
+}
+
+.gf-settei-search-clear {
+  position: absolute;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--settei-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.gf-settei-search-clear:hover {
+  color: var(--settei-ink);
+}
+
+/* Workspace Grid Layout */
 .gf-roster-workspace {
   display: block;
 }
 
 .gf-roster-workspace.has-drawer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(350px, 430px);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
   gap: 20px;
   align-items: start;
-}
-
-.gf-roster-workspace.has-drawer .gf-roster-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .gf-roster-main {
   min-width: 0;
 }
 
-/* Cards — Crisp 1px Sumi Hairlines, Pure Paper Elevation, Zero Drop Shadows */
+.gf-roster-wrap .gf-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.gf-roster-workspace.has-drawer .gf-roster-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Portrait-First Roster Cards */
 .gf-roster-wrap .gf-char-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 12px;
   background: var(--settei-card-bg);
   border: 1px solid var(--settei-hairline);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: none;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+  transition: border-color 0.16s ease, transform 0.16s ease;
 }
 
 .gf-roster-wrap .gf-char-card:hover {
   border-color: var(--settei-hairline-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .gf-roster-wrap .gf-char-card.is-editing {
@@ -238,210 +330,303 @@
 }
 
 .gf-roster-wrap .gf-char-card.is-paused {
-  opacity: 0.76;
+  opacity: 0.72;
   border-style: dashed;
 }
 
 .gf-roster-wrap .gf-char-card.is-paused .gf-char-img {
-  filter: grayscale(0.5);
+  filter: grayscale(0.6);
 }
 
-.gf-roster-wrap .gf-char-header {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--settei-hairline);
-}
-
-.gf-roster-wrap .gf-char-name {
-  font-family: var(--mangai-font-display, 'Epilogue', 'Inter', sans-serif);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--settei-ink);
-}
-
-.gf-roster-wrap .gf-handle-badge {
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--settei-ink);
-  background: var(--settei-paper);
-  border: 1px solid var(--settei-hairline);
-  padding: 2px 7px;
-  border-radius: 4px;
-}
-
-.gf-roster-wrap .gf-entity-pill {
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--gf-ink-secondary);
-  background: transparent;
-  border: 1px solid var(--settei-hairline);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.gf-char-seed-tag {
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--settei-primary);
-  background: var(--settei-primary-soft);
-  border: 1px solid var(--settei-primary-border);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.gf-char-header-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.gf-canon-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline);
-  background: var(--settei-paper);
-  color: var(--gf-ink-secondary);
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-
-.gf-canon-toggle-btn.is-active {
-  border-color: var(--settei-primary-border);
-  background: var(--settei-primary-soft);
-  color: var(--settei-primary);
-}
-
-.gf-canon-toggle-btn.is-paused {
-  border-color: var(--settei-hairline);
-  background: var(--settei-paper);
-  color: var(--gf-ink-muted);
-}
-
-.gf-canon-toggle-btn:hover {
-  border-color: var(--settei-ink);
-}
-
-.gf-roster-wrap .gf-char-delete-btn {
-  border-radius: 4px;
-}
-
-.gf-roster-wrap .gf-char-delete-btn:hover {
-  color: var(--settei-primary);
-  background: var(--settei-primary-soft);
-}
-
-/* Tactile Drafting Canvas Frame */
+/* 3:4 Crisp Portrait Frame */
 .gf-roster-wrap .gf-char-frame {
-  background-color: var(--genko-canvas, var(--mangai-paper, var(--gf-sheet, #f7f5f0)));
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--settei-hairline);
+  background-color: var(--genko-canvas, var(--settei-paper, #f7f5f0));
   background-image:
     linear-gradient(to right, rgba(26, 26, 26, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(26, 26, 26, 0.04) 1px, transparent 1px);
   background-size: 20px 20px;
-  border-bottom: 1px solid var(--settei-hairline);
+}
+
+.gf-roster-wrap .gf-char-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.gf-roster-wrap .gf-char-card:hover .gf-char-img {
+  transform: scale(1.025);
+}
+
+.gf-char-frame-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(13, 13, 15, 0.72) 0%,
+    rgba(13, 13, 15, 0.12) 34%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
+.gf-roster-wrap .gf-char-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #71717a;
 }
 
 .gf-roster-wrap .gf-char-empty-label {
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #52525b;
 }
 
-/* Locked-Canon Vermilion Hanko Seal */
-.gf-roster-wrap .gf-locked-badge {
-  background: var(--settei-primary);
-  color: #ffffff;
-  border: 1px solid var(--settei-primary-dark);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.gf-views-count-badge {
+/* Portrait Frame Top Controls */
+.gf-char-frame-top {
   position: absolute;
   top: 8px;
+  left: 8px;
   right: 8px;
-  background: rgba(26, 26, 26, 0.86);
-  color: #fbf9f4;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  z-index: 4;
 }
 
-.gf-roster-wrap .gf-seed-pill {
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: rgba(26, 26, 26, 0.84);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fbf9f4;
-  backdrop-filter: none;
+.gf-char-frame-top-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.gf-roster-wrap .gf-seed-pill.is-locked {
-  background: var(--settei-primary);
-  border-color: var(--settei-primary-dark);
-  color: #ffffff;
-}
-
-.gf-roster-wrap .gf-char-lock-btn {
+.gf-canon-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 7px;
   border-radius: 4px;
-  padding: 6px 10px;
-  background: rgba(26, 26, 26, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #fbf9f4;
+  background: rgba(17, 17, 20, 0.78);
+  color: #f4f4f5;
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  backdrop-filter: none;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.gf-roster-wrap .gf-char-lock-btn:hover:not(:disabled) {
+.gf-canon-toggle-btn.is-paused {
+  background: rgba(39, 39, 42, 0.76);
+  color: #a1a1aa;
+}
+
+.gf-canon-toggle-btn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.gf-roster-wrap .gf-char-delete-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(17, 17, 20, 0.72);
+  color: #e4e4e7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.gf-roster-wrap .gf-char-card:hover .gf-char-delete-btn,
+.gf-roster-wrap .gf-char-card:focus-within .gf-char-delete-btn {
+  opacity: 1;
+}
+
+.gf-roster-wrap .gf-char-delete-btn:hover {
   background: var(--settei-primary);
   border-color: var(--settei-primary);
   color: #ffffff;
 }
 
-/* Card Footer, Visual Anchors & Spec Rows */
+/* Carmesí Sumi CANON BLOQUEADO / BORRADOR Top Badge */
+.gf-status-seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.gf-status-seal.is-locked {
+  background: var(--settei-primary);
+  border: 1px solid var(--settei-primary-dark);
+  color: #ffffff;
+}
+
+.gf-status-seal.is-draft {
+  background: rgba(17, 17, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e4e4e7;
+  backdrop-filter: blur(6px);
+}
+
+.gf-status-seal:hover {
+  filter: brightness(1.08);
+}
+
+/* Portrait Frame Bottom Overlay */
+.gf-char-frame-bottom {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+  z-index: 4;
+}
+
+.gf-char-overlay-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gf-overlay-chip {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(17, 17, 20, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fbf9f4;
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+.gf-overlay-chip.is-muted {
+  color: #d4d4d8;
+  font-weight: 500;
+}
+
+.gf-roster-wrap .gf-char-lock-btn {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 5px;
+  background: var(--settei-primary);
+  border: 1px solid var(--settei-primary-dark);
+  color: #ffffff;
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.gf-roster-wrap .gf-char-lock-btn:hover:not(:disabled) {
+  background: var(--settei-primary-dark);
+}
+
+.gf-roster-wrap .gf-char-lock-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* Card Metadata Footer */
 .gf-roster-wrap .gf-char-footer {
-  padding: 14px;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  padding: 2px 2px 0;
+}
+
+.gf-char-identity-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gf-roster-wrap .gf-char-name {
+  margin: 0;
+  font-family: var(--mangai-font-display, 'Epilogue', 'Inter', sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--settei-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gf-char-seed-tag {
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--settei-muted);
+  flex-shrink: 0;
+}
+
+.gf-char-summary {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--settei-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gf-roster-wrap .gf-anchor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .gf-roster-wrap .gf-anchor-chip {
@@ -456,51 +641,148 @@
 
 .gf-roster-wrap .gf-anchor-chip.is-more {
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--gf-ink-muted);
+  font-size: 10.5px;
+  color: var(--settei-muted);
 }
 
 .gf-roster-wrap .gf-anchor-chip.is-editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: var(--settei-primary-soft);
   border-color: var(--settei-primary-border);
   color: var(--settei-primary);
 }
 
-.gf-roster-wrap .gf-char-attr {
-  padding-top: 6px;
-  border-top: 1px solid var(--settei-hairline);
-  font-size: 12px;
+.gf-char-progress-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 8px 9px;
+  border-radius: 6px;
+  background: var(--settei-paper);
+  border: 1px solid var(--settei-hairline);
 }
 
-.gf-roster-wrap .gf-char-attr:first-of-type {
-  padding-top: 2px;
-  border-top: none;
+.gf-char-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10.5px;
+  color: var(--settei-muted);
 }
 
-.gf-roster-wrap .gf-char-attr-key {
+.gf-char-progress-meta strong {
+  color: var(--settei-ink);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gf-char-progress-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--settei-hairline);
+  overflow: hidden;
+}
+
+.gf-char-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--settei-muted);
+  transition: width 0.25s ease;
+}
+
+.gf-char-progress-fill.is-ready {
+  background: var(--settei-primary);
+}
+
+/* Dashed "+ Nueva Ficha Settei" Card Slot */
+.gf-char-add-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 360px;
+  padding: 28px 20px;
+  border-radius: 12px;
+  border: 1.5px dashed var(--settei-hairline-strong);
+  background: var(--settei-paper);
+  color: var(--settei-ink);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.gf-char-add-slot:hover {
+  border-color: var(--settei-primary);
+  background: var(--settei-card-bg);
+  transform: translateY(-2px);
+}
+
+.gf-char-add-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: var(--settei-card-bg);
+  border: 1px solid var(--settei-hairline);
+  color: var(--settei-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.gf-char-add-slot:hover .gf-char-add-circle {
+  transform: scale(1.06);
+  background: var(--settei-primary);
+  border-color: var(--settei-primary);
+  color: #ffffff;
+}
+
+.gf-char-add-title {
+  font-family: var(--mangai-font-display, 'Epilogue', 'Inter', sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--settei-ink);
+}
+
+.gf-char-add-sub {
+  max-width: 210px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--settei-muted);
+}
+
+.gf-char-add-kicker {
+  margin-top: 4px;
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gf-ink-muted);
-  padding-top: 1px;
+  color: var(--settei-primary);
 }
 
-/* Non-Blocking Workspace-Scoped Settei Drawer (NEVER covers Espacio KAI) */
+/* Non-Blocking Workspace-Scoped Settei Inspector Drawer (NEVER covers Espacio KAI) */
 .gf-settei-workspace-drawer {
   position: sticky;
   top: 12px;
   background: var(--settei-card-bg, var(--genko-panel, var(--gf-surface)));
   border: 1px solid var(--settei-hairline-strong, var(--gf-border-strong));
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 18px;
   box-shadow: none;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 108px);
   overflow-y: auto;
   z-index: 15;
 }
@@ -514,220 +796,154 @@
   border-bottom: 1px solid var(--settei-hairline);
 }
 
+.gf-settei-drawer-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.gf-settei-drawer-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--settei-paper);
+  border: 1px solid var(--settei-hairline);
+  color: var(--settei-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gf-settei-drawer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.gf-settei-drawer-title-wrap {
+  min-width: 0;
+}
+
 .gf-settei-workspace-drawer .gf-modal-title {
   font-family: var(--mangai-font-display, 'Epilogue', 'Inter', sans-serif);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--settei-ink);
-  margin: 0;
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gf-settei-drawer-sub {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--gf-ink-secondary);
+  margin: 2px 0 0;
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  color: var(--settei-muted);
 }
 
 .gf-settei-workspace-drawer .gf-section-label {
   font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--gf-ink-secondary);
+  color: var(--settei-muted);
 }
 
-.gf-settei-workspace-drawer .gf-modal-input,
-.gf-settei-workspace-drawer .gf-modal-field-textarea {
-  background: var(--settei-input-bg);
-  border: 1px solid var(--settei-input-border);
-  border-radius: 4px;
-  color: var(--settei-ink);
-  transition: border-color 0.15s ease;
-}
-
-.gf-settei-workspace-drawer .gf-modal-input:focus,
-.gf-settei-workspace-drawer .gf-modal-field-textarea:focus {
-  border-color: var(--settei-primary);
-  box-shadow: none;
-}
-
-.gf-settei-workspace-drawer .gf-mono-input {
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-}
-
-.gf-settei-kai-autofill-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline-strong);
-  background: var(--settei-paper);
-  color: var(--settei-ink);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.gf-settei-kai-autofill-btn:hover {
-  border-color: var(--settei-primary);
-  background: var(--settei-primary-soft);
-  color: var(--settei-primary);
-}
-
-.gf-settei-drawer-toggles {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.gf-settei-workspace-drawer .gf-seed-toggle-btn {
-  height: 36px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline-strong);
-  background: var(--settei-paper);
-  color: var(--gf-ink-secondary);
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.gf-settei-workspace-drawer .gf-seed-toggle-btn:hover {
-  border-color: var(--settei-ink);
-  color: var(--settei-ink);
-}
-
-.gf-settei-workspace-drawer .gf-seed-toggle-btn.is-locked {
-  background: var(--settei-primary-soft);
-  border-color: var(--settei-primary-border);
-  color: var(--settei-primary);
-}
-
-.gf-seed-code-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.gf-seed-refresh-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline-strong);
-  background: var(--settei-paper);
-  color: var(--gf-ink-secondary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.gf-seed-refresh-btn:hover {
-  color: var(--settei-primary);
-  border-color: var(--settei-primary);
-}
-
-.gf-settei-workspace-drawer .gf-anchor-add-btn {
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline-strong);
-  background: var(--settei-paper);
-  color: var(--settei-ink);
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.gf-settei-workspace-drawer .gf-anchor-add-btn:hover {
-  background: var(--settei-primary);
-  border-color: var(--settei-primary);
-  color: #ffffff;
-}
-
-/* Reference Views Panel inside Settei Editor */
+/* Turnaround Gallery inside Drawer */
 .gf-settei-refs-box {
   border: 1px solid var(--settei-hairline);
   background: var(--settei-paper);
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.gf-settei-view-tabs {
+.gf-settei-refs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gf-settei-refs-count {
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--settei-muted);
+}
+
+.gf-settei-view-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
 }
 
-.gf-settei-view-tab {
-  display: inline-flex;
+.gf-settei-view-tile {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 5px;
-  height: 30px;
-  padding: 0 8px;
-  border-radius: 4px;
-  border: 1px solid var(--settei-hairline-strong);
+  padding: 5px;
+  border-radius: 8px;
+  border: 1px solid var(--settei-hairline);
   background: var(--settei-card-bg);
-  color: var(--gf-ink-secondary);
-  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: var(--settei-muted);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.gf-settei-view-tab:hover {
-  border-color: var(--settei-ink);
+.gf-settei-view-tile:hover {
+  border-color: var(--settei-hairline-hover);
   color: var(--settei-ink);
 }
 
-.gf-settei-view-tab.is-active {
+.gf-settei-view-tile.is-active {
   border-color: var(--settei-primary);
-  background: var(--settei-primary);
-  color: #ffffff;
+  color: var(--settei-primary);
 }
 
-.gf-settei-view-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--settei-primary);
+.gf-settei-view-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--settei-paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.gf-settei-view-tab.is-active .gf-settei-view-dot {
-  background: #ffffff;
+.gf-settei-view-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.gf-settei-view-label {
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .gf-settei-ref-preview {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px dashed var(--settei-hairline-strong);
-  background-color: var(--genko-canvas, var(--mangai-paper, var(--gf-sheet, #f7f5f0)));
-  background-image:
-    linear-gradient(to right, rgba(26, 26, 26, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(26, 26, 26, 0.04) 1px, transparent 1px);
-  background-size: 18px 18px;
+  background-color: var(--genko-canvas, var(--settei-paper, #f7f5f0));
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -753,8 +969,8 @@
 }
 
 .gf-settei-ref-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -763,16 +979,16 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 11px;
-  border-radius: 4px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 6px;
   border: 1px solid var(--settei-hairline-strong);
   background: var(--settei-card-bg);
   color: var(--settei-ink);
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .gf-settei-mini-btn:hover:not(:disabled) {
@@ -796,6 +1012,132 @@
   cursor: not-allowed;
 }
 
+.gf-settei-kai-autofill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--settei-hairline-strong);
+  background: var(--settei-paper);
+  color: var(--settei-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.gf-settei-kai-autofill-btn:hover {
+  border-color: var(--settei-primary);
+  background: var(--settei-primary-soft);
+  color: var(--settei-primary);
+}
+
+/* Drawer Inputs & Toggles */
+.gf-settei-workspace-drawer .gf-modal-input,
+.gf-settei-workspace-drawer .gf-modal-field-textarea {
+  background: var(--settei-input-bg);
+  border: 1px solid var(--settei-input-border);
+  border-radius: 6px;
+  color: var(--settei-ink);
+  transition: border-color 0.15s ease;
+}
+
+.gf-settei-workspace-drawer .gf-modal-input:focus,
+.gf-settei-workspace-drawer .gf-modal-field-textarea:focus {
+  border-color: var(--settei-primary);
+  box-shadow: none;
+}
+
+.gf-settei-workspace-drawer .gf-mono-input {
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.gf-settei-drawer-toggles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gf-settei-workspace-drawer .gf-seed-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--settei-hairline-strong);
+  background: var(--settei-paper);
+  color: var(--settei-muted);
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.gf-settei-workspace-drawer .gf-seed-toggle-btn:hover {
+  border-color: var(--settei-ink);
+  color: var(--settei-ink);
+}
+
+.gf-settei-workspace-drawer .gf-seed-toggle-btn.is-locked {
+  background: var(--settei-primary-soft);
+  border-color: var(--settei-primary-border);
+  color: var(--settei-primary);
+}
+
+.gf-seed-code-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gf-seed-refresh-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--settei-hairline-strong);
+  background: var(--settei-paper);
+  color: var(--settei-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.gf-seed-refresh-btn:hover {
+  color: var(--settei-primary);
+  border-color: var(--settei-primary);
+}
+
+.gf-settei-workspace-drawer .gf-anchor-add-btn {
+  border-radius: 6px;
+  border: 1px solid var(--settei-hairline-strong);
+  background: var(--settei-paper);
+  color: var(--settei-ink);
+  font-family: var(--mangai-font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.gf-settei-workspace-drawer .gf-anchor-add-btn:hover {
+  background: var(--settei-primary);
+  border-color: var(--settei-primary);
+  color: #ffffff;
+}
+
 .gf-settei-workspace-drawer .gf-modal-actions {
   padding-top: 12px;
   border-top: 1px solid var(--settei-hairline);
@@ -812,13 +1154,23 @@
     order: -1;
   }
 
+  .gf-roster-wrap .gf-roster-grid,
   .gf-roster-workspace.has-drawer .gf-roster-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 720px) {
+  .gf-roster-wrap .gf-roster-grid,
   .gf-roster-workspace.has-drawer .gf-roster-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gf-settei-search-box {
+    width: 100%;
+  }
+
+  .gf-settei-ref-actions {
     grid-template-columns: 1fr;
   }
 }

@@ -4,22 +4,21 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
-  ArrowLeft,
+  AlertTriangle,
   BookMarked,
   BookOpen,
   CheckCircle2,
-  Cloud,
   Crown,
   Eye,
   EyeOff,
-  FileText,
-  HardDrive,
   Info,
   KeyRound,
   Layers,
+  Library,
   Lock,
   LogIn,
   LogOut,
+  Menu,
   MessageSquarePlus,
   Moon,
   PackageCheck,
@@ -60,7 +59,7 @@ import {
   type UserQuotaProfile,
 } from '@/lib/plans/quotas';
 import { encodeEan13, formatIsbn13 } from '@/lib/print/ean13';
-import { computeSpineInches } from '@/lib/print/presets';
+import { computeSpineInches, getPrintPreset } from '@/lib/print/presets';
 import {
   getSeedProjectForVolume,
   isStarterBlankProject,
@@ -79,6 +78,7 @@ import { Flow, QuotaExceededError } from './flow-sdk';
 import { FieldDropdown, PillButton, SectionLabel, TextInput } from './components/Primitives';
 import { AuthModal } from './components/AuthModal';
 import { CharacterLibrary } from './components/CharacterLibrary';
+import { CollectionShelf } from './components/CollectionShelf';
 import { CoverDesigner, type CoverDesignerHandle } from './components/CoverDesigner';
 import { DrawingTabletWorkbench } from './components/DrawingTabletWorkbench';
 import { KaiCopilotDrawer } from './components/KaiCopilotDrawer';
@@ -106,7 +106,6 @@ import {
   type Project,
   type ScreentonePreset,
   type SpeedlinePreset,
-  toDataImageSrc,
   type StudioView,
 } from './types';
 import './studio.css';
@@ -1053,14 +1052,84 @@ export default function StudioPage() {
     handleSelectView('project');
   };
 
-  const handleSwitchProject = (targetId: string) => {
-    if (!targetId || targetId === project.id) return;
-    const target = extraProjects.find((p) => p.id === targetId);
-    if (!target) return;
-    setExtraProjects((prev) => [...prev.filter((p) => p.id !== targetId), project]);
-    setProject(target);
+  const handleOpenCollection = useCallback(() => {
+    setWelcome(true);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('tab');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, []);
+
+  const handleSelectShelfProject = (target: Project) => {
+    const sameId = Boolean(target.id && project.id && target.id === project.id);
+    const sameSlug = Boolean(
+      target.volumeSlug &&
+        project.volumeSlug &&
+        target.volumeSlug.toLowerCase() === project.volumeSlug.toLowerCase(),
+    );
+    const sameName =
+      target.name.trim().toLowerCase() === project.name.trim().toLowerCase();
+    if (sameId || sameSlug || sameName) return;
+
+    const existingIdx = extraProjects.findIndex(
+      (ep) =>
+        (target.id && ep.id === target.id) ||
+        (target.volumeSlug &&
+          ep.volumeSlug &&
+          ep.volumeSlug.toLowerCase() === target.volumeSlug.toLowerCase()) ||
+        ep.name.trim().toLowerCase() === target.name.trim().toLowerCase(),
+    );
+
+    const nextActive = existingIdx >= 0 ? extraProjects[existingIdx] : target;
+    const remaining =
+      existingIdx >= 0
+        ? extraProjects.filter((_, idx) => idx !== existingIdx)
+        : [...extraProjects];
+    if (!isStarterBlankProject(project)) {
+      remaining.push(project);
+    }
+
+    setExtraProjects(remaining);
+    setProject(nextActive);
     setActivePageIndex(0);
-    setSelectedKomaId(target.pages[0]?.komas?.[0]?.id ?? null);
+    setSelectedKomaId(nextActive.pages[0]?.komas?.[0]?.id ?? null);
+    setSelectedDialogueId(nextActive.pages[0]?.komas?.[0]?.dialogues?.[0]?.id ?? null);
+  };
+
+  const handleDuplicateCurrentProject = () => {
+    const projectCheck = checkQuota(quotaProfile, usageSnapshot, 'CREATE_PROJECT', 1);
+    if (!projectCheck.allowed) {
+      openUpgradeModal(projectCheck.reason, projectCheck.requiredPlan);
+      return;
+    }
+    const pageCheck = checkQuota(
+      quotaProfile,
+      usageSnapshot,
+      'ADD_PAGE',
+      Math.max(1, project.pages.length),
+    );
+    if (!pageCheck.allowed) {
+      openUpgradeModal(pageCheck.reason, pageCheck.requiredPlan);
+      return;
+    }
+    const cloned: Project = {
+      ...project,
+      id: createEntityId('proj'),
+      volumeSlug: undefined,
+      name: `${project.name || 'Manga sin título'} (Copia)`,
+      characters: project.characters.map((c) => ({ ...c, id: createEntityId('char') })),
+      pages: project.pages.map((p) => ({
+        ...p,
+        id: createEntityId('page'),
+        komas: (p.komas ?? []).map((k) => ({ ...k, id: createEntityId('koma') })),
+      })),
+      cover: { ...project.cover },
+    };
+    setExtraProjects((prev) => [...prev, project]);
+    setProject(cloned);
+    setActivePageIndex(0);
+    setSelectedKomaId(cloned.pages[0]?.komas?.[0]?.id ?? null);
     setSelectedDialogueId(null);
   };
 
@@ -1180,6 +1249,8 @@ export default function StudioPage() {
   }
 
   const activePlanCfg = PLAN_CATALOG[quotaProfile.planTier];
+  const activePreset = getPrintPreset(project.trimFormat);
+  const preflightWarnCount = preflightReport.checks.filter((c) => c.status !== 'ok').length;
   const userInitials = (quotaProfile.displayName || quotaProfile.email || 'M')
     .split(/\s+/)
     .map((part) => part[0] || '')
@@ -1191,52 +1262,74 @@ export default function StudioPage() {
     <div className="gf-studio-root" data-theme={theme}>
       <header className="gf-topbar">
         <div className="gf-topbar-left">
+          <button
+            type="button"
+            className="studio-nav-trigger"
+            aria-expanded={navOpen}
+            aria-controls="studio-navigation"
+            aria-label={navOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'}
+            title={navOpen ? 'Ocultar barra lateral' : 'Mostrar barra lateral'}
+            onClick={() => setNavOpen(!navOpen)}
+          >
+            <Menu size={16} strokeWidth={1.9} className="gf-icon-shrink" />
+          </button>
+
           <Link
             href="/"
             prefetch={false}
-            title="Volver al inicio"
+            title="Volver al inicio de MANGAI"
             className="gf-brand-link"
           >
-            <ArrowLeft size={16} strokeWidth={1.75} className="gf-icon-shrink" />
-            <span>MANGAI STUDIO</span>
+            <span className="gf-hanko-mark" aria-hidden="true">
+              開
+            </span>
+            <span className="gf-brand-text">
+              <strong className="gf-brand-name">MANGAI Studio</strong>
+              <span className="gf-brand-sub">| KDP Production Suite</span>
+            </span>
           </Link>
-          <button className="studio-nav-trigger" aria-expanded={navOpen} aria-controls="studio-navigation" onClick={() => setNavOpen(!navOpen)}>Menú</button>
-          <span className="gf-topbar-divider" aria-hidden="true" />
-          <span className="gf-topbar-project">{project.name || 'Manga sin título'}</span>
-          {quotaProfile.isGuest ? (
-            <span className="gf-guest-banner">
-              <HardDrive size={12} strokeWidth={2} className="gf-icon-shrink" />
-              <span>Modo Invitado · Inicia sesión para guardar en la nube</span>
-            </span>
-          ) : (
-            <span
-              className={`gf-storage-pill ${storageMode === 'supabase' ? 'is-cloud' : ''}`}
-              title={
-                storageMode === 'supabase'
-                  ? 'Sincronizado con Supabase'
-                  : 'Guardado local automático en este navegador'
-              }
-            >
-              {storageMode === 'supabase' ? (
-                <Cloud size={12} strokeWidth={2} className="gf-icon-shrink" />
-              ) : (
-                <HardDrive size={12} strokeWidth={2} className="gf-icon-shrink" />
-              )}
-              <span>{storageMode === 'supabase' ? 'Supabase Sync' : 'Local Sync'}</span>
-            </span>
-          )}
+
+          <span className="gf-version-badge">v2.4 Tankōbon</span>
         </div>
 
         <div className="gf-topbar-right">
+          <QuotaMeter
+            profile={quotaProfile}
+            usage={usageSnapshot}
+            onOpenUpgrade={() => openUpgradeModal()}
+            variant="compact"
+          />
+
+          <button
+            type="button"
+            onClick={() => {
+              if (welcome) {
+                handleSelectView('pages');
+              } else if (!rightPanelCollapsed && rightPanelTab === 'kai') {
+                setRightPanelCollapsed(true);
+              } else {
+                openDockedKai();
+              }
+            }}
+            className={`gf-kai-trigger-btn ${
+              !welcome && !rightPanelCollapsed && rightPanelTab === 'kai' ? 'is-active' : ''
+            }`}
+            title="Mostrar u ocultar el Espacio KAI acoplado a la derecha (sin opacar el proyecto)"
+          >
+            <span className="gf-kai-live-dot" aria-hidden="true" />
+            <Sparkles size={14} strokeWidth={2} className="gf-icon-shrink" />
+            <span>KAI Activo</span>
+          </button>
+
           <div className="gf-user-menu-wrap">
             <button
               type="button"
               onClick={() => setKeyPopoverOpen((v) => !v)}
-              className="gf-theme-toggle"
+              className={`gf-theme-toggle ${customGoogleKey.trim() ? 'is-key-active' : ''}`}
               title="Conectar llave propia de Google AI Studio (opcional)"
             >
               <KeyRound size={13} strokeWidth={2} className="gf-icon-shrink" />
-              <span>{customGoogleKey.trim() ? 'Llave Propia Activa' : 'Llave IA'}</span>
+              <span>{customGoogleKey.trim() ? 'Llave Propia' : 'Llave IA'}</span>
             </button>
             {keyPopoverOpen && (
               <div className="gf-user-dropdown" style={{ width: '286px', padding: '12px' }}>
@@ -1273,30 +1366,27 @@ export default function StudioPage() {
             )}
           </div>
 
-          <QuotaMeter
-            profile={quotaProfile}
-            usage={usageSnapshot}
-            onOpenUpgrade={() => openUpgradeModal()}
-            variant="compact"
-          />
-
           <button
             type="button"
-            onClick={() => {
-              if (welcome) {
-                handleSelectView('pages');
-              } else if (!rightPanelCollapsed && rightPanelTab === 'kai') {
-                setRightPanelCollapsed(true);
-              } else {
-                openDockedKai();
-              }
-            }}
-            className="gf-kai-trigger-btn"
-            title="Mostrar u ocultar el Espacio KAI acoplado a la derecha (sin opacar el proyecto)"
+            onClick={toggleTheme}
+            className="gf-theme-toggle"
+            title={theme === 'light' ? 'Cambiar a Modo Tinta Oscuro' : 'Cambiar a Papel Genkō Claro'}
+            aria-label={theme === 'light' ? 'Activar Modo Tinta' : 'Activar Papel Genkō'}
           >
-            <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
-            <span>{!welcome && !rightPanelCollapsed && rightPanelTab === 'kai' ? 'KAI Activo' : 'Espacio KAI'}</span>
+            {theme === 'light' ? (
+              <>
+                <Moon size={14} strokeWidth={1.9} className="gf-icon-shrink" />
+                <span>Modo Tinta</span>
+              </>
+            ) : (
+              <>
+                <Sun size={14} strokeWidth={1.9} className="gf-icon-shrink gf-sun-icon" />
+                <span>Papel Genkō</span>
+              </>
+            )}
           </button>
+
+          <span className="gf-topbar-divider" aria-hidden="true" />
 
           {quotaProfile.isGuest ? (
             <button
@@ -1316,7 +1406,12 @@ export default function StudioPage() {
                 aria-expanded={userMenuOpen}
               >
                 <span className="gf-user-avatar">{userInitials}</span>
-                <span className="gf-user-plan-tag">{activePlanCfg.name}</span>
+                <span className="gf-user-meta">
+                  <strong className="gf-user-name">{quotaProfile.displayName}</strong>
+                  <span className="gf-user-plan-tag">
+                    {activePlanCfg.name} · {storageMode === 'supabase' ? 'CLOUD' : 'LOCAL'}
+                  </span>
+                </span>
               </button>
               {userMenuOpen && (
                 <div className="gf-user-dropdown">
@@ -1347,77 +1442,60 @@ export default function StudioPage() {
               )}
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="gf-theme-toggle"
-            title={theme === 'light' ? 'Cambiar a Modo Estudio Oscuro' : 'Cambiar a Modo Papel Genkō'}
-            aria-label={theme === 'light' ? 'Activar modo oscuro' : 'Activar modo Papel Genkō claro'}
-          >
-            {theme === 'light' ? (
-              <>
-                <Moon size={15} strokeWidth={1.75} className="gf-icon-shrink" />
-                <span>Modo Oscuro</span>
-              </>
-            ) : (
-              <>
-                <Sun size={15} strokeWidth={1.75} className="gf-icon-shrink" />
-                <span>Papel Genkō</span>
-              </>
-            )}
-          </button>
         </div>
       </header>
 
       <div className={`manga-grid ${navOpen ? '' : 'nav-closed'} ${(welcome || rightPanelCollapsed) ? 'is-right-collapsed' : ''}`}>
         <aside id="studio-navigation" hidden={!navOpen} className="gf-sidebar-left no-scrollbar">
           <div className="gf-sidebar-section">
-            <Link
-              href="/"
-              prefetch={false}
-              title="Volver al inicio"
-              className="gf-sidebar-brand"
-            >
-              <ArrowLeft size={14} strokeWidth={1.75} className="gf-icon-shrink" />
-              <span>MANGAI STUDIO</span>
-            </Link>
-            <nav aria-label="Herramientas del estudio"><details open className="studio-nav-group"><summary>Crear</summary><div className="gf-nav-list"><NavItem
-                active={view === 'characters'}
-                icon={<Users size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Settei y Personajes"
+            <div className="gf-sidebar-head">
+              <span>WORKSPACE</span>
+              <span className="gf-sidebar-dpi">{activePreset.dpiInterior} DPI</span>
+            </div>
+
+            <nav aria-label="Herramientas del estudio" className="gf-nav-list">
+              <NavItem
+                active={welcome}
+                icon={<Library size={16} strokeWidth={1.85} className="gf-icon-shrink" />}
+                label="Colección & Estante"
+                onClick={handleOpenCollection}
+              />
+              <NavItem
+                active={!welcome && view === 'project'}
+                icon={<Printer size={16} strokeWidth={1.85} className="gf-icon-shrink" />}
+                label="Configuración KDP"
+                onClick={() => handleSelectView('project')}
+              />
+              <NavItem
+                active={!welcome && view === 'characters'}
+                icon={<Users size={16} strokeWidth={1.85} className="gf-icon-shrink" />}
+                label="Biblioteca Settei"
                 onClick={() => handleSelectView('characters')}
               />
               <NavItem
-                active={view === 'cover'}
-                icon={<BookOpen size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                active={!welcome && view === 'cover'}
+                icon={<BookOpen size={16} strokeWidth={1.85} className="gf-icon-shrink" />}
                 label="Portada Tankōbon"
                 onClick={() => handleSelectView('cover')}
               />
               <NavItem
-                active={view === 'drawing_tablet'}
-                icon={<PenTool size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
+                active={!welcome && view === 'pages'}
+                icon={<BookMarked size={16} strokeWidth={1.85} className="gf-icon-shrink" />}
+                label="Páginas Interiores"
+                onClick={() => handleSelectView('pages')}
+              />
+              <NavItem
+                active={!welcome && view === 'drawing_tablet'}
+                icon={<PenTool size={16} strokeWidth={1.85} className="gf-icon-shrink" />}
                 label="Tabla de Dibujo"
                 onClick={() => handleSelectView('drawing_tablet')}
               />
-              </div></details><details open className="studio-nav-group"><summary>Páginas</summary><div className="gf-nav-list"><NavItem
-                active={view === 'pages'}
-                icon={<BookMarked size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Viñetas e Interiores"
-                onClick={() => handleSelectView('pages')}
-              />
-              </div></details><details open className="studio-nav-group"><summary>Imprenta</summary><div className="gf-nav-list"><NavItem
-                active={view === 'project'}
-                icon={<Printer size={17} strokeWidth={1.75} className="gf-icon-shrink" />}
-                label="Configuración y Lomo"
-                onClick={() => handleSelectView('project')}
-              />
-              </div></details></nav>
+            </nav>
           </div>
 
-          {view === 'pages' && (
+          {!welcome && view === 'pages' && (
             <div className="gf-sidebar-section animate-slide-in-right">
-              <SectionLabel>Manuscrito</SectionLabel>
+              <SectionLabel>Manuscrito ({project.pages.length})</SectionLabel>
               <div className="gf-manuscript-list dark-scrollbar">
                 {project.pages.map((p, i) => {
                   const isThisPageBusy =
@@ -1450,7 +1528,7 @@ export default function StudioPage() {
                 })}
                 <PillButton
                   variant="outline"
-                  icon={<Plus size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
+                  icon={<Plus size={15} strokeWidth={1.75} className="gf-icon-shrink" />}
                   onClick={handleAddPage}
                 >
                   Añadir Página
@@ -1459,70 +1537,27 @@ export default function StudioPage() {
             </div>
           )}
 
-          {/* Sprint 4: Projects & Compact Quota Meter */}
-          <QuotaMeter
-            profile={quotaProfile}
-            usage={usageSnapshot}
-            onOpenUpgrade={() => openUpgradeModal()}
-            onCreateProject={handleCreateNewProject}
-          >
-            {extraProjects.length > 0 && (
-              <select
-                className="gf-project-switcher"
-                value={project.id || ''}
-                onChange={(e) => handleSwitchProject(e.target.value)}
-                aria-label="Cambiar de proyecto activo"
-              >
-                <option value={project.id || ''}>{project.name || 'Proyecto activo'}</option>
-                {extraProjects.map((ep) => (
-                  <option key={ep.id} value={ep.id}>
-                    {ep.name || 'Tomo sin título'} ({ep.pages.length} págs.)
-                  </option>
-                ))}
-              </select>
-            )}
-          </QuotaMeter>
-
           <div className="gf-sidebar-bottom">
-            <SectionLabel>Pre-Prensa & Entrega</SectionLabel>
-            <PillButton
-              variant="outline"
-              icon={<BookOpen size={15} strokeWidth={1.75} className="gf-icon-shrink" />}
-              onClick={() => setFlipbookOpen(true)}
-            >
-              Visor 3D PageFlip
-            </PillButton>
-            <PillButton
-              variant="outline"
-              icon={
-                buildingPdf ? (
-                  <RefreshCw size={15} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
-                ) : (
-                  <FileText size={15} strokeWidth={1.75} className="gf-icon-shrink" />
-                )
-              }
-              onClick={handleConfirmPdfExport}
-              disabled={buildingPdf || generating.bundle}
-            >
-              {buildingPdf ? 'Generando PDF KDP...' : 'Exportar PDF KDP'}
-            </PillButton>
-            <PillButton
-              variant="solid"
-              icon={
-                generating.bundle ? (
-                  <RefreshCw size={16} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
-                ) : (
-                  <PackageCheck size={16} strokeWidth={1.75} className="gf-icon-shrink" />
-                )
-              }
+            <div className="gf-sidebar-spec">
+              SPEC: {activePreset.id === 'tankobon_b6' ? 'B6 TANKŌBON' : activePreset.shortName.toUpperCase()} ·{' '}
+              {activePreset.dpiInterior} DPI
+            </div>
+            <button
+              type="button"
+              className="gf-export-kdp-btn"
               onClick={() => {
                 setBundleError('');
                 setPreflightOpen(true);
               }}
               disabled={generating.bundle || buildingPdf}
             >
-              {generating.bundle ? 'Empaquetando ZIP...' : 'Exportar Paquete KDP (ZIP)'}
-            </PillButton>
+              {generating.bundle ? (
+                <RefreshCw size={15} strokeWidth={2} className="gf-spin gf-icon-shrink" />
+              ) : (
+                <PackageCheck size={15} strokeWidth={2} className="gf-icon-shrink" />
+              )}
+              <span>{generating.bundle ? 'Empaquetando KDP...' : 'Exportar Paquete KDP'}</span>
+            </button>
             {generating.bundle && (
               <div className="gf-status-text animate-pulse-slow">
                 Aplanando capas L1 → L5...
@@ -1534,18 +1569,26 @@ export default function StudioPage() {
 
         <main className="gf-canvas-shell">
           <div className="gf-canvas-scroll dark-scrollbar">
-            {welcome && <section className="studio-welcome">
-              <div className="studio-book-jacket">
-                {project.cover.frontBase64 || project.cover.fullWrapBase64
-                  ? <img src={toDataImageSrc(project.cover.frontBase64 || project.cover.fullWrapBase64)} alt={`Portada de ${project.name}`} />
-                  : <span>{project.name || 'Manga sin título'}</span>}
-              </div>
-              <div><small>Proyecto activo</small><h1>{project.name || 'Manga sin título'}</h1>
-                <p>{project.pages.length} páginas · {project.characters.length} fichas Settei</p>
-                <button className="studio-continue" onClick={() => handleSelectView('pages')}>Continuar mi manga</button>
-              </div>
-            </section>}
-            {view === 'pages' && (
+            {welcome && (
+              <CollectionShelf
+                project={project}
+                extraProjects={extraProjects}
+                preflightReport={preflightReport}
+                buildingPdf={buildingPdf}
+                onSelectProject={handleSelectShelfProject}
+                onCreateProject={handleCreateNewProject}
+                onDuplicateProject={handleDuplicateCurrentProject}
+                onOpenPages={() => handleSelectView('pages')}
+                onOpenProject={() => handleSelectView('project')}
+                onOpenFlipbook={() => setFlipbookOpen(true)}
+                onExportPdf={handleConfirmPdfExport}
+                onOpenPreflight={() => {
+                  setBundleError('');
+                  setPreflightOpen(true);
+                }}
+              />
+            )}
+            {!welcome && view === 'pages' && (
               <PageEditor
                 project={project}
                 pageIndex={safePageIndex}
@@ -1569,7 +1612,7 @@ export default function StudioPage() {
                 komaLoading={generating.komas}
               />
             )}
-            {view === 'characters' && (
+            {!welcome && view === 'characters' && (
               <CharacterLibrary
                 project={project}
                 updateProject={updateProject}
@@ -1577,7 +1620,7 @@ export default function StudioPage() {
                 setCharacterLoading={setCharacterLoading}
               />
             )}
-            {view === 'cover' && (
+            {!welcome && view === 'cover' && (
               <CoverDesigner
                 ref={coverDesignerRef}
                 project={project}
@@ -1591,13 +1634,82 @@ export default function StudioPage() {
                   project={project}
                   updateProject={updateProject}
                   onOpenFlipbook={() => setFlipbookOpen(true)}
-                  onOpenPages={() => setView('pages')}
+                  onOpenPages={() => handleSelectView('pages')}
                 />
-                <section className="studio-preflight"><h2>Diagnóstico de imprenta</h2>{preflightReport.checks.map(check =>
-                  <details key={check.id}><summary>{check.status === 'ok' ? 'Correcto ·' : 'Revisar ·'} {check.title}</summary><p>{check.detail}</p></details>
-                )}<button className="studio-continue" onClick={() => setPreflightOpen(true)}>Exportar Paquete KDP</button></section></div>
+                <section className="studio-preflight" aria-label="Asistente Pre-flight KDP">
+                  <div className="studio-preflight-head">
+                    <div>
+                      <span className="studio-preflight-kicker">PRE-FLIGHT KDP</span>
+                      <h2>Asistente Pre-flight KDP</h2>
+                    </div>
+                    <span
+                      className={`studio-preflight-pill ${
+                        preflightWarnCount === 0 ? 'is-ok' : 'is-warn'
+                      }`}
+                    >
+                      {preflightWarnCount === 0 ? (
+                        <>
+                          <CheckCircle2 size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                          <span>Listo KDP</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                          <span>{preflightWarnCount} avisos</span>
+                        </>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="studio-preflight-specs">
+                    <div>
+                      <span>Formato</span>
+                      <strong>{activePreset.shortName}</strong>
+                    </div>
+                    <div>
+                      <span>Lomo calculado</span>
+                      <strong>{preflightReport.spineMm.toFixed(2)} mm</strong>
+                    </div>
+                  </div>
+
+                  <div className="studio-preflight-checks">
+                    {preflightReport.checks.map((check) => (
+                      <details
+                        key={check.id}
+                        className={`studio-preflight-check ${
+                          check.status === 'ok' ? 'is-ok' : 'is-warn'
+                        }`}
+                      >
+                        <summary>
+                          <span className="studio-preflight-check-icon">
+                            {check.status === 'ok' ? (
+                              <CheckCircle2 size={14} strokeWidth={2} className="gf-icon-shrink" />
+                            ) : (
+                              <AlertTriangle size={14} strokeWidth={2} className="gf-icon-shrink" />
+                            )}
+                          </span>
+                          <span>{check.title}</span>
+                        </summary>
+                        <p>{check.detail}</p>
+                      </details>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="studio-continue"
+                    onClick={() => {
+                      setBundleError('');
+                      setPreflightOpen(true);
+                    }}
+                  >
+                    <PackageCheck size={15} strokeWidth={2} className="gf-icon-shrink" />
+                    <span>Exportar Paquete KDP</span>
+                  </button>
+                </section>
+              </div>
             )}
-            {view === 'drawing_tablet' && (
+            {!welcome && view === 'drawing_tablet' && (
               <DrawingTabletWorkbench
                 project={project}
                 activePageIndex={safePageIndex}

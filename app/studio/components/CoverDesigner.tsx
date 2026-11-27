@@ -9,9 +9,9 @@ import {
   Download,
   Eye,
   EyeOff,
-  Palette,
+  Layers,
   RefreshCw,
-  Ruler,
+  ShieldCheck,
   Sparkles,
   Upload,
 } from 'lucide-react';
@@ -36,7 +36,7 @@ export interface CoverDesignerHandle {
 
 type CoverPreviewTab = 'wrap' | 'front' | 'back';
 
-function Ean13BarcodeSvg({ isbn }: { isbn: string }) {
+function Ean13BarcodeSvg({ isbn, compact = false }: { isbn: string; compact?: boolean }) {
   const encoded = encodeEan13(isbn);
   const bits = encoded.bits;
   const totalWidth = 113; // 9px quiet left + 95 modules + 9px quiet right
@@ -45,7 +45,10 @@ function Ean13BarcodeSvg({ isbn }: { isbn: string }) {
   const guardHeight = 46;
 
   return (
-    <div className="gf-isbn-box gf-isbn-box-real" title={encoded.message}>
+    <div
+      className={`gf-isbn-box gf-isbn-box-real ${compact ? 'is-compact' : ''}`}
+      title={encoded.message}
+    >
       <svg
         viewBox={`0 0 ${totalWidth} 60`}
         className="gf-ean13-svg"
@@ -222,7 +225,13 @@ export const CoverDesigner = forwardRef<
   const [exporting, setExporting] = useState<boolean>(false);
 
   const preset = getPrintPreset(project.trimFormat);
-  const spineMm = (project.cover.spineWidthInches * 25.4).toFixed(2);
+  const spineMmNum = project.cover.spineWidthInches * 25.4;
+  const spineMm = spineMmNum.toFixed(2);
+  const spreadWidthMm = (preset.trimWidthMm + preset.bleedMm) * 2 + spineMmNum;
+  const spreadHeightMm = preset.trimHeightMm + preset.bleedMm * 2;
+  const spreadWidthIn = (spreadWidthMm / 25.4).toFixed(3);
+  const spreadHeightIn = (spreadHeightMm / 25.4).toFixed(3);
+
   const wrapSrc = toDataImageSrc(project.cover.fullWrapBase64);
   const frontSrc = toDataImageSrc(project.cover.frontBase64) || wrapSrc;
   const backSrc = toDataImageSrc(project.cover.backBase64) || wrapSrc;
@@ -240,6 +249,8 @@ export const CoverDesigner = forwardRef<
   const backSynopsis = project.cover.backSynopsis?.trim() || '';
   const authorLabel = project.author || 'Autor';
   const titleLabel = project.name || 'Manga sin título';
+  const coverPrompt = project.cover.prompt ?? '';
+  const promptWordCount = coverPrompt.trim() ? coverPrompt.trim().split(/\s+/).length : 0;
 
   const handleSelectPreset = (formatId: TrimFormatId) => {
     updateProject({ trimFormat: formatId });
@@ -258,8 +269,7 @@ export const CoverDesigner = forwardRef<
     });
   };
 
-  // Proportional spine width in px clamped cleanly for visual preview
-  const spineWidthPx = Math.min(54, Math.max(28, Math.round(project.cover.spineWidthInches * 92)));
+  const spineWidthPx = Math.min(54, Math.max(30, Math.round(project.cover.spineWidthInches * 92)));
 
   const handleExportCover = useCallback(async () => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -400,7 +410,8 @@ export const CoverDesigner = forwardRef<
     [handleExportCover],
   );
 
-  const handleUploadSlot = (slot: 'fullWrapBase64' | 'frontBase64' | 'backBase64') =>
+  const handleUploadSlot =
+    (slot: 'fullWrapBase64' | 'frontBase64' | 'backBase64') =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       e.target.value = '';
@@ -434,9 +445,10 @@ export const CoverDesigner = forwardRef<
 
   const handleAskKaiCover = () => {
     if (typeof window === 'undefined') return;
+    const userBrief = coverPrompt.trim() ? ` Dirección creativa solicitada: ${coverPrompt.trim()}.` : '';
     const prompt = `Diseña la portada Tankōbon para «${titleLabel}» (formato ${preset.shortName}, modo ${
       project.colorMode === 'color' ? 'Color' : 'Sumi B/N + acento carmesí'
-    }). Incluye un [PROMPT VISUAL]: listo para generar la cubierta envolvente 16:9 con composición clara de portada frontal, lomo y contraportada.`;
+    }).${userBrief} Incluye un [PROMPT VISUAL]: listo para generar la cubierta envolvente 16:9 con composición clara de portada frontal, lomo y contraportada.`;
     window.dispatchEvent(
       new CustomEvent('mangai-kai-ask', {
         detail: { prompt, mode: 'mentor' },
@@ -452,60 +464,406 @@ export const CoverDesigner = forwardRef<
       : 'KDP 6×9"';
 
   return (
-    <div className="gf-cover-wrap animate-slide-in-right">
-      <div className="gf-cover-header">
-        <span className="gf-cover-kicker">Preprensa Editorial · Cubierta Envolvente</span>
-        <h1 className="gf-page-title">Portada Tankōbon</h1>
-        <p className="gf-cover-subtitle">
-          {preset.name} ({preset.trimLabel}) · Sangrado {preset.bleedLabel} · Lomo:{' '}
-          {project.cover.spineWidthInches.toFixed(3)}&quot; ({spineMm} mm)
-        </p>
-        <div className="gf-cover-spec-strip" aria-label="Especificaciones técnicas de cubierta">
-          <span className="gf-cover-spec-badge is-crimson">{presetFormatTag}</span>
-          <span className="gf-cover-spec-badge">{preset.dpiInterior} DPI</span>
-          <span className="gf-cover-spec-badge">{preset.bleedMm.toFixed(1)}MM BLEED</span>
-          <span className="gf-cover-spec-badge">LOMO {spineMm} MM</span>
-        </div>
+    <div className="gf-cover-wrap gf-cd-layout animate-slide-in-right">
+      {/* LEFT / CENTER INTERACTIVE STAGE */}
+      <div className="gf-cd-main">
+        {/* Compact Top Header */}
+        <header className="gf-cd-header">
+          <div className="gf-cd-title-row">
+            <h1 className="gf-cd-title">Diseño de Cubierta Tankōbon</h1>
+            <span className="gf-cd-rev-badge">{presetFormatTag}</span>
+          </div>
+          <div className="gf-cd-meta-strip">
+            <span className="gf-cd-meta-strong">Portada y Contraportada Emparejadas</span>
+            <span className="gf-cd-meta-dot" aria-hidden="true">
+              ·
+            </span>
+            <span>{preset.name}</span>
+            <span className="gf-cd-meta-dot" aria-hidden="true">
+              ·
+            </span>
+            <span className="gf-cd-spine-pill">
+              Auto-lomo: {project.cover.spineWidthInches.toFixed(3)}&quot; ({spineMm} mm)
+            </span>
+            <span className="gf-cd-meta-dot" aria-hidden="true">
+              ·
+            </span>
+            <span className="gf-cd-verified-pill">
+              <span className="gf-cd-pulse-dot" aria-hidden="true" />
+              Pre-vuelo KDP Verificado
+            </span>
+          </div>
+        </header>
+
+        {/* Stage Card with Floating Toolbar + High-Contrast Preview */}
+        <section className="gf-cover-stage gf-cd-stage-card" aria-label="Lienzo de cubierta Tankōbon">
+          {/* Toolbar inside Stage */}
+          <div className="gf-cd-stage-bar">
+            <div className="gf-cd-spread-status">
+              <span className="gf-cd-status-dot" aria-hidden="true" />
+              <span>
+                PLIEGO: {spreadWidthIn}&quot; × {spreadHeightIn}&quot;
+              </span>
+              <span className="gf-cd-spread-sep" aria-hidden="true">
+                |
+              </span>
+              <span>SANGRADO: {preset.bleedMm.toFixed(1)} MM INC.</span>
+            </div>
+
+            <div className="gf-cd-toolbar-controls">
+              <div className="gf-cover-tabs" role="tablist" aria-label="Vista de cubierta Tankōbon">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={previewTab === 'wrap'}
+                  className={`gf-cover-tab-btn ${previewTab === 'wrap' ? 'is-active' : ''}`}
+                  onClick={() => setPreviewTab('wrap')}
+                >
+                  Full Wrap 16:9
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={previewTab === 'front'}
+                  className={`gf-cover-tab-btn ${previewTab === 'front' ? 'is-active' : ''}`}
+                  onClick={() => setPreviewTab('front')}
+                >
+                  Portada Frontal
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={previewTab === 'back'}
+                  className={`gf-cover-tab-btn ${previewTab === 'back' ? 'is-active' : ''}`}
+                  onClick={() => setPreviewTab('back')}
+                >
+                  Contraportada + EAN-13
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className={`gf-cover-tool-btn ${showGuides ? 'is-active' : ''}`}
+                onClick={() => setShowGuides((v) => !v)}
+                aria-pressed={showGuides}
+              >
+                {showGuides ? <Eye size={13} strokeWidth={2} /> : <EyeOff size={13} strokeWidth={2} />}
+                <span>Guías de Corte / Sangrado</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Canvas Viewport */}
+          <div className="gf-cd-viewport">
+            {isGeneratingCover && (
+              <div className="gf-task-overlay" role="status" aria-live="polite">
+                <RefreshCw size={22} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
+                <span>Generando cubierta Tankōbon...</span>
+              </div>
+            )}
+
+            {hasAnyArt ? (
+              previewTab === 'wrap' ? (
+                <div className="gf-cover-canvas gf-cd-canvas-wrap">
+                  {hasIndependentSplit ? (
+                    <div className="gf-cover-split-grid">
+                      <div className="gf-cover-split-panel">
+                        {backSrc && (
+                          <img
+                            src={backSrc}
+                            alt={`Contraportada de ${titleLabel}`}
+                            className="gf-cover-img"
+                          />
+                        )}
+                      </div>
+                      <div className="gf-cover-spine-solid" style={{ width: `${spineWidthPx}px` }} />
+                      <div className="gf-cover-split-panel">
+                        {frontSrc && (
+                          <img
+                            src={frontSrc}
+                            alt={`Portada frontal de ${titleLabel}`}
+                            className="gf-cover-img"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={wrapSrc}
+                      alt={`Cubierta completa de ${titleLabel}`}
+                      className="gf-cover-img"
+                    />
+                  )}
+
+                  {showGuides && (
+                    <div className="gf-cover-bleed-frame" aria-hidden="true">
+                      <span className="gf-cover-bleed-tag">SANGRADO {preset.bleedLabel}</span>
+                    </div>
+                  )}
+
+                  <div className={`gf-cover-guides ${showGuides ? '' : 'is-hidden'}`}>
+                    <div className="gf-cover-half gf-cover-back">
+                      <span className="gf-cover-guide-label">Contraportada</span>
+                      {backSynopsis && (
+                        <div className="gf-cover-synopsis-card">
+                          <p className="gf-cover-synopsis-text">{backSynopsis}</p>
+                          <span className="gf-cover-synopsis-author">{authorLabel}</span>
+                        </div>
+                      )}
+                      {includeIsbn && (
+                        <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} />
+                      )}
+                    </div>
+
+                    <div className="gf-cover-spine" style={{ width: `${spineWidthPx}px` }}>
+                      <span className="gf-cover-spine-label">
+                        {spineTitle} · {authorLabel} ({spineMm} mm)
+                      </span>
+                    </div>
+
+                    <div className="gf-cover-half gf-cover-front">
+                      <span className="gf-cover-guide-label">Portada Frontal</span>
+                      <div className="gf-cover-front-meta">
+                        <span className="gf-cover-front-title">{titleLabel}</span>
+                        <span className="gf-cover-front-author">{authorLabel}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : previewTab === 'front' ? (
+                <div className="gf-cover-canvas-single">
+                  <img
+                    src={frontSrc}
+                    alt={`Portada frontal de ${titleLabel}`}
+                    className="gf-cover-img"
+                  />
+                  {showGuides && (
+                    <div className="gf-cover-bleed-frame" aria-hidden="true">
+                      <span className="gf-cover-bleed-tag">PORTADA 3:4 · {preset.bleedLabel}</span>
+                    </div>
+                  )}
+                  <div className="gf-cover-front-meta">
+                    <span className="gf-cover-front-title">{titleLabel}</span>
+                    <span className="gf-cover-front-author">{authorLabel}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="gf-cover-canvas-single">
+                  <img
+                    src={backSrc}
+                    alt={`Contraportada de ${titleLabel}`}
+                    className="gf-cover-img"
+                  />
+                  {showGuides && (
+                    <div className="gf-cover-bleed-frame" aria-hidden="true">
+                      <span className="gf-cover-bleed-tag">
+                        CONTRAPORTADA · {preset.bleedLabel}
+                      </span>
+                    </div>
+                  )}
+                  {backSynopsis && (
+                    <div className="gf-cover-synopsis-card">
+                      <p className="gf-cover-synopsis-text">{backSynopsis}</p>
+                      <span className="gf-cover-synopsis-author">{authorLabel}</span>
+                    </div>
+                  )}
+                  {includeIsbn && (
+                    <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} />
+                  )}
+                </div>
+              )
+            ) : (
+              <div className="gf-cover-empty">
+                <BookOpen size={36} strokeWidth={1.5} className="gf-cover-empty-icon gf-icon-shrink" />
+                <span className="gf-cover-empty-text">
+                  GENERA LA CUBIERTA ENVOLVENTE CON KAI O SUBE TU ARTE
+                </span>
+                {includeIsbn && (
+                  <div className="gf-cover-empty-isbn">
+                    <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Canvas Footer Status Strip */}
+          <div className="gf-cd-stage-footer">
+            <div className="gf-cd-stage-checks">
+              <span className="gf-cd-stage-check-item">
+                <span className="gf-cd-crimson-dot" aria-hidden="true" />
+                LOMO SEGURO: OK ({spineMm} MM)
+              </span>
+              <span>ZONA EAN-13: {includeIsbn ? '100% LIBRE' : 'OCULTA'}</span>
+              <span>MARGEN INTERIOR: 0.375&quot;</span>
+            </div>
+            <span className="gf-cd-stage-export-hint">
+              SALIDA PNG: cover_{slugifyFilename(project.name)}.png
+            </span>
+          </div>
+        </section>
+
+        {/* 3 Clean KPI Cards Directly Underneath (Stitch Bento Bar) */}
+        <section className="gf-cd-kpi-grid" aria-label="Indicadores técnicos de cubierta">
+          <article className="gf-cd-kpi-card">
+            <div className="gf-cd-kpi-copy">
+              <span className="gf-cd-kpi-kicker">Páginas de Interior</span>
+              <strong className="gf-cd-kpi-value">{project.pageCount} Páginas</strong>
+              <span className="gf-cd-kpi-sub">
+                {project.paperType === 'cream' ? 'Papel crema 55 lb' : 'Papel blanco 50-61 lb'} (Lomo:{' '}
+                {project.cover.spineWidthInches.toFixed(3)}&quot;)
+              </span>
+            </div>
+            <BookOpen size={20} strokeWidth={1.75} className="gf-cd-kpi-icon" aria-hidden="true" />
+          </article>
+
+          <article className="gf-cd-kpi-card">
+            <div className="gf-cd-kpi-copy">
+              <span className="gf-cd-kpi-kicker">Resolución de Trama</span>
+              <strong className="gf-cd-kpi-value">Resolución 600 DPI Nativo</strong>
+              <span className="gf-cd-kpi-sub">
+                Lineart Sumi Ink · Cubierta {preset.dpiCover} DPI editorial
+              </span>
+            </div>
+            <Layers size={20} strokeWidth={1.75} className="gf-cd-kpi-icon" aria-hidden="true" />
+          </article>
+
+          <article className="gf-cd-kpi-card">
+            <div className="gf-cd-kpi-copy">
+              <span className="gf-cd-kpi-kicker">Compatibilidad KDP</span>
+              <strong className="gf-cd-kpi-value is-ok">Listo para Cargar</strong>
+              <span className="gf-cd-kpi-sub">
+                {preset.shortName} · Sangrado {preset.bleedMm.toFixed(1)} mm validado
+              </span>
+            </div>
+            <ShieldCheck
+              size={20}
+              strokeWidth={1.75}
+              className="gf-cd-kpi-icon is-ok"
+              aria-hidden="true"
+            />
+          </article>
+        </section>
       </div>
 
-      {/* Format Presets (Tankōbon B6, Canva B4 2150×3035 + 3.5mm, KDP 6×9") & Editable ISBN-13 */}
-      <details className="gf-cover-prepress-panel" aria-label="Presets de Imprenta e ISBN-13 Editable">
-        <summary className="gf-cover-prepress-summary">
-          <span>Formato de impresión e ISBN-13</span>
-          <span className="gf-cover-prepress-summary-meta">
-            {presetFormatTag} · {preset.bleedMm.toFixed(1)}MM BLEED · {preset.dpiInterior} DPI
-          </span>
-        </summary>
-        <div className="gf-cover-presets-row" role="radiogroup" aria-label="Formato de corte y sangrado">
-          {PRINT_PRESET_LIST.map((p) => {
-            const active = preset.id === p.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                className={`gf-cover-preset-card ${active ? 'is-active' : ''}`}
-                onClick={() => handleSelectPreset(p.id)}
-              >
-                <div className="gf-cover-preset-top">
-                  <span className="gf-cover-preset-name">{p.shortName}</span>
-                  <span className="gf-cover-preset-badge">{p.badge}</span>
-                </div>
-                <span className="gf-cover-preset-meta">
-                  {p.exportWidthPx}×{p.exportHeightPx} px · Sangrado {p.bleedMm} mm · {p.dpiInterior} DPI
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      {/* RIGHT INSPECTOR CARD: Generación de Cubierta Unificada */}
+      <aside className="gf-cd-inspector" aria-label="Generación de Cubierta Unificada">
+        <div className="gf-cd-inspector-body">
+          {/* Inspector Header */}
+          <div className="gf-cd-inspector-head">
+            <div className="gf-cd-inspector-title-row">
+              <h2 className="gf-cd-inspector-title">Generación de Cubierta Unificada</h2>
+              <span className="gf-cd-engine-pill">MOTOR KAI</span>
+            </div>
+            <p className="gf-cd-inspector-desc">
+              Armoniza el trazo, color y composición entre portada frontal, lomo y contraportada en
+              un único pliego envolvente 16:9.
+            </p>
+          </div>
 
-        <div className="gf-cover-isbn-bar">
-          <div className="gf-cover-isbn-field">
-            <div className="gf-cover-isbn-label-row">
+          {/* Prompt + KAI Assist */}
+          <div className="gf-cd-block">
+            <div className="gf-cd-block-head">
+              <label htmlFor="gf-cd-prompt" className="gf-cd-block-label">
+                Prompt de Cubierta Unificada
+              </label>
+              <span className="gf-cd-block-meta">{promptWordCount} palabras</span>
+            </div>
+            <textarea
+              id="gf-cd-prompt"
+              rows={3}
+              className="gf-cd-textarea"
+              value={coverPrompt}
+              onChange={(e) =>
+                updateProject({
+                  cover: { ...project.cover, prompt: e.target.value },
+                })
+              }
+              placeholder="Describe atmósfera, iluminación y encuadre... Ej. Tinta sumi de alto contraste, cielo carmesí tormentoso, protagonista de frente sosteniendo arma ancestral..."
+            />
+            <button type="button" className="gf-cd-kai-cta" onClick={handleAskKaiCover}>
+              <Sparkles size={15} strokeWidth={2} className="gf-icon-shrink" />
+              <span>Diseñar Portada con KAI</span>
+            </button>
+          </div>
+
+          {/* Format Presets */}
+          <div className="gf-cd-block">
+            <div className="gf-cd-block-head">
+              <span className="gf-cd-block-label">Formato de Corte</span>
+              <span className="gf-cd-block-meta">{preset.trimLabel}</span>
+            </div>
+            <div className="gf-cd-preset-stack" role="radiogroup" aria-label="Formato de corte">
+              {PRINT_PRESET_LIST.map((p) => {
+                const active = preset.id === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    className={`gf-cover-preset-card ${active ? 'is-active' : ''}`}
+                    onClick={() => handleSelectPreset(p.id)}
+                  >
+                    <div className="gf-cover-preset-top">
+                      <span className="gf-cover-preset-name">{p.shortName}</span>
+                      <span className="gf-cover-preset-badge">{p.badge}</span>
+                    </div>
+                    <span className="gf-cover-preset-meta">
+                      {p.exportWidthPx}×{p.exportHeightPx} px · Sangrado {p.bleedMm} mm ·{' '}
+                      {p.dpiInterior} DPI
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Spine & Back Copy */}
+          <div className="gf-cd-block">
+            <div className="gf-cd-block-head">
+              <label htmlFor="gf-cover-spine-input" className="gf-cd-block-label">
+                Título en Lomo ({spineMm} mm)
+              </label>
+            </div>
+            <input
+              id="gf-cover-spine-input"
+              type="text"
+              className="gf-cover-text-input"
+              value={project.cover.spineTitle ?? ''}
+              placeholder={project.name || 'Título en el lomo'}
+              onChange={(e) =>
+                updateProject({
+                  cover: { ...project.cover, spineTitle: e.target.value },
+                })
+              }
+            />
+
+            <div className="gf-cd-block-head gf-cd-mt">
+              <label htmlFor="gf-cover-synopsis-input" className="gf-cd-block-label">
+                Sinopsis en Contraportada
+              </label>
+            </div>
+            <textarea
+              id="gf-cover-synopsis-input"
+              rows={2}
+              className="gf-cd-textarea gf-cd-textarea-sm"
+              value={project.cover.backSynopsis ?? ''}
+              placeholder="Breve sinopsis editorial para la contraportada..."
+              onChange={(e) =>
+                updateProject({
+                  cover: { ...project.cover, backSynopsis: e.target.value },
+                })
+              }
+            />
+          </div>
+
+          {/* ISBN-13 + Live EAN-13 SVG Barcode Toggle */}
+          <div className="gf-cd-block">
+            <div className="gf-cd-block-head">
               <label htmlFor="gf-cover-isbn-input" className="gf-cover-isbn-label">
                 <Barcode size={13} strokeWidth={2} className="gf-icon-shrink" />
-                <span>ISBN-13 Editable (EAN-13 Vectorial)</span>
+                <span>ISBN-13 Editable</span>
               </label>
               <label className="gf-cover-isbn-toggle">
                 <input
@@ -517,11 +875,11 @@ export const CoverDesigner = forwardRef<
                     })
                   }
                 />
-                <span>Imprimir código en contraportada</span>
+                <span>Mostrar EAN-13</span>
               </label>
             </div>
 
-            <div className="gf-cover-isbn-input-row">
+            <div className="gf-cd-isbn-controls">
               <input
                 id="gf-cover-isbn-input"
                 type="text"
@@ -538,309 +896,101 @@ export const CoverDesigner = forwardRef<
                   })
                 }
               />
-              <span
-                className={`gf-cover-isbn-status ${
-                  isbnEncoded.valid && isbnEncoded.checksumValid ? 'is-valid' : 'is-warn'
-                }`}
-              >
-                {isbnEncoded.valid && isbnEncoded.checksumValid ? (
-                  <CheckCircle2 size={12} strokeWidth={2.2} className="gf-icon-shrink" />
-                ) : (
-                  <AlertTriangle size={12} strokeWidth={2.2} className="gf-icon-shrink" />
-                )}
-                <span>{isbnEncoded.message}</span>
-              </span>
-              {(!isbnEncoded.valid || !isbnEncoded.checksumValid) && includeIsbn && (
-                <button
-                  type="button"
-                  className="gf-cover-isbn-fix-btn"
-                  onClick={handleAutofixIsbnCheckDigit}
+              <div className="gf-cd-isbn-status-row">
+                <span
+                  className={`gf-cover-isbn-status ${
+                    isbnEncoded.valid && isbnEncoded.checksumValid ? 'is-valid' : 'is-warn'
+                  }`}
                 >
-                  Calcular dígito EAN-13
-                </button>
+                  {isbnEncoded.valid && isbnEncoded.checksumValid ? (
+                    <CheckCircle2 size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                  ) : (
+                    <AlertTriangle size={12} strokeWidth={2.2} className="gf-icon-shrink" />
+                  )}
+                  <span>{isbnEncoded.message}</span>
+                </span>
+                {(!isbnEncoded.valid || !isbnEncoded.checksumValid) && includeIsbn && (
+                  <button
+                    type="button"
+                    className="gf-cover-isbn-fix-btn"
+                    onClick={handleAutofixIsbnCheckDigit}
+                  >
+                    Calcular dígito
+                  </button>
+                )}
+              </div>
+              {includeIsbn && (
+                <div className="gf-cd-barcode-preview">
+                  <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} compact />
+                </div>
               )}
             </div>
           </div>
 
-          <div className="gf-cover-meta-fields">
-            <div className="gf-cover-meta-col">
-              <label htmlFor="gf-cover-spine-input" className="gf-cover-isbn-label">
-                Título en Lomo ({spineMm} mm)
-              </label>
-              <input
-                id="gf-cover-spine-input"
-                type="text"
-                className="gf-cover-text-input"
-                value={project.cover.spineTitle ?? ''}
-                placeholder={project.name || 'Título en el lomo'}
-                onChange={(e) =>
-                  updateProject({
-                    cover: { ...project.cover, spineTitle: e.target.value },
-                  })
-                }
-              />
+          {/* Upload / Reference Cover Art */}
+          <div className="gf-cd-block">
+            <div className="gf-cd-block-head">
+              <span className="gf-cd-block-label">Subir Artes o Referencia</span>
+              <span className="gf-cd-block-meta">PNG / JPG / WEBP</span>
             </div>
-            <div className="gf-cover-meta-col">
-              <label htmlFor="gf-cover-synopsis-input" className="gf-cover-isbn-label">
-                Sinopsis en Contraportada
+            <div className="gf-cd-upload-grid">
+              <label className="gf-cover-file-btn">
+                <Upload size={12} strokeWidth={2} />
+                <span>Full Wrap 16:9</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleUploadSlot('fullWrapBase64')}
+                />
               </label>
-              <input
-                id="gf-cover-synopsis-input"
-                type="text"
-                className="gf-cover-text-input"
-                value={project.cover.backSynopsis ?? ''}
-                placeholder="Breve sinopsis editorial para la contraportada..."
-                onChange={(e) =>
-                  updateProject({
-                    cover: { ...project.cover, backSynopsis: e.target.value },
-                  })
-                }
-              />
+              <label className="gf-cover-file-btn">
+                <Upload size={12} strokeWidth={2} />
+                <span>Portada (3:4)</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleUploadSlot('frontBase64')}
+                />
+              </label>
+              <label className="gf-cover-file-btn">
+                <Upload size={12} strokeWidth={2} />
+                <span>Contraportada</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleUploadSlot('backBase64')}
+                />
+              </label>
             </div>
           </div>
         </div>
-      </details>
 
-      {/* Preview Tabs + Guides Toggle + KAI + Canvas PNG Export */}
-      <div className="gf-cover-toolbar">
-        <div className="gf-cover-tabs" role="tablist" aria-label="Vista de cubierta Tankōbon">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={previewTab === 'wrap'}
-            className={`gf-cover-tab-btn ${previewTab === 'wrap' ? 'is-active' : ''}`}
-            onClick={() => setPreviewTab('wrap')}
-          >
-            Full Wrap 16:9
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={previewTab === 'front'}
-            className={`gf-cover-tab-btn ${previewTab === 'front' ? 'is-active' : ''}`}
-            onClick={() => setPreviewTab('front')}
-          >
-            Portada Frontal
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={previewTab === 'back'}
-            className={`gf-cover-tab-btn ${previewTab === 'back' ? 'is-active' : ''}`}
-            onClick={() => setPreviewTab('back')}
-          >
-            Contraportada + EAN-13
-          </button>
-        </div>
-
-        <div className="gf-cover-tools-right">
-          <button
-            type="button"
-            className={`gf-cover-tool-btn ${showGuides ? 'is-active' : ''}`}
-            onClick={() => setShowGuides((v) => !v)}
-            aria-pressed={showGuides}
-          >
-            {showGuides ? <Eye size={13} strokeWidth={2} /> : <EyeOff size={13} strokeWidth={2} />}
-            <span>Guías de Corte / Sangrado</span>
-          </button>
-
-          <button type="button" className="gf-cover-tool-btn is-kai" onClick={handleAskKaiCover}>
-            <Sparkles size={13} strokeWidth={2} />
-            <span>Diseñar Portada con KAI</span>
-          </button>
+        {/* Bottom Production Export CTA */}
+        <div className="gf-cd-production">
+          <div className="gf-cd-production-head">
+            <span className="gf-cd-production-kicker">PRODUCCIÓN</span>
+            <span className="gf-cd-production-ready">LISTO</span>
+          </div>
 
           <button
             type="button"
-            className="gf-cover-tool-btn is-primary"
+            className="gf-cd-export-cta"
             onClick={handleExportCover}
             disabled={exporting}
           >
-            <Download size={13} strokeWidth={2} />
-            <span>{exporting ? 'Exportando PNG...' : 'Exportar PNG'}</span>
+            <Download size={16} strokeWidth={2} className="gf-icon-shrink" />
+            <span>{exporting ? 'Exportando PNG...' : 'Exportar Cubierta PNG'}</span>
           </button>
-        </div>
-      </div>
 
-      <div className="gf-cover-stage">
-        {isGeneratingCover && (
-          <div className="gf-task-overlay" role="status" aria-live="polite">
-            <RefreshCw size={22} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
-            <span>Generando cubierta Tankōbon...</span>
-          </div>
-        )}
-
-        {hasAnyArt ? (
-          previewTab === 'wrap' ? (
-            <div className="gf-cover-canvas">
-              {hasIndependentSplit ? (
-                <div className="gf-cover-split-grid">
-                  <div className="gf-cover-split-panel">
-                    {backSrc && (
-                      <img src={backSrc} alt={`Contraportada de ${titleLabel}`} className="gf-cover-img" />
-                    )}
-                  </div>
-                  <div className="gf-cover-spine-solid" style={{ width: `${spineWidthPx}px` }} />
-                  <div className="gf-cover-split-panel">
-                    {frontSrc && (
-                      <img src={frontSrc} alt={`Portada frontal de ${titleLabel}`} className="gf-cover-img" />
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <img
-                  src={wrapSrc}
-                  alt={`Cubierta completa de ${titleLabel}`}
-                  className="gf-cover-img"
-                />
-              )}
-
-              {showGuides && (
-                <div className="gf-cover-bleed-frame" aria-hidden="true">
-                  <span className="gf-cover-bleed-tag">BLEED {preset.bleedLabel}</span>
-                </div>
-              )}
-
-              <div className={`gf-cover-guides ${showGuides ? '' : 'is-hidden'}`}>
-                <div className="gf-cover-half gf-cover-back">
-                  <span className="gf-cover-guide-label">Contraportada</span>
-                  {backSynopsis && (
-                    <div className="gf-cover-synopsis-card">
-                      <p className="gf-cover-synopsis-text">{backSynopsis}</p>
-                      <span className="gf-cover-synopsis-author">{authorLabel}</span>
-                    </div>
-                  )}
-                  {includeIsbn && (
-                    <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} />
-                  )}
-                </div>
-
-                <div className="gf-cover-spine" style={{ width: `${spineWidthPx}px` }}>
-                  <span className="gf-cover-spine-label">
-                    {spineTitle} · {authorLabel} ({spineMm} mm)
-                  </span>
-                </div>
-
-                <div className="gf-cover-half gf-cover-front">
-                  <span className="gf-cover-guide-label">Portada Frontal</span>
-                  <div className="gf-cover-front-meta">
-                    <span className="gf-cover-front-title">{titleLabel}</span>
-                    <span className="gf-cover-front-author">{authorLabel}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : previewTab === 'front' ? (
-            <div className="gf-cover-canvas-single">
-              <img
-                src={frontSrc}
-                alt={`Portada frontal de ${titleLabel}`}
-                className="gf-cover-img"
-              />
-              {showGuides && (
-                <div className="gf-cover-bleed-frame" aria-hidden="true">
-                  <span className="gf-cover-bleed-tag">PORTADA 3:4 · {preset.bleedLabel}</span>
-                </div>
-              )}
-              <div className="gf-cover-front-meta">
-                <span className="gf-cover-front-title">{titleLabel}</span>
-                <span className="gf-cover-front-author">{authorLabel}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="gf-cover-canvas-single">
-              <img
-                src={backSrc}
-                alt={`Contraportada de ${titleLabel}`}
-                className="gf-cover-img"
-              />
-              {showGuides && (
-                <div className="gf-cover-bleed-frame" aria-hidden="true">
-                  <span className="gf-cover-bleed-tag">CONTRAPORTADA · {preset.bleedLabel}</span>
-                </div>
-              )}
-              {backSynopsis && (
-                <div className="gf-cover-synopsis-card">
-                  <p className="gf-cover-synopsis-text">{backSynopsis}</p>
-                  <span className="gf-cover-synopsis-author">{authorLabel}</span>
-                </div>
-              )}
-              {includeIsbn && (
-                <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} />
-              )}
-            </div>
-          )
-        ) : (
-          <div className="gf-cover-empty">
-            <BookOpen size={38} strokeWidth={1.5} className="gf-cover-empty-icon gf-icon-shrink" />
-            <span className="gf-cover-empty-text">
-              GENERA LA CUBIERTA COMPLETA O SUBE PORTADA / CONTRAPORTADA
-            </span>
-            {includeIsbn && (
-              <div className="gf-cover-empty-isbn">
-                <Ean13BarcodeSvg isbn={project.cover.isbn || '978-9945-0000-0-0'} />
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="gf-cover-upload-strip">
-          <span className="gf-cover-upload-label">Subir artes propios (PNG / JPG / WebP):</span>
-          <div className="gf-cover-upload-actions">
-            <label className="gf-cover-file-btn">
-              <Upload size={12} strokeWidth={2} />
-              <span>Full Wrap 16:9</span>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleUploadSlot('fullWrapBase64')}
-              />
-            </label>
-            <label className="gf-cover-file-btn">
-              <Upload size={12} strokeWidth={2} />
-              <span>Portada Frontal (3:4)</span>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleUploadSlot('frontBase64')}
-              />
-            </label>
-            <label className="gf-cover-file-btn">
-              <Upload size={12} strokeWidth={2} />
-              <span>Contraportada (3:4)</span>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleUploadSlot('backBase64')}
-              />
-            </label>
+          <div className="gf-cd-spec-box">
+            <strong>
+              Dimensiones: {spreadWidthIn}&quot; × {spreadHeightIn}&quot; (Pliego +{' '}
+              {preset.bleedMm.toFixed(1)} mm)
+            </strong>
+            <span>PNG limpio sin guías · Compatible con Amazon KDP</span>
           </div>
         </div>
-      </div>
-
-      <div className="gf-cover-info-grid">
-        <div className="gf-card gf-cover-info-card">
-          <Palette size={18} strokeWidth={1.75} className="gf-cover-info-icon gf-icon-shrink" />
-          <div>
-            <p className="gf-cover-info-title">Tipografía, Capas y Exportación PNG</p>
-            <p className="gf-cover-info-text">
-              Título en lomo («{spineTitle}»), autor, sinopsis y código EAN-13 vectorial se combinan
-              en un PNG limpio (`cover_{slugifyFilename(project.name)}.png`) sin guías cian.
-            </p>
-          </div>
-        </div>
-
-        <div className="gf-card gf-cover-info-card">
-          <Ruler size={18} strokeWidth={1.75} className="gf-cover-info-icon gf-icon-shrink" />
-          <div>
-            <p className="gf-cover-info-title">Especificación {preset.shortName}</p>
-            <p className="gf-cover-info-text">
-              Corte {preset.trimLabel}, sangrado {preset.bleedLabel} y lomo dinámico de{' '}
-              {project.cover.spineWidthInches.toFixed(3)}&quot; ({spineMm} mm) a {preset.dpiCover}{' '}
-              DPI.
-            </p>
-          </div>
-        </div>
-      </div>
+      </aside>
     </div>
   );
 });

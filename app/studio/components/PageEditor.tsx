@@ -22,6 +22,8 @@ import {
   Undo2,
   Upload,
   X,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import {
   KOMA_LAYOUT_LIST,
@@ -799,42 +801,103 @@ export const PageEditor: React.FC<{
 
   return (
     <div className="gf-editor-wrap animate-slide-in-right">
-      <div className="gf-editor-header">
-        <div className="gf-editor-heading-block">
-          <h2 className="gf-editor-title">Páginas e Interiores</h2>
-          <p className="gf-editor-counter">
-            PÁG. {safeIndex + 1} / {project.pages.length} · {komas.length} VIÑETAS ·{' '}
-            {preset.shortName.toUpperCase()} ({preset.exportWidthPx}×{preset.exportHeightPx} px ·{' '}
-            Sangrado {preset.bleedMm} mm)
-          </p>
-          <div className="gf-editor-specs-row" aria-label="Especificaciones editoriales de página">
-            <span className="gf-editor-spec-chip is-primary">
-              <span className="gf-editor-spec-dot" aria-hidden="true" />
-              600 DPI
+      {/* Compact Single Top Flow Toolbar — Canvas-First Focus */}
+      <div className="gf-flow-topbar" role="toolbar" aria-label="Barra superior de página interior">
+        <div className="gf-flow-topbar-left">
+          <span className="gf-flow-spec-badge" title={`${preset.name} (${preset.exportWidthPx}×${preset.exportHeightPx} px · Sangrado ${preset.bleedMm} mm)`}>
+            <span className="gf-editor-spec-dot" aria-hidden="true" />
+            <span>
+              {preset.shortName.toUpperCase()} · Pág {safeIndex + 1}/{project.pages.length}
             </span>
-            <span className="gf-editor-spec-chip">
-              {(project.readingDirection || 'rtl') === 'rtl' ? 'RTL ← MANGA' : 'LTR → OCCIDENTAL'}
-            </span>
-            <span className="gf-editor-spec-chip">CAPAS L0–L6</span>
-            <span className="gf-editor-spec-chip is-guide">
-              SANGRADO {preset.bleedMm}MM
-            </span>
-          </div>
+          </span>
+
+          <select
+            className="gf-flow-trim-select"
+            aria-label="Formato de impresión"
+            value={preset.id}
+            onChange={(e) => updateProject({ trimFormat: e.target.value as TrimFormatId })}
+          >
+            {PRINT_PRESET_LIST.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.shortName} · {p.bleedMm}mm
+              </option>
+            ))}
+          </select>
+
+          <span className="gf-flow-rtl-badge" title="Dirección de lectura del tomo">
+            {(project.readingDirection || 'rtl') === 'rtl' ? 'RTL ←' : 'LTR →'}
+          </span>
         </div>
 
-        <div className="gf-editor-header-controls">
-          <div className="gf-editor-preset-pills" role="group" aria-label="Formato de página">
-            {PRINT_PRESET_LIST.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`gf-editor-preset-pill ${preset.id === p.id ? 'is-active' : ''}`}
-                onClick={() => updateProject({ trimFormat: p.id as TrimFormatId })}
-                title={`${p.name} (${p.exportWidthPx}×${p.exportHeightPx} px · Sangrado ${p.bleedMm} mm)`}
-              >
-                {p.shortName}
-              </button>
-            ))}
+        {/* Compact Inline Koma-wari Template Selector */}
+        {page && (
+          <div className="gf-koma-templates" role="group" aria-label="Plantillas Koma-wari">
+            {KOMA_LAYOUT_LIST.map((tmpl) => {
+              const isActive = activeLayout === tmpl.id;
+              return (
+                <button
+                  key={tmpl.id}
+                  type="button"
+                  className={`gf-koma-template-btn ${isActive ? 'is-active' : ''}`}
+                  onClick={() => onChangeLayout(page.id, tmpl.id)}
+                  aria-pressed={isActive}
+                  aria-label={`${tmpl.label}. Lectura de derecha a izquierda.`}
+                  title={tmpl.description}
+                >
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="gf-koma-template-svg"
+                    aria-hidden="true"
+                  >
+                    {tmpl.panels.map((poly, idx) => (
+                      <polygon
+                        key={idx}
+                        points={polygonToSvgPoints(poly)}
+                        fill="currentColor"
+                        fillOpacity="0.16"
+                        stroke="currentColor"
+                        strokeWidth="5"
+                      />
+                    ))}
+                  </svg>
+                  <span className="gf-koma-template-label">{tmpl.shortLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Right Controls: Zoom + Guías KDP (#00AEEF) */}
+        <div className="gf-flow-topbar-right">
+          <div className="gf-editor-zoom-controls" aria-label="Control de zoom del lienzo">
+            <button
+              type="button"
+              className="gf-editor-zoom-step"
+              onClick={() => setZoom((z) => Math.max(60, z - 10))}
+              disabled={zoom <= 60}
+              aria-label="Reducir escala de página"
+              title="Reducir zoom"
+            >
+              <ZoomOut size={13} strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              className="gf-editor-zoom-readout"
+              onClick={() => setZoom(100)}
+              title="Restablecer zoom al 100%"
+            >
+              {zoom}%
+            </button>
+            <button
+              type="button"
+              className="gf-editor-zoom-step"
+              onClick={() => setZoom((z) => Math.min(150, z + 10))}
+              disabled={zoom >= 150}
+              aria-label="Ampliar escala de página"
+              title="Ampliar zoom"
+            >
+              <ZoomIn size={13} strokeWidth={2} />
+            </button>
           </div>
 
           {page && (
@@ -842,90 +905,16 @@ export const PageEditor: React.FC<{
               type="button"
               onClick={() => onToggleLayer(page.id, 'L6_guides')}
               className={`gf-guides-btn ${vis.L6_guides ? 'is-active' : ''}`}
+              title="Mostrar u ocultar guías de corte, área segura Naiwaku y lomo"
             >
-              <LayoutGrid size={14} strokeWidth={1.75} className="gf-icon-shrink" />
-              <span>{vis.L6_guides ? 'OCULTAR GUÍAS L6' : 'MOSTRAR GUÍAS L6'}</span>
+              <LayoutGrid size={13} strokeWidth={2} className="gf-icon-shrink" />
+              <span>{vis.L6_guides ? 'Guías KDP' : 'Guías OFF'}</span>
             </button>
           )}
         </div>
       </div>
 
-      <div className="gf-editor-zoom-bar">
-        <span className="gf-editor-zoom-meta">
-          MESA GENKŌ · {preset.shortName.toUpperCase()} · {komas.length} KOMA
-        </span>
-        <div className="gf-editor-zoom-controls">
-          <button
-            type="button"
-            className="gf-editor-zoom-step"
-            onClick={() => setZoom((z) => Math.max(60, z - 10))}
-            disabled={zoom <= 60}
-            aria-label="Reducir escala de página"
-          >
-            −
-          </button>
-          <label className="studio-zoom">
-            Escala{' '}
-            <input
-              type="range"
-              min="60"
-              max="150"
-              step="10"
-              value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value))}
-            />{' '}
-            {zoom}%
-          </label>
-          <button
-            type="button"
-            className="gf-editor-zoom-step"
-            onClick={() => setZoom((z) => Math.min(150, z + 10))}
-            disabled={zoom >= 150}
-            aria-label="Ampliar escala de página"
-          >
-            +
-          </button>
-        </div>
-      </div>
-      {/* Koma-wari Geometric Template Picker */}
-      {page && (
-        <div className="gf-koma-templates" role="group" aria-label="Plantillas Koma-wari">
-          {KOMA_LAYOUT_LIST.map((tmpl) => {
-            const isActive = activeLayout === tmpl.id;
-            return (
-              <button
-                key={tmpl.id}
-                type="button"
-                className={`gf-koma-template-btn ${isActive ? 'is-active' : ''}`}
-                onClick={() => onChangeLayout(page.id, tmpl.id)}
-                aria-pressed={isActive}
-                aria-label={`${tmpl.label}. Lectura de derecha a izquierda.`}
-                title={tmpl.description}
-              >
-                <svg
-                  viewBox="0 0 100 100"
-                  className="gf-koma-template-svg"
-                  aria-hidden="true"
-                >
-                  {tmpl.panels.map((poly, idx) => (
-                    <g key={idx}>
-                      <polygon points={polygonToSvgPoints(poly)} fill="white" stroke="#111" strokeWidth="3" />
-                      <text x={poly.reduce((sum, point) => sum + point.x, 0) / poly.length}
-                        y={poly.reduce((sum, point) => sum + point.y, 0) / poly.length}
-                        textAnchor="middle" dominantBaseline="central" fill="#111" fontSize="16" fontWeight="700">
-                        {idx + 1}
-                      </text>
-                    </g>
-                  ))}
-                </svg>
-                <span className="gf-koma-template-label">{tmpl.shortLabel}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Interactive Vector Panel Builder */}
+      {/* Slim Single-Row Interactive Vector Panel Builder Rail */}
       {page && (
         <div className="gf-vector-toolbar" role="toolbar" aria-label="Constructor de Viñetas Vectoriales">
           <div className="gf-vector-toolbar-row">
@@ -935,7 +924,7 @@ export const PageEditor: React.FC<{
                 className={`gf-vector-btn ${isDrawingVector ? 'is-primary' : ''}`}
                 onClick={handleToggleDrawingMode}
               >
-                <PenTool size={13} strokeWidth={2} className="gf-icon-shrink" />
+                <PenTool size={12} strokeWidth={2} className="gf-icon-shrink" />
                 <span>+ Trazar Viñeta Vectorial</span>
               </button>
 
@@ -945,7 +934,7 @@ export const PageEditor: React.FC<{
                 onClick={handleToggleEditVertices}
                 disabled={!selectedKoma}
               >
-                <Move size={13} strokeWidth={2} className="gf-icon-shrink" />
+                <Move size={12} strokeWidth={2} className="gf-icon-shrink" />
                 <span>Editar Vértices</span>
               </button>
 
@@ -956,7 +945,7 @@ export const PageEditor: React.FC<{
                   onClick={handleAddVertexToSelected}
                   title="Divide el borde más largo para añadir un nuevo vértice manipulable"
                 >
-                  <Plus size={13} strokeWidth={2} className="gf-icon-shrink" />
+                  <Plus size={12} strokeWidth={2} className="gf-icon-shrink" />
                   <span>+ Vértice</span>
                 </button>
               )}
@@ -967,7 +956,7 @@ export const PageEditor: React.FC<{
                 onClick={() => setSnapToGrid((s) => !s)}
                 title="Ajustar vértices automáticamente a cuadrícula y área segura Naiwaku"
               >
-                <Magnet size={13} strokeWidth={2} className="gf-icon-shrink" />
+                <Magnet size={12} strokeWidth={2} className="gf-icon-shrink" />
                 <span>Imán {snapToGrid ? 'ON' : 'OFF'}</span>
               </button>
             </div>
@@ -982,7 +971,7 @@ export const PageEditor: React.FC<{
                     disabled={draftPoints.length === 0}
                     title="Deshacer último vértice (Backspace)"
                   >
-                    <Undo2 size={13} strokeWidth={2} className="gf-icon-shrink" />
+                    <Undo2 size={12} strokeWidth={2} className="gf-icon-shrink" />
                     <span>Deshacer</span>
                   </button>
                   <button
@@ -992,7 +981,7 @@ export const PageEditor: React.FC<{
                     disabled={draftPoints.length < 3}
                     title="Cerrar polígono y añadir viñeta (Enter)"
                   >
-                    <Check size={13} strokeWidth={2} className="gf-icon-shrink" />
+                    <Check size={12} strokeWidth={2} className="gf-icon-shrink" />
                     <span>Cerrar Viñeta</span>
                   </button>
                   <button
@@ -1005,7 +994,7 @@ export const PageEditor: React.FC<{
                     }}
                     title="Cancelar trazado (Escape)"
                   >
-                    <X size={13} strokeWidth={2} className="gf-icon-shrink" />
+                    <X size={12} strokeWidth={2} className="gf-icon-shrink" />
                   </button>
                 </>
               )}
@@ -1019,7 +1008,7 @@ export const PageEditor: React.FC<{
                     disabled={!selectedKoma || komas.length <= 1}
                     title="Eliminar la viñeta seleccionada"
                   >
-                    <Trash2 size={13} strokeWidth={2} className="gf-icon-shrink" />
+                    <Trash2 size={12} strokeWidth={2} className="gf-icon-shrink" />
                     <span>Eliminar Viñeta</span>
                   </button>
                   <button
@@ -1029,7 +1018,7 @@ export const PageEditor: React.FC<{
                     disabled={komas.length === 0}
                     title="Vaciar viñetas para diseñar un layout vectorial desde cero"
                   >
-                    <Eraser size={13} strokeWidth={2} className="gf-icon-shrink" />
+                    <Eraser size={12} strokeWidth={2} className="gf-icon-shrink" />
                     <span>Lienzo Vacío</span>
                   </button>
                 </>
@@ -1067,11 +1056,12 @@ export const PageEditor: React.FC<{
       {/* =========================================================
           STRICT 7-LAYER GENKŌ YŌSHI CANVAS (L0 z=10 → L6 z=70)
           ========================================================= */}
-      <div
-        ref={sheetRef}
-        className="gf-sheet gf-sheet-koma"
-        style={{ aspectRatio: preset.aspectRatio, zoom: zoom / 100 }}
-      >
+      <div className="gf-canvas-hero-stage">
+        <div
+          ref={sheetRef}
+          className="gf-sheet gf-sheet-koma"
+          style={{ aspectRatio: preset.aspectRatio, zoom: zoom / 100 }}
+        >
         {isGeneratingPage && (
           <div className="gf-task-overlay" role="status" aria-live="polite">
             <RefreshCw size={22} strokeWidth={1.75} className="gf-spin gf-icon-shrink" />
@@ -1596,6 +1586,13 @@ export const PageEditor: React.FC<{
             </span>
           </div>
         )}
+        </div>
+
+        <div className="gf-sheet-folio-bar" aria-hidden="true">
+          <span>MANGAI STUDIO · {preset.shortName.toUpperCase()}</span>
+          <strong>— {safeIndex + 1} —</strong>
+          <span>600 DPI · SANGRADO {preset.bleedMm}MM</span>
+        </div>
       </div>
 
       {/* Inline 7-Layer Stack (L6 → L0) & Koma / Fukidashi Quick Inspector */}
