@@ -528,10 +528,12 @@ export const CharacterLibrary: React.FC<{
     <div className={`gf-roster-wrap animate-slide-in-right ${editingChar ? 'has-drawer' : ''}`}>
       <div className="gf-roster-topbar">
         <div>
+          <span className="gf-settei-kicker">設定 · BIBLIA VISUAL SETTEI</span>
           <h1 className="gf-page-title">Settei y Personajes</h1>
           <p className="gf-page-subtitle">
-            Define handles <code>@Settei</code>, anclas visuales inmutables, vistas de referencia y
-            semillas fijadas para mantener consistencia entre viñetas.
+            Define handles <code className="gf-settei-inline-code">@Settei</code>, anclas visuales
+            inmutables, vistas de referencia y semillas fijadas para mantener consistencia entre
+            viñetas.
           </p>
         </div>
         <div className="gf-roster-header-actions">
@@ -545,6 +547,7 @@ export const CharacterLibrary: React.FC<{
           <div className="gf-roster-cta">
             <PillButton
               variant="solid"
+              className="gf-settei-primary-cta"
               icon={<Plus size={16} strokeWidth={1.75} className="gf-icon-shrink" />}
               onClick={() => createNewEntity()}
             >
@@ -821,6 +824,7 @@ export const CharacterLibrary: React.FC<{
           >
             <div className="gf-settei-drawer-head">
               <div>
+                <span className="gf-settei-kicker">FICHA TÉCNICA · CANON</span>
                 <h3 className="gf-modal-title">Ficha Settei · Ancla de consistencia</h3>
                 <p className="gf-settei-drawer-sub">
                   Referencias, semilla y rasgos del personaje seleccionado.
@@ -1142,10 +1146,18 @@ export const CharacterLibrary: React.FC<{
             </div>
 
             <div className="gf-modal-actions">
-              <PillButton variant="outline" onClick={() => setEditingChar(null)}>
+              <PillButton
+                variant="outline"
+                className="gf-settei-secondary-cta"
+                onClick={() => setEditingChar(null)}
+              >
                 Descartar
               </PillButton>
-              <PillButton variant="solid" onClick={handleSaveProfile}>
+              <PillButton
+                variant="solid"
+                className="gf-settei-primary-cta"
+                onClick={handleSaveProfile}
+              >
                 Guardar Ficha Settei
               </PillButton>
             </div>

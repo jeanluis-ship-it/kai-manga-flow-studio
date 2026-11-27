@@ -771,6 +771,12 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
   };
 
   const canvasRatioValue = canvasDims.width / canvasDims.height;
+  const aspectSpecBadge =
+    canvasAspect === '16:9'
+      ? 'PORTADA 16:9'
+      : canvasAspect === '1:1'
+      ? 'SETTEI 1:1'
+      : 'CANVA B4 · 3:4';
 
   return (
     <div
@@ -778,14 +784,22 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
     >
       {!isFullscreen && (
         <div className="gf-tablet-header">
-          <div>
+          <div className="gf-tablet-header-copy">
+            <span className="gf-tablet-kicker">Mesa de Entintado · Papel Genkō</span>
             <h1 className="gf-page-title">Tabla de Dibujo Digital + KAI</h1>
             <p className="gf-page-subtitle">
               Dibuja con presión real (Wacom, Huion, Apple Pencil o mouse) y mejora tu boceto junto
               a KAI con <code>{KAI_IMAGE_MODEL_DEFAULT}</code>.
             </p>
           </div>
-          {bridgeBanner && <span className="gf-tablet-bridge-pill">{bridgeBanner}</span>}
+          <div className="gf-tablet-header-meta" aria-label="Especificaciones del lienzo">
+            <span className="gf-tablet-spec-badge is-crimson">{aspectSpecBadge}</span>
+            <span className="gf-tablet-spec-badge">600 DPI · G-PEN</span>
+            <span className="gf-tablet-spec-badge">
+              {canvasDims.width}×{canvasDims.height} PX
+            </span>
+            {bridgeBanner && <span className="gf-tablet-bridge-pill">{bridgeBanner}</span>}
+          </div>
         </div>
       )}
 
@@ -1007,7 +1021,7 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
 
                   <button
                     type="button"
-                    className={`gf-palm-toggle ${showGuides ? 'is-on' : ''}`}
+                    className={`gf-palm-toggle is-guide ${showGuides ? 'is-on' : ''}`}
                     onClick={() => setShowGuides((g) => !g)}
                   >
                     <span>Guías {showGuides ? 'ON' : 'OFF'}</span>
@@ -1015,7 +1029,7 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
                 </div>
 
                 <div className="gf-tablet-telemetry">
-                  <div className="gf-stylus-badge is-compact">
+                  <div className={`gf-stylus-badge is-compact ${stylusDetected ? 'is-pen' : ''}`}>
                     <span className="gf-stylus-dot" aria-hidden="true" />
                     <PenTool size={12} strokeWidth={2} className="gf-icon-shrink" />
                     <span>
@@ -1082,6 +1096,14 @@ export const DrawingTabletWorkbench: React.FC<DrawingTabletWorkbenchProps> = ({
                 aria-label="Lienzo digital sensible a presión para boceto manga"
               />
             </div>
+          </div>
+          <div className="gf-tablet-canvas-statusbar" aria-live="polite">
+            <span>
+              {activeBrush.label} · {brushSize}PX · ESTAB. {stabilizer}%
+            </span>
+            <span>
+              {aspectSpecBadge} · TRAZOS: {strokeCount}
+            </span>
           </div>
         </div>
 

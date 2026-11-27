@@ -800,13 +800,26 @@ export const PageEditor: React.FC<{
   return (
     <div className="gf-editor-wrap animate-slide-in-right">
       <div className="gf-editor-header">
-        <div>
+        <div className="gf-editor-heading-block">
           <h2 className="gf-editor-title">Páginas e Interiores</h2>
           <p className="gf-editor-counter">
             PÁG. {safeIndex + 1} / {project.pages.length} · {komas.length} VIÑETAS ·{' '}
             {preset.shortName.toUpperCase()} ({preset.exportWidthPx}×{preset.exportHeightPx} px ·{' '}
             Sangrado {preset.bleedMm} mm)
           </p>
+          <div className="gf-editor-specs-row" aria-label="Especificaciones editoriales de página">
+            <span className="gf-editor-spec-chip is-primary">
+              <span className="gf-editor-spec-dot" aria-hidden="true" />
+              600 DPI
+            </span>
+            <span className="gf-editor-spec-chip">
+              {(project.readingDirection || 'rtl') === 'rtl' ? 'RTL ← MANGA' : 'LTR → OCCIDENTAL'}
+            </span>
+            <span className="gf-editor-spec-chip">CAPAS L0–L6</span>
+            <span className="gf-editor-spec-chip is-guide">
+              SANGRADO {preset.bleedMm}MM
+            </span>
+          </div>
         </div>
 
         <div className="gf-editor-header-controls">
@@ -817,7 +830,7 @@ export const PageEditor: React.FC<{
                 type="button"
                 className={`gf-editor-preset-pill ${preset.id === p.id ? 'is-active' : ''}`}
                 onClick={() => updateProject({ trimFormat: p.id as TrimFormatId })}
-                title={`${p.name} (${p.exportWidthPx}×${p.exportHeightPx} px · Bleed ${p.bleedMm} mm)`}
+                title={`${p.name} (${p.exportWidthPx}×${p.exportHeightPx} px · Sangrado ${p.bleedMm} mm)`}
               >
                 {p.shortName}
               </button>
@@ -837,7 +850,43 @@ export const PageEditor: React.FC<{
         </div>
       </div>
 
-      <label className="studio-zoom">Zoom <input type="range" min="60" max="150" step="10" value={zoom} onChange={event => setZoom(Number(event.target.value))} /> {zoom}%</label>
+      <div className="gf-editor-zoom-bar">
+        <span className="gf-editor-zoom-meta">
+          MESA GENKŌ · {preset.shortName.toUpperCase()} · {komas.length} KOMA
+        </span>
+        <div className="gf-editor-zoom-controls">
+          <button
+            type="button"
+            className="gf-editor-zoom-step"
+            onClick={() => setZoom((z) => Math.max(60, z - 10))}
+            disabled={zoom <= 60}
+            aria-label="Reducir escala de página"
+          >
+            −
+          </button>
+          <label className="studio-zoom">
+            Escala{' '}
+            <input
+              type="range"
+              min="60"
+              max="150"
+              step="10"
+              value={zoom}
+              onChange={(event) => setZoom(Number(event.target.value))}
+            />{' '}
+            {zoom}%
+          </label>
+          <button
+            type="button"
+            className="gf-editor-zoom-step"
+            onClick={() => setZoom((z) => Math.min(150, z + 10))}
+            disabled={zoom >= 150}
+            aria-label="Ampliar escala de página"
+          >
+            +
+          </button>
+        </div>
+      </div>
       {/* Koma-wari Geometric Template Picker */}
       {page && (
         <div className="gf-koma-templates" role="group" aria-label="Plantillas Koma-wari">
@@ -1303,7 +1352,7 @@ export const PageEditor: React.FC<{
                   <polygon
                     points={polygonToSvgPoints(koma.polygonCoords)}
                     fill="none"
-                    stroke={selectedKoma?.id === koma.id ? '#4F46E5' : '#111111'}
+                    stroke={selectedKoma?.id === koma.id ? '#C8232C' : '#1A1A1A'}
                     strokeWidth={selectedKoma?.id === koma.id ? '1.05' : '0.65'}
                     strokeLinejoin="miter"
                     vectorEffect="non-scaling-stroke"
@@ -1352,7 +1401,7 @@ export const PageEditor: React.FC<{
               }}
             >
               <span className="gf-guide-tag gf-guide-tag-trim">
-                CORTE · BLEED {preset.bleedMm}mm
+                CORTE · SANGRADO {preset.bleedMm}MM
               </span>
             </div>
 
@@ -1374,7 +1423,7 @@ export const PageEditor: React.FC<{
               className={`gf-guide-gutter ${isGutterRight ? 'is-right' : 'is-left'}`}
               style={{ width: `${preset.gutterWidthPct}%` }}
             >
-              <span>LOMO / GUTTER</span>
+              <span>LOMO · MEDIANIL</span>
             </div>
           </div>
         )}
@@ -1404,8 +1453,8 @@ export const PageEditor: React.FC<{
                   {draftPoints.length >= 3 && (
                     <polygon
                       points={polygonToSvgPoints(draftPoints)}
-                      fill="rgba(79, 70, 229, 0.14)"
-                      stroke="#4F46E5"
+                      fill="rgba(200, 35, 44, 0.12)"
+                      stroke="#C8232C"
                       strokeWidth="0.65"
                       vectorEffect="non-scaling-stroke"
                     />
@@ -1414,7 +1463,7 @@ export const PageEditor: React.FC<{
                     <polyline
                       points={polygonToSvgPoints(draftPoints)}
                       fill="none"
-                      stroke="#4F46E5"
+                      stroke="#C8232C"
                       strokeWidth="0.7"
                       vectorEffect="non-scaling-stroke"
                     />
@@ -1437,7 +1486,7 @@ export const PageEditor: React.FC<{
                           y1={cursorPoint.y}
                           x2={draftPoints[0].x}
                           y2={draftPoints[0].y}
-                          stroke="#4F46E5"
+                          stroke="#C8232C"
                           strokeOpacity="0.45"
                           strokeWidth="0.4"
                           strokeDasharray="1.4 1.8"
@@ -1456,8 +1505,8 @@ export const PageEditor: React.FC<{
                             cx={pt.x}
                             cy={pt.y}
                             r={isNearFirstVertex ? 2.6 : 1.9}
-                            fill="rgba(79, 70, 229, 0.18)"
-                            stroke="#4F46E5"
+                            fill="rgba(200, 35, 44, 0.16)"
+                            stroke="#C8232C"
                             strokeWidth="0.45"
                             vectorEffect="non-scaling-stroke"
                           />
@@ -1466,7 +1515,7 @@ export const PageEditor: React.FC<{
                           cx={pt.x}
                           cy={pt.y}
                           r={isFirst ? 1.35 : 1.05}
-                          fill={canClose && isNearFirstVertex ? '#E11D48' : isFirst ? '#4F46E5' : '#00AEEF'}
+                          fill={canClose && isNearFirstVertex ? '#A30018' : isFirst ? '#C8232C' : '#00AEEF'}
                           stroke="#FFFFFF"
                           strokeWidth="0.35"
                           vectorEffect="non-scaling-stroke"
@@ -1498,8 +1547,8 @@ export const PageEditor: React.FC<{
                 <g>
                   <polygon
                     points={polygonToSvgPoints(selectedKoma.polygonCoords)}
-                    fill="rgba(79, 70, 229, 0.08)"
-                    stroke="#4F46E5"
+                    fill="rgba(200, 35, 44, 0.08)"
+                    stroke="#C8232C"
                     strokeWidth="0.85"
                     strokeDasharray="2 1.2"
                     vectorEffect="non-scaling-stroke"
@@ -1512,7 +1561,7 @@ export const PageEditor: React.FC<{
                           cx={pt.x}
                           cy={pt.y}
                           r={isDragging ? 2.2 : 1.55}
-                          fill={isDragging ? '#E11D48' : '#4F46E5'}
+                          fill={isDragging ? '#A30018' : '#C8232C'}
                           stroke="#FFFFFF"
                           strokeWidth="0.45"
                           vectorEffect="non-scaling-stroke"

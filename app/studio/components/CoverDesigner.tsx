@@ -444,18 +444,38 @@ export const CoverDesigner = forwardRef<
     );
   };
 
+  const presetFormatTag =
+    preset.id === 'tankobon_b6'
+      ? 'B6 TANKŌBON'
+      : preset.id === 'b4_canva_pro'
+      ? 'CANVA B4'
+      : 'KDP 6×9"';
+
   return (
     <div className="gf-cover-wrap animate-slide-in-right">
       <div className="gf-cover-header">
+        <span className="gf-cover-kicker">Preprensa Editorial · Cubierta Envolvente</span>
         <h1 className="gf-page-title">Portada Tankōbon</h1>
         <p className="gf-cover-subtitle">
           {preset.name} ({preset.trimLabel}) · Sangrado {preset.bleedLabel} · Lomo:{' '}
           {project.cover.spineWidthInches.toFixed(3)}&quot; ({spineMm} mm)
         </p>
+        <div className="gf-cover-spec-strip" aria-label="Especificaciones técnicas de cubierta">
+          <span className="gf-cover-spec-badge is-crimson">{presetFormatTag}</span>
+          <span className="gf-cover-spec-badge">{preset.dpiInterior} DPI</span>
+          <span className="gf-cover-spec-badge">{preset.bleedMm.toFixed(1)}MM BLEED</span>
+          <span className="gf-cover-spec-badge">LOMO {spineMm} MM</span>
+        </div>
       </div>
 
       {/* Format Presets (Tankōbon B6, Canva B4 2150×3035 + 3.5mm, KDP 6×9") & Editable ISBN-13 */}
-      <details className="gf-cover-prepress-panel" aria-label="Presets de Imprenta e ISBN-13 Editable"><summary>Formato de impresión e ISBN-13</summary>
+      <details className="gf-cover-prepress-panel" aria-label="Presets de Imprenta e ISBN-13 Editable">
+        <summary className="gf-cover-prepress-summary">
+          <span>Formato de impresión e ISBN-13</span>
+          <span className="gf-cover-prepress-summary-meta">
+            {presetFormatTag} · {preset.bleedMm.toFixed(1)}MM BLEED · {preset.dpiInterior} DPI
+          </span>
+        </summary>
         <div className="gf-cover-presets-row" role="radiogroup" aria-label="Formato de corte y sangrado">
           {PRINT_PRESET_LIST.map((p) => {
             const active = preset.id === p.id;
